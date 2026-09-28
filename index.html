@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <meta name="theme-color" content="#0f1830" />
+    <meta name="color-scheme" content="dark" />
+    <title>인우와 한글로봇</title>
+    <script type="module" crossorigin src="./assets/index-DZ4X4pRm.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-7Kya5P3w.css">
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="app">
+      <header id="topbar" hidden>
+        <button id="btn-pause" class="icon-btn" aria-label="일시정지"></button>
+        <div class="dots" id="foe-dots" aria-label="남은 적"></div>
+        <div id="combo" hidden><b>0</b><span>콤보</span></div>
+      </header>
+      <main id="battle"></main>
+      <section id="cockpit" hidden>
+        <div class="receiver" id="receiver">
+          <button id="btn-listen" class="listen-btn" aria-label="다시 듣기">
+            <span class="spk"></span>
+            <span class="wave"><i></i><i></i><i></i><i></i><i></i></span>
+          </button>
+          <div class="combo-gauge" id="combo-gauge"><div class="fill"></div></div>
+          <button id="btn-help" class="round-btn help" aria-label="정답 자모 보기"></button>
+        </div>
+        <div id="frames" class="frames"></div>
+        <div id="zone" class="zone"></div>
+      </section>
+    </div>
+    <!-- 전투 그림(캔버스) 위에 겹치는 표시: 위치는 main.ts가 #battle 영역에 맞춘다 -->
+    <div id="hud">
+      <div class="status foe-status" id="foe-status" hidden>
+        <span class="st-icon" id="foe-icon"></span>
+        <div class="bar"><div class="fill" id="foe-fill"></div></div>
+      </div>
+      <div class="status robot-status" id="robot-status" hidden>
+        <span class="st-icon" id="robot-icon"></span>
+        <div class="bar"><div class="fill" id="robot-fill"></div></div>
+      </div>
+      <div id="subtitle" hidden><span></span></div>
+    </div>
+    <div id="hand" hidden></div>
+    <div id="overlay" hidden></div>
+    <div id="boot">인우와 한글로봇 준비 중…</div>
+  </body>
+</html>
