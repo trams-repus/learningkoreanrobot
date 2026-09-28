@@ -1,9 +1,10 @@
-// 조종석: 떠다니는 자음·모음을 가져와 음절 조립틀에 넣는다.
-// - 탭: 자모를 활성 칸(없으면 역할이 맞는 칸)에 넣는다. 놓인 자모를 탭하면 되돌아간다.
-// - 끌어서 놓기: 손가락이 조금 벗어나도 가까운 알맞은 칸에 붙는다.
+// 조종석: 떠다니는 자음·모음을 끌어다 음절 조립틀에 넣는다.
+// - 끌어서 놓기만 된다: 탭으로는 넣지 않는다 (2026-09-28 사용자 지시). 놓인 자모를 탭하면 되돌아간다.
+// - 순서대로만: 음절 차례대로, 한 음절 안에서는 초성(자음) → 중성(모음) → 종성(받침).
+//   지금 차례인 칸 위에 놓아야 들어가고, 다른 칸이나 칸 밖에 놓으면 부드럽게 돌아간다.
 // - 칸이 다 차면 바로 판정한다 (제출 버튼 없음).
 // - 자모는 조합 영역 안에서만 천천히 떠다니고, 서로 겹치지 않고, 회전하지 않는다. 손을 대면 멈춘다.
-import { canHold, cellsOf, checkFrame, chooseCell, nextEmptyCell, type CellRole, type FrameFill, type FrameResult, type FrameSpec } from '../core/assembly';
+import { canHold, cellsOf, checkFrame, nextEmptyCell, type CellRole, type FrameFill, type FrameResult, type FrameSpec } from '../core/assembly';
 import { ICONS } from './icons';
 import { sfx } from '../game/services';
 
@@ -23,6 +24,8 @@ export interface CockpitCallbacks {
   onFrameResult: (index: number, result: FrameResult) => void;
   onWordComplete: () => void;
   onInteract: () => void;
+  /** 끌지 않고 탭만 했을 때 (넣지 않는다) */
+  onTapOnly: () => void;
 }
 
 interface JamoChip {
@@ -47,7 +50,10 @@ interface FrameView {
 }
 
 const DRAG_THRESHOLD = 8;
-const SNAP_TOLERANCE = 40;
+/** 차례인 칸 둘레로 이만큼 벗어나 놓아도 그 칸으로 친다 (아이 손가락) */
+const DROP_TOLERANCE = 16;
+/** 계속 막혀도 함정(방해) 자모는 이만큼은 남긴다 */
+export const MIN_TRAPS = 1;
 
 export class Cockpit {
   private framesEl: HTMLElement;
@@ -315,11 +321,36 @@ export class Cockpit {
       sfx.play('unplace');
       return;
     }
-    const f = this.frames[this.activeFrame];
-    if (!f || f.done) return;
-    const role = chooseCell(f.spec, f.fill, c.jamo, this.activeCell);
-    if (!role) return;
-    this.place(c, this.activeFrame, role);
+    // 탭만으로는 넣지 않는다: 칩을 살짝 흔들고 차례인 칸을 깜빡여 끌어다 놓을 곳을 알려준다
+    this.nudge(c.el);
+    this.blinkExpected();
+    this.cb.onTapOnly();
+  }
+
+  private nudge(el: HTMLElement): void {
+    el.classList.remove('nope');
+    void el.offsetWidth;
+    el.classList.add('nope');
+    setTimeout(() => el.classList.remove('nope'), 500);
+  }
+
+  private blinkExpected(): void {
+    const e = this.expected();
+    if (!e) return;
+    const cell = this.frames[e.frame].cells[e.role]!;
+    cell.classList.remove('blink');
+    void cell.offsetWidth;
+    cell.classList.add('blink');
+    setTimeout(() => cell.classList.remove('blink'), 900);
+  }
+
+  /** 다음에 넣을 칸: 음절 차례대로, 한 음절 안에서는 초성 → 중성 → 종성 */
+  private expected(): { frame: number; role: CellRole } | null {
+    const fi = this.frames.findIndex((f, i) => !f.done && this.frameEnabled(i));
+    if (fi < 0) return null;
+    const f = this.frames[fi];
+    const role = cellsOf(f.spec).find((r) => !f.fill[r]);
+    return role ? { frame: fi, role } : null;
   }
 
   private tapCell(f: FrameView, role: CellRole): void {
@@ -331,9 +362,7 @@ export class Cockpit {
     if (occupant) {
       this.unplace(occupant);
       sfx.play('unplace');
-    }
-    this.activeFrame = idx;
-    this.activeCell = role;
+    } else this.blinkExpected();
     this.refreshFrameStates();
   }
 
@@ -411,6 +440,10 @@ export class Cockpit {
   }
 
   private refreshFrameStates(): void {
+    // 활성 칸은 언제나 순서상 차례인 칸
+    const e = this.expected();
+    this.activeFrame = e ? e.frame : this.activeFrame;
+    this.activeCell = e ? e.role : null;
     this.frames.forEach((f, i) => {
       const enabled = this.frameEnabled(i);
       f.el.classList.toggle('waiting', !enabled && !f.done);
@@ -437,7 +470,7 @@ export class Cockpit {
     const f = this.frames[i];
     this.cb.onFrameResult(i, result);
     if (result.kind === 'correct') {
-      // 맞은 음절은 바로 잠그고 다음 음절로 넘어간다: 아이가 쉬지 않고 이어서 탭해도 입력을 버리지 않는다
+      // 맞은 음절은 바로 잠그고 다음 음절로 넘어간다: 아이가 쉬지 않고 이어서 끌어 넣어도 입력을 버리지 않는다
       f.done = true;
       const next = this.firstUndone();
       if (next >= 0) {
@@ -503,8 +536,9 @@ export class Cockpit {
       }
       return true;
     });
+    // 화면이 좁아도 함정은 남긴다 (칩이 조금 겹쳐 떠다니는 편이 함정이 없는 것보다 낫다)
+    if (spare.length <= MIN_TRAPS) return false;
     const victim = spare[spare.length - 1];
-    if (!victim) return false;
     list.splice(list.indexOf(victim), 1);
     this.removeChip(victim);
     return true;
@@ -513,7 +547,9 @@ export class Cockpit {
   /** 남은 방해 자모 하나를 치운다 (계속 막힐 때) */
   reduceChoices(): boolean {
     const needed = this.neededNow();
-    const spare = this.chips.filter((c) => !c.placed);
+    // 틀린 칸에 잠깐 들어가 있는 함정(판정 뒤 돌아올 칩)도 함정 수에 센다
+    const wrongPlaced = (c: JamoChip) => !!c.placed && this.frames[c.placed.frame]?.spec[c.placed.role] !== c.jamo;
+    const spare = [...this.chips.filter((c) => !c.placed), ...this.chips.filter(wrongPlaced)];
     const counts = new Map<string, number>();
     for (const j of needed) counts.set(j, (counts.get(j) ?? 0) + 1);
     const extra = spare.filter((c) => {
@@ -524,8 +560,10 @@ export class Cockpit {
       }
       return true;
     });
-    if (!extra.length) return false;
-    this.removeChip(extra[0]);
+    // 함정은 모두 치우지 않는다 (사용자 지시: 함정이 꼭 몇 개는 나오게)
+    const victim = extra.find((c) => !c.placed);
+    if (extra.length <= MIN_TRAPS || !victim) return false;
+    this.removeChip(victim);
     return true;
   }
 
@@ -549,7 +587,7 @@ export class Cockpit {
 
   /** 다음에 넣을 자모와 칸을 알려준다. 알려줬으면 true. */
   showNextHint(): boolean {
-    const fi = this.setupData?.sequential ? this.firstUndone() : this.frames.findIndex((f, i) => !f.done && (i === this.activeFrame || true));
+    const fi = this.firstUndone();
     const f = this.frames[fi];
     if (!f) return false;
     // 잘못 놓인 칸이 있으면 먼저 그 칸을 비우게 한다
@@ -559,13 +597,11 @@ export class Cockpit {
       this.pointHand(c.el, null);
       return true;
     }
-    role = (this.activeFrame === fi && this.activeCell && !f.fill[this.activeCell] ? this.activeCell : null) ?? nextEmptyCell(f.spec, f.fill);
+    role = cellsOf(f.spec).find((r) => !f.fill[r]) ?? null;
     if (!role) return false;
     const want = f.spec[role];
     const chip = this.chips.find((c) => !c.placed && c.jamo === want);
     if (!chip) return false;
-    this.activeFrame = fi;
-    this.activeCell = role;
     this.refreshFrameStates();
     chip.frozenUntil = performance.now() + 4000;
     chip.el.classList.add('pulse');
@@ -660,6 +696,11 @@ export class Cockpit {
           this.place(c, target.frame, target.role);
           return;
         }
+        // 차례가 아닌 칸이나 맞지 않는 칸에 놓았으면: 돌려보내고 차례인 칸을 알려준다
+        if (this.overFrames(e.clientX, e.clientY)) {
+          sfx.play('reject');
+          this.blinkExpected();
+        }
       }
       // 칸 밖이면 취소: 영역 안 제자리로 부드럽게 돌아간다
       const from = el.getBoundingClientRect();
@@ -669,12 +710,6 @@ export class Cockpit {
     };
     el.addEventListener('pointerup', (e) => end(e, false));
     el.addEventListener('pointercancel', (e) => end(e, true));
-    el.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        this.tapChip(c);
-      }
-    });
   }
 
   private releaseFreeze(c: JamoChip): void {
@@ -693,24 +728,20 @@ export class Cockpit {
     if (!d.chip.placed) this.render(d.chip);
   }
 
-  /** 놓은 자리에서 가장 가까운, 이 자모를 받을 수 있는 칸 */
+  /** 차례인 칸 위(조금 벗어난 곳까지)에, 그 칸이 받을 수 있는 자모(자음/모음)를 놓았을 때만 그 칸 */
   private dropTarget(x: number, y: number, jamo: string): { frame: number; role: CellRole } | null {
-    let best: { frame: number; role: CellRole; d: number } | null = null;
-    this.frames.forEach((f, i) => {
-      if (!this.frameEnabled(i)) return;
-      const fr = f.el.getBoundingClientRect();
-      const inFrame = x >= fr.left - SNAP_TOLERANCE && x <= fr.right + SNAP_TOLERANCE && y >= fr.top - SNAP_TOLERANCE && y <= fr.bottom + SNAP_TOLERANCE;
-      if (!inFrame) return;
-      for (const role of cellsOf(f.spec)) {
-        if (!canHold(role, jamo)) continue;
-        const r = f.cells[role]!.getBoundingClientRect();
-        const cx = Math.max(r.left, Math.min(x, r.right));
-        const cy = Math.max(r.top, Math.min(y, r.bottom));
-        const d = Math.hypot(x - cx, y - cy) + (f.fill[role] ? 6 : 0);
-        if (!best || d < best.d) best = { frame: i, role, d };
-      }
+    const e = this.expected();
+    if (!e || !canHold(e.role, jamo)) return null;
+    const r = this.frames[e.frame].cells[e.role]!.getBoundingClientRect();
+    const t = DROP_TOLERANCE;
+    return x >= r.left - t && x <= r.right + t && y >= r.top - t && y <= r.bottom + t ? e : null;
+  }
+
+  private overFrames(x: number, y: number): boolean {
+    return this.frames.some((f) => {
+      const r = f.el.getBoundingClientRect();
+      return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
     });
-    return best ? { frame: (best as { frame: number }).frame, role: (best as { role: CellRole }).role } : null;
   }
 
   private highlightDrop(x: number, y: number, jamo: string): void {

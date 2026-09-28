@@ -393,6 +393,13 @@ svg {
 .frame .cell.filled {
   border-color: transparent;
 }
+/* 차례가 아닌 곳에 놓거나 탭만 했을 때: 끌어다 놓을 칸을 알려준다 */
+.frame .cell.blink {
+  border-color: #fff2b8;
+  border-style: solid;
+  background: rgba(255, 242, 184, 0.28);
+  animation: blink 0.3s ease-in-out 3;
+}
 .frame .cell.drop-hover {
   border-color: var(--accent);
   border-style: solid;
@@ -517,9 +524,14 @@ svg {
   z-index: 30;
   box-shadow: 0 12px 18px rgba(0, 0, 0, 0.4);
 }
+/* 칩 위치는 transform(translate)으로 잡으므로, 칩 애니메이션은 scale·rotate 속성만 바꾼다 */
 .jamo-chip.pulse {
-  animation: pulse 0.9s ease-in-out infinite;
+  animation: chipPulse 0.9s ease-in-out infinite;
   background: #fff2b8;
+}
+/* 탭만 했을 때: 들어가지 않는다는 표시로 살짝 흔든다 */
+.jamo-chip.nope {
+  animation: chipNope 0.45s ease;
 }
 .jamo-chip.fresh {
   animation: fadeIn 0.4s ease;
@@ -1053,6 +1065,23 @@ body.theme-magic .frames.connected .frame::before {
   50% {
     transform: scale(1.08);
     box-shadow: 0 5px 0 var(--ink), 0 0 0 10px rgba(255, 201, 51, 0);
+  }
+}
+@keyframes chipPulse {
+  50% {
+    scale: 1.08;
+    box-shadow: 0 5px 0 var(--ink), 0 0 0 10px rgba(255, 201, 51, 0);
+  }
+}
+@keyframes chipNope {
+  20% {
+    rotate: -12deg;
+  }
+  45% {
+    rotate: 10deg;
+  }
+  70% {
+    rotate: -6deg;
   }
 }
 @keyframes wobble {

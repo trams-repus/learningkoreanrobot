@@ -101,6 +101,16 @@ export class AudioManager {
   }
 
   /**
+   * 한 음절 완성 때 그 음절 소리 (예: "수", "박"). 음절 녹음은 없어서 기기 음성으로 음절 전체를 읽는다.
+   * 자모 이름(시옷, 우…)은 읽지 않는다. 단어와 같은 채널이라 대사와 겹치지 않는다.
+   */
+  playSyllable(syllable: string): Promise<PlayResult> {
+    // 읽어 줄 목소리가 없으면 소리 없이 기다리게 하지 않는다
+    if (this.muted || this.volume <= 0 || !this.synth || !this.ttsVoice) return Promise.resolve({ ok: false, method: 'none' });
+    return this.play('word', `syl_${syllable}`, syllable);
+  }
+
+  /**
    * 전투 대사. 단어 음성 중이면 건너뛴다. 같은 대사는 cooldown 안에 반복하지 않는다.
    */
   playDialogue(id: string, opts: { cooldownMs?: number; force?: boolean } = {}): Promise<PlayResult> {
@@ -140,11 +150,11 @@ export class AudioManager {
     this.onPlaying(null, '');
   }
 
-  private play(ch: Channel, id: string): Promise<PlayResult> {
+  private play(ch: Channel, id: string, spoken?: string): Promise<PlayResult> {
     this.stop();
     const my = ++this.token;
-    const text = textFor(id);
-    const method = this.methodFor(id);
+    const text = spoken ?? textFor(id);
+    const method: Method = spoken === undefined ? this.methodFor(id) : this.synth && this.ttsVoice ? 'tts' : 'none';
     this.onPlaying(ch, text);
     if (ch === 'word') this.sfx.setDuck(true);
     const limit = 1200 + Array.from(text).length * 260;

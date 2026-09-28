@@ -1,4 +1,5 @@
-// 브라우저 자동 플레이: 시작 → 수박 조립(탭/끌기) → 공격 → 승리 → 다음 전투 일부 → 난이도 단계 전투 몇 단어.
+// 브라우저 자동 플레이: 시작 → 수박 조립(끌어서 놓기) → 공격 → 승리 → 다음 전투 일부 → 난이도 단계 전투 몇 단어.
+// 휴대폰·태블릿 크기는 실제 터치 끌기(CDP 터치 이벤트), 데스크톱은 마우스 끌기. 탭만으로는 들어가지 않아야 한다.
 // 사용: npm run build && npx vite preview --port 4173 & node e2e/play.mjs
 // 헤드리스 Chromium에는 한국어 음성이 없어 '재생 수단 없음' 경로(자막 후 진행)를 검사한다.
 import { chromium } from 'playwright';
@@ -41,8 +42,40 @@ async function chipCenter(page, jamo) {
   }, jamo);
 }
 
-/** 현재 단어를 조립한다. mode: 'tap' | 'drag' */
-async function solveWord(page, vp, mode, shotPrefix) {
+const cdps = new WeakMap();
+/** 끌어다 놓기: 터치 기기는 손가락 끌기, 데스크톱은 마우스 끌기 */
+async function dragTo(page, vp, from, to) {
+  const steps = 8;
+  const mid = (k) => ({ x: from.x + ((to.x - from.x) * k) / steps, y: from.y + ((to.y - from.y) * k) / steps });
+  if (vp.mobile) {
+    if (!cdps.has(page)) cdps.set(page, await page.context().newCDPSession(page));
+    const cdp = cdps.get(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: from.x, y: from.y, id: 1 }] });
+    for (let k = 1; k <= steps; k++) {
+      const p = mid(k);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: p.x, y: p.y, id: 1 }] });
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  } else {
+    await page.mouse.move(from.x, from.y);
+    await page.mouse.down();
+    for (let k = 1; k <= steps; k++) await page.mouse.move(mid(k).x, mid(k).y);
+    await page.mouse.up();
+  }
+}
+
+async function cellCenter(page, i, role) {
+  return page.evaluate(({ i, role }) => {
+    const r = document.querySelectorAll('#frames .frame')[i].querySelector(`.cell.${role}`).getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }, { i, role });
+}
+
+const inCells = (page) => page.evaluate(() => document.querySelectorAll('#frames .jamo-chip.in-cell').length);
+const freeChips = (page) => page.evaluate(() => [...document.querySelectorAll('#zone .jamo-chip')].filter((c) => !c.classList.contains('in-cell') && !c.classList.contains('leaving')).map((c) => c.dataset.jamo));
+
+/** 현재 단어를 끌어서 조립한다 (자음 → 모음 → 받침, 음절 차례대로) */
+async function solveWord(page, vp, shotPrefix) {
   await waitFor(page, () => window.__hd.game.phase === 'compose');
   const frames = await page.evaluate(() => window.__hd.game.current.frames.map((f) => ({ s: f.syllable, cells: f.hasJong ? [f.cho, f.jung, f.jong] : [f.cho, f.jung], roles: f.hasJong ? ['cho', 'jung', 'jong'] : ['cho', 'jung'] })));
   const word = frames.map((f) => f.s).join('');
@@ -56,19 +89,8 @@ async function solveWord(page, vp, mode, shotPrefix) {
         if (!c) await sleep(50);
       }
       if (!c) throw new Error(`자모 ${j} 칩을 찾지 못함 (${word})`);
-      if (mode === 'drag') {
-        const cell = await page.evaluate(({ i, role }) => {
-          const r = document.querySelectorAll('#frames .frame')[i].querySelector(`.cell.${role}`).getBoundingClientRect();
-          return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-        }, { i, role: frames[i].roles[k] });
-        await page.mouse.move(c.x, c.y);
-        await page.mouse.down();
-        await page.mouse.move(c.x + 12, c.y - 12, { steps: 2 });
-        await page.mouse.move(cell.x + 20, cell.y + 14, { steps: 6 }); // 조금 벗어난 곳에 놓아도 붙는지
-        await page.mouse.up();
-      } else {
-        await tapAt(page, vp, c.x, c.y);
-      }
+      const cell = await cellCenter(page, i, frames[i].roles[k]);
+      await dragTo(page, vp, c, { x: cell.x + 7, y: cell.y + 6 }); // 손가락이 가운데를 조금 벗어나도 들어가는지
       await sleep(120);
     }
     if (shotPrefix && i === 0 && frames.length > 1) {
@@ -131,9 +153,59 @@ async function run(vp) {
   await sleep(200);
   const firstChips = await page.evaluate(() => [...document.querySelectorAll('#zone .jamo-chip')].map((c) => c.dataset.jamo));
   const firstDistractors = firstChips.filter((j) => !'ㅅㅜㅂㅏㄱ'.includes(j));
+
+  // 음절·단어 읽기 순서를 기록한다 (헤드리스에는 한국어 음성이 없어 호출만 본다)
+  await page.evaluate(() => {
+    const a = window.__hd.audio;
+    window.__said = [];
+    const syl = a.playSyllable.bind(a);
+    const word = a.playWord.bind(a);
+    a.playSyllable = (x) => (window.__said.push(`음절:${x}`), syl(x));
+    a.playWord = (x) => (window.__said.push(`단어:${x.replace(/^w_/, '')}`), word(x));
+  });
+
+  // 탭만 하면 들어가지 않는다
+  const s0 = await chipCenter(page, 'ㅅ');
+  await tapAt(page, vp, s0.x, s0.y);
+  await sleep(300);
+  const tapInserted = (await inCells(page)) > 0;
+  // 순서가 아닌 칸(모음 칸)에 먼저 놓으면 돌아온다
+  const u0 = await chipCenter(page, 'ㅜ');
+  await dragTo(page, vp, u0, await cellCenter(page, 0, 'jung'));
+  await sleep(300);
+  const outOfOrderInserted = (await inCells(page)) > 0;
+  // 칸 밖 먼 곳에 놓아도 돌아온다
+  const s1 = await chipCenter(page, 'ㅅ');
+  const fr = await page.evaluate(() => document.querySelector('#frames').getBoundingClientRect().toJSON());
+  await dragTo(page, vp, s1, { x: fr.left + 4, y: fr.bottom - 4 });
+  await sleep(300);
+  const farDropInserted = (await inCells(page)) > 0;
+
+  // 함정으로 네 번 틀려도 함정 자모가 하나는 남는다 (계속 막히면 줄여 주되 0개로는 안 줄인다)
+  const trapsSeen = [];
+  for (let t = 0; t < 4; t++) {
+    const free = await freeChips(page);
+    const traps = free.filter((j) => !'ㅅㅜ'.includes(j));
+    trapsSeen.push(traps.join(''));
+    const trap = traps[0];
+    const isVowel = /[ㅏ-ㅣ]/.test(trap);
+    const [a, b] = isVowel ? ['ㅅ', trap] : [trap, 'ㅜ'];
+    await dragTo(page, vp, await chipCenter(page, a), await cellCenter(page, 0, 'cho'));
+    await sleep(150);
+    await dragTo(page, vp, await chipCenter(page, b), await cellCenter(page, 0, 'jung'));
+    await waitFor(page, (n) => window.__hd.game.current.mistakes >= n && document.querySelectorAll('#frames .jamo-chip.in-cell').length === 0, t + 1);
+    await sleep(1100);
+  }
+  // 도움이 몇 번 더 불려도 0개가 되지 않는지
+  await page.evaluate(() => [1, 2, 3].forEach(() => window.__hd.game.cockpit.reduceChoices()));
+  await sleep(400);
+  const trapsLeft = (await freeChips(page)).filter((j) => !'ㅅㅜ'.includes(j)).join('');
+  trapsSeen.push(trapsLeft);
+  await page.evaluate(() => (window.__said = []));
+
   const log = [];
   for (let n = 0; n < 3; n++) {
-    const w = await solveWord(page, vp, vp.name.startsWith('desktop') && n === 1 ? 'drag' : 'tap', n === 0 ? `${vp.name}-02` : null);
+    const w = await solveWord(page, vp, n === 0 ? `${vp.name}-02` : null);
     if (n === 0 || n === 2) {
       await sleep(n === 0 ? 350 : 700);
       await page.screenshot({ path: `${OUT}/${vp.name}-03-robot-attack${n}.png` });
@@ -142,12 +214,16 @@ async function run(vp) {
   }
   await waitFor(page, () => window.__hd.game.phase === 'victory' && !document.getElementById('overlay').hidden, null, 30000);
   const combo1 = await page.evaluate(() => window.__hd.saves.data.stats.bestCombo);
+  const said = await page.evaluate(() => window.__said.slice());
+  const i1 = said.indexOf('음절:수');
+  const i2 = said.indexOf('음절:박', i1 + 1);
+  const syllablesRead = i1 >= 0 && i2 > i1 && said.indexOf('단어:수박', i2 + 1) > i2;
   await page.screenshot({ path: `${OUT}/${vp.name}-04-victory.png` });
 
   // 2) 다음 전투 (쉬운 단어) 두 단어 + 일시정지
   await page.click('#v-next', { force: true });
   const s2 = [];
-  for (let n = 0; n < 2; n++) s2.push(await solveWord(page, vp, 'tap', n === 0 ? `${vp.name}-05-s2` : null));
+  for (let n = 0; n < 2; n++) s2.push(await solveWord(page, vp, n === 0 ? `${vp.name}-05-s2` : null));
   await waitFor(page, () => window.__hd.game.phase === 'compose');
   await page.click('#btn-pause', { force: true });
   await sleep(200);
@@ -168,7 +244,7 @@ async function run(vp) {
   await page.click('[data-stage="s1"]', { force: true });
   const log3 = [];
   for (let n = 0; n < 3; n++) {
-    const w = await solveWord(page, vp, 'tap', n === 0 ? `${vp.name}-08-magic` : null);
+    const w = await solveWord(page, vp, n === 0 ? `${vp.name}-08-magic` : null);
     if (n === 0 || n === 2) {
       await sleep(n === 0 ? 350 : 700);
       await page.screenshot({ path: `${OUT}/${vp.name}-09-magic-attack${n}.png` });
@@ -204,7 +280,7 @@ async function run(vp) {
         const tense = fr.some((f) => dbl.test(f.cho) || dbl.test(f.jong) || /[ㅐㅔㅒㅖ]/.test(f.jung));
         return tense ? 'tense' : fr.some((f) => f.hasJong) ? 'jong' : 'plain';
       });
-      const w = await solveWord(page, vp, 'tap', k === 0 && id !== 's6' ? `${vp.name}-12-${id}` : null);
+      const w = await solveWord(page, vp, k === 0 && id !== 's6' ? `${vp.name}-12-${id}` : null);
       tiers[id].push(`${w}:${t}`);
     }
   }
@@ -223,6 +299,13 @@ async function run(vp) {
     startDisabledBeforePick: startDisabled,
     firstChips: firstChips.join(''),
     firstDistractors: firstDistractors.join(''),
+    tapInserted,
+    outOfOrderInserted,
+    farDropInserted,
+    trapsSeen,
+    trapsLeft,
+    syllablesRead,
+    said: said.slice(0, 8).join(' '),
     robot: log,
     bestCombo: combo1,
     battle2: s2,
@@ -245,6 +328,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
     const r = await run(vp);
     console.log(JSON.stringify(r));
     if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
+    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead) failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);

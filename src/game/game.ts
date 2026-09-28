@@ -29,6 +29,8 @@ interface WordRun {
   speedEligible: boolean;
   guarded: boolean;
   color: string;
+  /** 방금 완성한 음절을 읽는 중 (단어 발음이 이 소리를 끊지 않게 기다린다) */
+  syllableSaid: Promise<unknown> | null;
 }
 
 export class Game {
@@ -61,11 +63,16 @@ export class Game {
         const cur = this.current;
         if (!cur) return;
         if (r.kind === 'different') this.onWrongSyllable(cur, r.wrongCells.map((role) => cur.frames[i][role]), r.made);
-        // 마지막 한 글자만 남았을 때 가끔 격려 (반복하지 않게 긴 간격)
-        else if (r.kind === 'correct' && cur.frames.length >= 2 && i === cur.frames.length - 2) void audio.playDialogue('d_almost', { cooldownMs: 60000 });
+        // 한 음절이 맞으면 그 음절 소리로 읽는다 (사용자 지시). 한 글자 단어는 곧 단어로 읽으므로 건너뛴다.
+        // (예전의 '거의 다 됐어' 격려 대사는 음절 소리와 겹쳐서 뺐다)
+        else if (r.kind === 'correct' && cur.frames.length >= 2) cur.syllableSaid = audio.playSyllable(cur.frames[i].syllable);
       },
       onWordComplete: () => void this.finishWord(this.run),
       onInteract: () => this.resetIdle(),
+      onTapOnly: () => {
+        this.resetIdle();
+        sfx.play('tap');
+      },
     });
     this.screens = new Screens(this);
     document.getElementById('btn-help')!.innerHTML = ICONS.bulb;
@@ -246,7 +253,7 @@ export class Game {
     else supply[0].push(...confusableDistractors(all, all, extra.perWord, Math.random, CONFUSABLE));
     const ghost = frames.map((_, i) => level === 'A' || (level === 'B' && i === 0));
     const color = WORD_COLORS[this.wordIndex % WORD_COLORS.length];
-    this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, guarded: false, color };
+    this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, guarded: false, color, syllableSaid: null };
     this.cockpit.setup({ frames, ghost, sequential, supply, motion: saves.data.settings.jamoMotion });
     this.phase = 'intro';
     this.scene.setCharge(0, color);
@@ -411,6 +418,9 @@ export class Game {
 
     // 완성 → 발음 → 에너지 전송 → 발사 → 명중
     this.cockpit.showConnected(cur.color);
+    // 마지막 음절 소리("박")가 끝난 뒤 단어("수박")를 읽는다. 음성이 멈춰도 오래 기다리지 않는다.
+    if (cur.syllableSaid) await Promise.race([cur.syllableSaid, this.scene.wait(1200)]);
+    if (my !== this.run) return;
     const wordSaid = audio.playWord(cur.entry.wordAudioId);
     await this.scene.playTransfer(cur.frames.map((f) => f.syllable), this.cockpit.frameRects(), cur.color);
     if (my !== this.run) return;
