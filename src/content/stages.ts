@@ -72,6 +72,18 @@ export const STAGES: StageDef[] = [
   },
 ];
 
+/**
+ * 출격할 전투: 아직 안 깬 첫 전투. 다 깼으면 마지막으로 한 전투의 다음 전투(보스 뒤에는 1단계)로 돌아가며
+ * 이어서 한다. 예전에는 다 깨면 늘 마지막 보스로만 가서 "스테이지 대신 큰 공룡 하나"가 됐다 (2026-09-28 제보).
+ */
+export function nextStageId(cleared: readonly string[], lastStage: string | null): string {
+  const done = new Set(cleared);
+  const first = STAGES.find((s) => !done.has(s.id));
+  if (first) return first.id;
+  const i = STAGES.findIndex((s) => s.id === lastStage);
+  return STAGES[(i + 1) % STAGES.length].id;
+}
+
 export function stageById(id: string): StageDef | undefined {
   return STAGES.find((s) => s.id === id);
 }

@@ -272,6 +272,7 @@ async function run(vp) {
 
   // 2) 다음 전투 (쉬운 단어) 두 단어 + 일시정지
   await page.click('#v-next', { force: true });
+  await waitFor(page, () => window.__hd.game.stage?.id === 's2');
   const s2 = [];
   for (let n = 0; n < 2; n++) s2.push(await solveWord(page, vp, n === 0 ? `${vp.name}-05-s2` : null));
   await waitFor(page, () => window.__hd.game.phase === 'compose');
@@ -376,6 +377,43 @@ async function run(vp) {
   };
 }
 
+/** 출격이 어느 전투로 가는지: 새 기록 / 옛 구성 기록 / 이어하기 / 다 깬 기록 (2026-09-28 "큰 공룡 하나만" 제보) */
+async function stagePaths() {
+  const KEY = 'inwoo-hangul-robot.save.v2';
+  const all = ['s1', 's2', 's3', 's4', 's5', 's6'];
+  const cases = [
+    ['새로 시작', null, 's1'],
+    ['옛 구성(s1~s4)을 다 깬 기록', { version: 2, cleared: ['s1', 's2', 's3', 's4'], settings: { characterTheme: 'robot' } }, 's1'],
+    ['1단계를 깬 기록 이어하기', { version: 2, stageSet: 2, cleared: ['s1'], lastStage: 's1', settings: { characterTheme: 'robot' } }, 's2'],
+    ['3단계까지 깬 기록 이어하기', { version: 2, stageSet: 2, cleared: ['s1', 's2', 's3'], lastStage: 's3', settings: { characterTheme: 'robot' } }, 's4'],
+    ['다 깬 기록 (보스 뒤)', { version: 2, stageSet: 2, cleared: all, lastStage: 's6', settings: { characterTheme: 'robot' } }, 's1'],
+  ];
+  const browser = await chromium.launch();
+  const out = {};
+  let ok = true;
+  for (const [label, save, want] of cases) {
+    const ctx = await browser.newContext({ viewport: { width: 360, height: 640 }, isMobile: true, hasTouch: true, locale: 'ko-KR' });
+    await ctx.addInitScript(([k, v]) => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      if (v) localStorage.setItem(k, v);
+    }, [KEY, save ? JSON.stringify(save) : null]);
+    const page = await ctx.newPage();
+    await page.goto(`${BASE}?dev=1&speed=2`);
+    await page.waitForSelector('#t-start');
+    await pickHero(page, 'robot');
+    await page.click('#t-start', { force: true });
+    await waitFor(page, () => !!window.__hd.game.stage && window.__hd.game.phase !== 'menu');
+    await sleep(300);
+    const r = await page.evaluate(() => ({ id: window.__hd.game.stage.id, banner: document.getElementById('stage-banner').textContent }));
+    out[label] = `${r.id} (${r.banner})`;
+    if (r.id !== want) ok = false;
+    await ctx.close();
+  }
+  await browser.close();
+  return { stagePaths: out, ok };
+}
+
 const only = process.argv[2];
 let failed = false;
 for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
@@ -387,6 +425,16 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);
+  }
+}
+if (!only || only === 'stages' || '360'.includes(only)) {
+  try {
+    const r = await stagePaths();
+    console.log(JSON.stringify(r));
+    if (!r.ok) failed = true;
+  } catch (e) {
+    failed = true;
+    console.log(`stagePaths FAILED: ${e.message}`);
   }
 }
 process.exit(failed ? 1 : 0);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultSave, helpLevelFor, recordSuccess, sanitizeSave, wordStats } from '../src/core/progress';
+import { defaultSave, helpLevelFor, recordSuccess, sanitizeSave, STAGE_SET, wordStats } from '../src/core/progress';
 import { SAVE_KEY, SaveService, type StorageLike } from '../src/services/storage';
 
 class Mem implements StorageLike {
@@ -66,6 +66,7 @@ describe('저장과 복구', () => {
   });
   it('이상한 값은 안전한 기본값으로', () => {
     const d = sanitizeSave({
+      stageSet: STAGE_SET,
       cleared: [1, 's2', null],
       settings: { voiceVolume: 9, muted: 'yes', pack: 'x', helpMode: 'more' },
       stats: { stuckJamo: { ㅂ: -3, ㄱ: 2 }, words: { 수박: { independent: 'x', assisted: 2 } } },
@@ -79,6 +80,19 @@ describe('저장과 복구', () => {
     expect(d.stats.words['수박']).toMatchObject({ independent: 0, assisted: 2 });
     expect(sanitizeSave(null)).toEqual(defaultSave());
     expect(sanitizeSave([1, 2])).toEqual(defaultSave());
+  });
+  it('옛 전투 구성에서 깬 기록은 새 구성에서 전투 진행만 처음부터 (단어 기록·설정은 유지)', () => {
+    // 2026-09-28 전 구성(s1~s4, s4=거대 공룡)을 다 깬 기록
+    const d = sanitizeSave({ version: 2, cleared: ['s1', 's2', 's3', 's4'], settings: { muted: true }, stats: { words: { 수박: { independent: 3 } } } });
+    expect(d.cleared).toEqual([]);
+    expect(d.lastStage).toBeNull();
+    expect(d.stageSet).toBe(STAGE_SET);
+    expect(d.settings.muted).toBe(true);
+    expect(d.stats.words['수박']?.independent).toBe(3);
+    // 같은 구성의 기록은 그대로 이어한다
+    const e = sanitizeSave({ stageSet: STAGE_SET, cleared: ['s1', 's2'], lastStage: 's2' });
+    expect(e.cleared).toEqual(['s1', 's2']);
+    expect(e.lastStage).toBe('s2');
   });
   it('저장소를 못 쓰는 환경에서도 동작', () => {
     const s = new SaveService(null);

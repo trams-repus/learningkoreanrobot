@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
-import { MIN_STAGE_WORDS, STAGES, drawWord, entryDifficulty, stageWords } from '../src/content/stages';
+import { MIN_STAGE_WORDS, STAGES, drawWord, entryDifficulty, nextStageId, stageWords } from '../src/content/stages';
 import { createRng } from '../src/core/rng';
 import { EASY_FIVE, EASY_MORE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
 import { isSupportedWord, wordDifficulty, wordFeatures, wordFrames, wordTier } from '../src/core/assembly';
@@ -189,5 +189,20 @@ describe('무작위 출제 (단어 주머니)', () => {
     const r = drawWord(['수박', '나무'], ['나무', '바다'], '', createRng(2));
     expect(r.word).toBe('나무');
     expect(drawWord([], ['수박'], '수박', createRng(3)).word).toBe('수박');
+  });
+});
+
+describe('출격 순서', () => {
+  const ids = STAGES.map((s) => s.id);
+  it('처음이면 1단계(수박), 깬 만큼 다음 단계', () => {
+    expect(nextStageId([], null)).toBe('s1');
+    expect(nextStageId(['s1'], 's1')).toBe('s2');
+    expect(nextStageId(['s1', 's2', 's3'], 's3')).toBe('s4');
+  });
+  it('다 깼으면 보스에만 머물지 않고 마지막 전투 다음부터 순서대로 돈다', () => {
+    expect(nextStageId(ids, 's6')).toBe('s1');
+    expect(nextStageId(ids, 's1')).toBe('s2');
+    expect(nextStageId(ids, 's3')).toBe('s4');
+    expect(nextStageId(ids, null)).toBe('s1');
   });
 });

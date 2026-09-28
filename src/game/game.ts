@@ -1,7 +1,7 @@
 // 게임 흐름: 적 등장 → (대사) → 암호 수신기가 단어를 말함 → 자모 조립 → 단어 완성 → 로봇 공격 → 적 차례 → 다음 단어.
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
-import { STAGES, drawWord, stageById, stageWords, type StageDef } from '../content/stages';
+import { STAGES, drawWord, nextStageId, stageById, stageWords, type StageDef } from '../content/stages';
 import { CONFUSABLE, DISTRACTORS_PER_LEVEL } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
 import { pictureSvg } from '../content/pictures';
@@ -51,6 +51,7 @@ export class Game {
   private idleTimers: ReturnType<typeof setTimeout>[] = [];
   private gaugeRaf = 0;
   private resumeWaiters: (() => void)[] = [];
+  private bannerTimer: ReturnType<typeof setTimeout> | undefined;
   readonly cockpit: Cockpit;
   readonly screens: Screens;
 
@@ -145,8 +146,7 @@ export class Game {
   }
 
   nextStageId(): string {
-    const cleared = new Set(saves.data.cleared);
-    return (STAGES.find((s) => !cleared.has(s.id)) ?? STAGES[STAGES.length - 1]).id;
+    return nextStageId(saves.data.cleared, saves.data.lastStage);
   }
 
   toMenu(): void {
@@ -183,14 +183,30 @@ export class Game {
     this.showCombo(false);
     const st = saves.data.stats;
     st.battlesPlayed[id] = (st.battlesPlayed[id] ?? 0) + 1;
+    saves.data.lastStage = stage.id;
     saves.save();
     this.scene.resetBattle(this.state.robotHp);
     this.showBattleUi(true);
+    this.showStageBanner(stage);
     const set = saves.data.settings;
     audio.preload(stageWords(stage, set.pack, set.includeRecommended).map((w) => w.wordAudioId));
     this.cockpit.setup({ frames: [], ghost: [], sequential: true, supply: [[]], motion: false });
     this.cockpit.lock();
     await this.nextFoe(my, true);
+  }
+
+  /** 전투 시작 때 몇 단계인지 잠깐 보여 준다 (단계가 이어진다는 것을 보이게) */
+  private showStageBanner(stage: StageDef): void {
+    const el = document.getElementById('stage-banner')!;
+    const n = STAGES.findIndex((s) => s.id === stage.id) + 1;
+    el.querySelector('b')!.textContent = `${n}단계`;
+    el.querySelector('span')!.textContent = stage.name;
+    el.hidden = false;
+    el.classList.remove('show');
+    void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(this.bannerTimer);
+    this.bannerTimer = setTimeout(() => (el.hidden = true), 2400);
   }
 
   private renderFoeDots(): void {

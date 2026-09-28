@@ -312,6 +312,46 @@ svg {
 .receiver.talk .listen-btn {
   color: var(--trim);
 }
+/* 전투 시작: 몇 단계인지 (부모가 진행을 알아보게) */
+#stage-banner {
+  position: absolute;
+  left: 50%;
+  top: 15%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 3px solid var(--ink);
+  background: #fff7e0;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 4px 0 var(--ink);
+  pointer-events: none;
+}
+#stage-banner b {
+  color: #e8553d;
+}
+#stage-banner.show {
+  animation: bannerIn 2.4s ease forwards;
+}
+@keyframes bannerIn {
+  0% {
+    opacity: 0;
+    translate: 0 -12px;
+  }
+  12%,
+  80% {
+    opacity: 1;
+    translate: 0 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 /* 단어 그림: 수신기 바로 옆에 크게. 그림이 없는 단어는 자리만 남기고 비운다 */
 .word-pic {
   flex: 0 0 auto;

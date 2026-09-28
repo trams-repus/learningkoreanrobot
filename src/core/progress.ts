@@ -49,9 +49,20 @@ export interface Stats {
   reboots: number;
 }
 
+/**
+ * 전투(스테이지) 구성 판. 전투 목록의 순서·뜻이 바뀌면 올린다: 옛 구성에서 깬 기록(s1~s4)이
+ * 새 구성(s1~s6)에 그대로 붙어 출격이 엉뚱한 전투(보스)로 가는 것을 막는다.
+ * 2 = 2026-09-28 받침·쌍자음 단계가 들어간 6단계 구성.
+ */
+export const STAGE_SET = 2;
+
 export interface SaveData {
   version: number;
+  /** 깬 전투 기록이 어느 전투 구성 기준인지 (STAGE_SET) */
+  stageSet: number;
   cleared: string[];
+  /** 마지막으로 시작한 전투 (다 깼을 때 다음 출격 순서를 잇는다) */
+  lastStage: string | null;
   settings: Settings;
   stats: Stats;
 }
@@ -76,7 +87,7 @@ export function emptyStats(): Stats {
 }
 
 export function defaultSave(): SaveData {
-  return { version: SAVE_VERSION, cleared: [], settings: defaultSettings(), stats: emptyStats() };
+  return { version: SAVE_VERSION, stageSet: STAGE_SET, cleared: [], lastStage: null, settings: defaultSettings(), stats: emptyStats() };
 }
 
 export function emptyWordStats(): WordStats {
@@ -114,9 +125,13 @@ export function sanitizeSave(raw: unknown): SaveData {
       lastAssisted: bool(w.lastAssisted, false),
     };
   }
+  // 다른 전투 구성에서 깬 기록은 새 구성에 맞지 않으므로 전투 진행만 처음부터 (단어 기록·설정은 그대로)
+  const sameStages = r.stageSet === STAGE_SET;
   return {
     version: SAVE_VERSION,
-    cleared: Array.isArray(r.cleared) ? r.cleared.filter((x): x is string => typeof x === 'string') : [],
+    stageSet: STAGE_SET,
+    cleared: sameStages && Array.isArray(r.cleared) ? r.cleared.filter((x): x is string => typeof x === 'string') : [],
+    lastStage: sameStages && typeof r.lastStage === 'string' ? r.lastStage : null,
     settings: {
       muted: bool(s.muted, d.settings.muted),
       voiceVolume: num(s.voiceVolume, d.settings.voiceVolume, 0, 1),
