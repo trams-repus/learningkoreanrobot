@@ -153,6 +153,12 @@ async function run(vp) {
   await sleep(200);
   const firstChips = await page.evaluate(() => [...document.querySelectorAll('#zone .jamo-chip')].map((c) => c.dataset.jamo));
   const firstDistractors = firstChips.filter((j) => !'ㅅㅜㅂㅏㄱ'.includes(j));
+  // 수박 그림이 수신기 옆에 보이는지 (글자 없이 뜻만)
+  const picShown = await page.evaluate(() => {
+    const el = document.getElementById('word-pic');
+    const r = el.getBoundingClientRect();
+    return !el.classList.contains('empty') && !!el.querySelector('svg') && r.width >= 56 && r.bottom <= window.innerHeight;
+  });
 
   // 음절·단어 읽기 순서를 기록한다 (헤드리스에는 한국어 음성이 없어 호출만 본다)
   await page.evaluate(() => {
@@ -343,6 +349,7 @@ async function run(vp) {
     startDisabledBeforePick: startDisabled,
     firstChips: firstChips.join(''),
     firstDistractors: firstDistractors.join(''),
+    picShown,
     tapInserted,
     removeOk,
     removeFix: Object.entries(removeFix).filter(([, v]) => !v).map(([k]) => k).join(',') || 'all ok',
@@ -376,7 +383,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
     const r = await run(vp);
     console.log(JSON.stringify(r));
     if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
-    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording || !r.removeOk) failed = true;
+    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording || !r.removeOk || !r.picShown) failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);

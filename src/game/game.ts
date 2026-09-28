@@ -4,6 +4,7 @@ import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/
 import { STAGES, drawWord, stageById, stageWords, type StageDef } from '../content/stages';
 import { CONFUSABLE, DISTRACTORS_PER_LEVEL } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
+import { pictureSvg } from '../content/pictures';
 import { confusableDistractors, jamoCount, requiredJamo, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
 import { createBattle, foeTurn, robotAttack, spawnFoe } from '../core/battle';
 import { bonusTimeMs, ComboClock, damageFor, nextCombo, tierFor, type HelpLevel } from '../core/combo';
@@ -79,6 +80,7 @@ export class Game {
     document.getElementById('btn-pause')!.innerHTML = ICONS.pause;
     this.applyTheme(saves.data.settings.characterTheme ?? 'robot', false);
     document.getElementById('btn-listen')!.addEventListener('click', () => void this.replayWord());
+    document.getElementById('word-pic')!.addEventListener('click', () => void this.replayWord());
     document.getElementById('btn-help')!.addEventListener('click', () => this.help());
     document.getElementById('btn-pause')!.addEventListener('click', () => this.pause(true));
     document.addEventListener('visibilitychange', () => {
@@ -255,6 +257,7 @@ export class Game {
     const color = WORD_COLORS[this.wordIndex % WORD_COLORS.length];
     this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, guarded: false, color, syllableSaid: null };
     this.cockpit.setup({ frames, ghost, sequential, supply, motion: saves.data.settings.jamoMotion });
+    this.showPicture(entry);
     this.phase = 'intro';
     this.scene.setCharge(0, color);
 
@@ -278,6 +281,19 @@ export class Game {
     this.startGauge();
     if (level === 'A') setTimeout(() => this.phase === 'compose' && this.current?.entry === entry && this.cockpit.showNextHint(), 500 / options.speed);
     this.resetIdle();
+  }
+
+  /** 단어 뜻 그림 (글자 없이 뜻만). 그림이 없는 단어는 칸을 비운다. */
+  private showPicture(entry: VocabEntry): void {
+    const el = document.getElementById('word-pic')!;
+    const svg = pictureSvg(entry.pictureId);
+    el.innerHTML = svg ?? '';
+    el.classList.toggle('empty', !svg);
+    el.classList.remove('pop');
+    if (svg) {
+      void el.offsetWidth;
+      el.classList.add('pop');
+    }
   }
 
   // ───────────── 조합 중 ─────────────

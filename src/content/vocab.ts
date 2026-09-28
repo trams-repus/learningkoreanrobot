@@ -15,6 +15,8 @@ export interface VocabEntry {
   domain: Domain;
   /** 음원 목록(audio manifest)의 단어 음성 ID */
   wordAudioId: string;
+  /** 단어 그림 ID (content/pictures.ts). 그림이 없는 단어는 그림 칸을 비운다. */
+  pictureId: string;
   /** 게임 내부 선정 근거와 확인 상태 */
   source: string;
   sourceStatus: '임시 선정' | '대조 완료';
@@ -34,6 +36,7 @@ function v(word: string, pack: PackId, tier: Tier, domain: Domain, soundMatchesS
     tier,
     domain,
     wordAudioId: `w_${word}`,
+    pictureId: `p_${word}`,
     source: PENDING,
     sourceStatus: '임시 선정',
     officialGrade: null,
