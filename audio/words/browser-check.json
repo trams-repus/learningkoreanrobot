@@ -1,5 +1,5 @@
 {
-  "checkedAt": "2026-09-28T19:22:28.633Z",
+  "checkedAt": "2026-09-28T19:26:21.417Z",
   "browser": "Chromium 141.0.7390.37 (Playwright, 헤드리스)",
   "silentPeak": 0.02,
   "results": [
@@ -15,7 +15,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.6,
       "playedToEnd": true,
-      "playMs": 805,
+      "playMs": 810,
       "problems": []
     },
     {
@@ -30,7 +30,7 @@
       "soundStart": 0.3,
       "soundEnd": 0.87,
       "playedToEnd": true,
-      "playMs": 1058,
+      "playMs": 1059,
       "problems": []
     },
     {
@@ -60,7 +60,7 @@
       "soundStart": 0.19,
       "soundEnd": 0.55,
       "playedToEnd": true,
-      "playMs": 749,
+      "playMs": 750,
       "problems": []
     },
     {
@@ -120,7 +120,7 @@
       "soundStart": 0.05,
       "soundEnd": 0.79,
       "playedToEnd": true,
-      "playMs": 799,
+      "playMs": 861,
       "problems": []
     },
     {
@@ -135,7 +135,7 @@
       "soundStart": 0.19,
       "soundEnd": 0.54,
       "playedToEnd": true,
-      "playMs": 729,
+      "playMs": 717,
       "problems": []
     },
     {
@@ -150,7 +150,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.45,
       "playedToEnd": true,
-      "playMs": 679,
+      "playMs": 680,
       "problems": []
     },
     {
@@ -210,7 +210,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.63,
       "playedToEnd": true,
-      "playMs": 848,
+      "playMs": 849,
       "problems": []
     },
     {
@@ -255,7 +255,7 @@
       "soundStart": 0.22,
       "soundEnd": 0.74,
       "playedToEnd": true,
-      "playMs": 997,
+      "playMs": 1047,
       "problems": []
     },
     {
@@ -270,7 +270,7 @@
       "soundStart": 0.09,
       "soundEnd": 0.72,
       "playedToEnd": true,
-      "playMs": 978,
+      "playMs": 980,
       "problems": []
     },
     {
@@ -285,7 +285,7 @@
       "soundStart": 0.19,
       "soundEnd": 0.58,
       "playedToEnd": true,
-      "playMs": 779,
+      "playMs": 778,
       "problems": []
     },
     {
@@ -300,7 +300,7 @@
       "soundStart": 0.2,
       "soundEnd": 0.92,
       "playedToEnd": true,
-      "playMs": 1129,
+      "playMs": 1128,
       "problems": []
     },
     {
@@ -330,7 +330,7 @@
       "soundStart": 0.2,
       "soundEnd": 0.76,
       "playedToEnd": true,
-      "playMs": 988,
+      "playMs": 989,
       "problems": []
     },
     {
@@ -375,7 +375,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.74,
       "playedToEnd": true,
-      "playMs": 958,
+      "playMs": 959,
       "problems": []
     },
     {
@@ -390,7 +390,7 @@
       "soundStart": 0.2,
       "soundEnd": 0.77,
       "playedToEnd": true,
-      "playMs": 988,
+      "playMs": 989,
       "problems": []
     },
     {
@@ -435,7 +435,7 @@
       "soundStart": 0.18,
       "soundEnd": 0.77,
       "playedToEnd": true,
-      "playMs": 979,
+      "playMs": 980,
       "problems": []
     },
     {
@@ -495,7 +495,7 @@
       "soundStart": 0.23,
       "soundEnd": 0.83,
       "playedToEnd": true,
-      "playMs": 1028,
+      "playMs": 1029,
       "problems": []
     },
     {
@@ -510,7 +510,7 @@
       "soundStart": 0.04,
       "soundEnd": 0.79,
       "playedToEnd": true,
-      "playMs": 1017,
+      "playMs": 1019,
       "problems": []
     },
     {
@@ -525,7 +525,7 @@
       "soundStart": 0.16,
       "soundEnd": 0.7,
       "playedToEnd": true,
-      "playMs": 768,
+      "playMs": 770,
       "problems": []
     },
     {
@@ -540,7 +540,7 @@
       "soundStart": 0.18,
       "soundEnd": 0.79,
       "playedToEnd": true,
-      "playMs": 1057,
+      "playMs": 1009,
       "problems": []
     },
     {
@@ -600,7 +600,7 @@
       "soundStart": 0.19,
       "soundEnd": 0.77,
       "playedToEnd": true,
-      "playMs": 949,
+      "playMs": 948,
       "problems": []
     },
     {
@@ -615,7 +615,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.5,
       "playedToEnd": true,
-      "playMs": 689,
+      "playMs": 690,
       "problems": []
     },
     {
@@ -630,7 +630,7 @@
       "soundStart": 0.2,
       "soundEnd": 0.67,
       "playedToEnd": true,
-      "playMs": 878,
+      "playMs": 879,
       "problems": []
     },
     {
@@ -645,7 +645,7 @@
       "soundStart": 0.19,
       "soundEnd": 0.75,
       "playedToEnd": true,
-      "playMs": 898,
+      "playMs": 899,
       "problems": []
     },
     {
@@ -660,7 +660,7 @@
       "soundStart": 0.22,
       "soundEnd": 0.55,
       "playedToEnd": true,
-      "playMs": 718,
+      "playMs": 719,
       "problems": []
     },
     {
@@ -675,7 +675,7 @@
       "soundStart": 0.25,
       "soundEnd": 0.82,
       "playedToEnd": true,
-      "playMs": 1048,
+      "playMs": 1049,
       "problems": []
     },
     {
@@ -690,7 +690,7 @@
       "soundStart": 0.2,
       "soundEnd": 0.81,
       "playedToEnd": true,
-      "playMs": 969,
+      "playMs": 950,
       "problems": []
     },
     {
@@ -705,7 +705,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.58,
       "playedToEnd": true,
-      "playMs": 819,
+      "playMs": 866,
       "problems": []
     },
     {
@@ -735,7 +735,7 @@
       "soundStart": 0.25,
       "soundEnd": 0.77,
       "playedToEnd": true,
-      "playMs": 998,
+      "playMs": 997,
       "problems": []
     },
     {
@@ -780,7 +780,7 @@
       "soundStart": 0.21,
       "soundEnd": 0.71,
       "playedToEnd": true,
-      "playMs": 927,
+      "playMs": 929,
       "problems": []
     },
     {
@@ -810,7 +810,7 @@
       "soundStart": 0.23,
       "soundEnd": 0.6,
       "playedToEnd": true,
-      "playMs": 800,
+      "playMs": 799,
       "problems": []
     },
     {
@@ -855,7 +855,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.61,
       "playedToEnd": true,
-      "playMs": 840,
+      "playMs": 838,
       "problems": []
     },
     {
@@ -945,7 +945,7 @@
       "soundStart": 0.23,
       "soundEnd": 0.78,
       "playedToEnd": true,
-      "playMs": 958,
+      "playMs": 959,
       "problems": []
     },
     {
@@ -960,7 +960,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.66,
       "playedToEnd": true,
-      "playMs": 858,
+      "playMs": 859,
       "problems": []
     },
     {
@@ -975,7 +975,7 @@
       "soundStart": 0.23,
       "soundEnd": 0.78,
       "playedToEnd": true,
-      "playMs": 998,
+      "playMs": 997,
       "problems": []
     },
     {
@@ -1020,7 +1020,7 @@
       "soundStart": 0.23,
       "soundEnd": 0.66,
       "playedToEnd": true,
-      "playMs": 888,
+      "playMs": 889,
       "problems": []
     },
     {
@@ -1035,7 +1035,7 @@
       "soundStart": 0.21,
       "soundEnd": 0.73,
       "playedToEnd": true,
-      "playMs": 948,
+      "playMs": 949,
       "problems": []
     },
     {
@@ -1080,7 +1080,7 @@
       "soundStart": 0.27,
       "soundEnd": 0.67,
       "playedToEnd": true,
-      "playMs": 969,
+      "playMs": 968,
       "problems": []
     },
     {
@@ -1095,7 +1095,7 @@
       "soundStart": 0.25,
       "soundEnd": 0.62,
       "playedToEnd": true,
-      "playMs": 859,
+      "playMs": 858,
       "problems": []
     },
     {
@@ -1140,7 +1140,7 @@
       "soundStart": 0.16,
       "soundEnd": 0.65,
       "playedToEnd": true,
-      "playMs": 898,
+      "playMs": 899,
       "problems": []
     },
     {
@@ -1155,7 +1155,7 @@
       "soundStart": 0.14,
       "soundEnd": 0.56,
       "playedToEnd": true,
-      "playMs": 790,
+      "playMs": 789,
       "problems": []
     },
     {
@@ -1185,7 +1185,7 @@
       "soundStart": 0.15,
       "soundEnd": 0.56,
       "playedToEnd": true,
-      "playMs": 805,
+      "playMs": 809,
       "problems": []
     },
     {
@@ -1200,7 +1200,7 @@
       "soundStart": 0.22,
       "soundEnd": 0.74,
       "playedToEnd": true,
-      "playMs": 917,
+      "playMs": 919,
       "problems": []
     },
     {
@@ -1215,7 +1215,7 @@
       "soundStart": 0.21,
       "soundEnd": 0.73,
       "playedToEnd": true,
-      "playMs": 968,
+      "playMs": 969,
       "problems": []
     },
     {
@@ -1260,7 +1260,7 @@
       "soundStart": 0.24,
       "soundEnd": 0.64,
       "playedToEnd": true,
-      "playMs": 859,
+      "playMs": 858,
       "problems": []
     },
     {
@@ -1275,7 +1275,7 @@
       "soundStart": 0.25,
       "soundEnd": 0.7,
       "playedToEnd": true,
-      "playMs": 939,
+      "playMs": 938,
       "problems": []
     },
     {
