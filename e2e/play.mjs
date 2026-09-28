@@ -126,6 +126,11 @@ async function run(vp) {
   await pickHero(page, 'robot');
   await page.screenshot({ path: `${OUT}/${vp.name}-01b-robot-picked.png` });
   await page.click('#t-start', { force: true });
+  // 첫 수박부터 오답 자모가 섞여 나오는지 (정답 ㅅㅜ/ㅂㅏㄱ 말고 다른 칩)
+  await waitFor(page, () => window.__hd.game.phase === 'compose' && document.querySelectorAll('#zone .jamo-chip').length > 0);
+  await sleep(200);
+  const firstChips = await page.evaluate(() => [...document.querySelectorAll('#zone .jamo-chip')].map((c) => c.dataset.jamo));
+  const firstDistractors = firstChips.filter((j) => !'ㅅㅜㅂㅏㄱ'.includes(j));
   const log = [];
   for (let n = 0; n < 3; n++) {
     const w = await solveWord(page, vp, vp.name.startsWith('desktop') && n === 1 ? 'drag' : 'tap', n === 0 ? `${vp.name}-02` : null);
@@ -216,6 +221,8 @@ async function run(vp) {
   return {
     vp: vp.name,
     startDisabledBeforePick: startDisabled,
+    firstChips: firstChips.join(''),
+    firstDistractors: firstDistractors.join(''),
     robot: log,
     bestCombo: combo1,
     battle2: s2,
@@ -237,7 +244,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
   try {
     const r = await run(vp);
     console.log(JSON.stringify(r));
-    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk) failed = true;
+    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);

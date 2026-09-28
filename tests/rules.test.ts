@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { canHold, checkFrame, chooseCell, distractorsFor, frameFor, jamoCount, requiredJamo, wordFrames } from '../src/core/assembly';
+import { canHold, checkFrame, chooseCell, confusableDistractors, distractorsFor, frameFor, jamoCount, requiredJamo, wordFrames } from '../src/core/assembly';
+import { CONFUSABLE, DISTRACTORS_PER_LEVEL } from '../src/content/distractors';
+import { VOCAB } from '../src/content/vocab';
+import { isVowel } from '../src/hangul/hangul';
 import { createBattle, foeTurn, robotAttack, spawnFoe, BALANCE } from '../src/core/battle';
 import { bonusTimeMs, ComboClock, COMBO_CONFIG, damageFor, nextCombo, tierFor } from '../src/core/combo';
 import { createRng } from '../src/core/rng';
@@ -40,6 +43,41 @@ describe('조립틀', () => {
     expect(checkFrame(bak, { cho: 'ㅂ', jung: 'ㅏ' })).toEqual({ kind: 'incomplete' });
     expect(checkFrame(bak, { cho: 'ㅂ', jung: 'ㅏ', jong: 'ㄱ' })).toEqual({ kind: 'correct', syllable: '박' });
     expect(checkFrame(bak, { cho: 'ㅂ', jung: 'ㅓ', jong: 'ㄱ' })).toEqual({ kind: 'different', made: '벅', wrongCells: ['jung'] });
+  });
+  it('수박에도 헷갈리는 오답 자모를 섞는다: ㅅ↔ㅈ, ㅜ↔ㅗ, ㅂ↔ㅁ, ㅏ↔ㅓ, ㄱ↔ㅋ 중에서, 자음과 모음 모두', () => {
+    const need = requiredJamo(wordFrames('수박')!);
+    for (let seed = 1; seed <= 20; seed++) {
+      const d = confusableDistractors(need, need, 3, createRng(seed), CONFUSABLE);
+      expect(d, `seed ${seed}`).toHaveLength(3);
+      for (const j of d) expect(['ㅈ', 'ㅗ', 'ㅁ', 'ㅓ', 'ㅋ'], `seed ${seed}`).toContain(j);
+      expect(d.some((j) => isVowel(j)), `seed ${seed}`).toBe(true);
+      expect(d.some((j) => !isVowel(j)), `seed ${seed}`).toBe(true);
+    }
+    // 한 음절씩 조립할 때: '수' 화면에는 ㅈ·ㅗ
+    expect(confusableDistractors(['ㅅ', 'ㅜ'], need, 2, createRng(3), CONFUSABLE).sort()).toEqual(['ㅈ', 'ㅗ'].sort());
+  });
+  it('모든 단어에서 오답 자모는 정답 자모와 겹치지 않고, 처음 보는 단어(A)에도 들어간다', () => {
+    expect(DISTRACTORS_PER_LEVEL.A.perSyllable).toBeGreaterThanOrEqual(2);
+    expect(DISTRACTORS_PER_LEVEL.A.perWord).toBeGreaterThanOrEqual(2);
+    for (const v of VOCAB) {
+      const frames = wordFrames(v.word)!;
+      const all = requiredJamo(frames);
+      for (const f of frames) {
+        const d = confusableDistractors([f.cho, f.jung, f.jong].filter(Boolean), all, 2, createRng(7), CONFUSABLE);
+        expect(d, v.word).toHaveLength(2);
+        for (const j of d) expect(all, v.word).not.toContain(j);
+      }
+    }
+  });
+  it('헷갈리는 자모 표는 실제 자모만 담고, 어휘에 나오는 자모를 모두 다룬다', () => {
+    for (const [k, list] of Object.entries(CONFUSABLE)) {
+      for (const j of list) {
+        expect(j, k).not.toBe(k);
+        expect(isVowel(j), `${k}→${j}`).toBe(isVowel(k)); // 자음은 자음끼리, 모음은 모음끼리
+        expect(canHold(isVowel(j) ? 'jung' : 'cho', j), j).toBe(true);
+      }
+    }
+    for (const v of VOCAB) for (const j of requiredJamo(wordFrames(v.word)!)) expect(CONFUSABLE[j], `${v.word} ${j}`).toBeDefined();
   });
   it('방해 자모는 필요한 자모와 겹치지 않는다', () => {
     const need = requiredJamo(wordFrames('수박')!);

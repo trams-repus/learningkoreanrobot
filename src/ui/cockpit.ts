@@ -191,10 +191,15 @@ export class Cockpit {
     const size = this.chipSize();
     // 격자 자리에 겹치지 않게 흩어 놓는다
     const gap = 10;
-    const cols = Math.max(1, Math.floor((zw - gap) / (size + gap)));
-    const rows = Math.max(1, Math.floor((zh - gap) / (size + gap)));
+    // 칩 사이에만 간격을 둔다 (가장자리 여백까지 빼면 360px 폰에서 한 줄 4칸뿐이라 칩이 겹쳤다)
+    const cols = Math.max(1, Math.floor((zw + gap) / (size + gap)));
+    const rows = Math.max(1, Math.floor((zh + gap) / (size + gap)));
     const taken = new Set(this.chips.filter((c) => !c.placed && !made.includes(c)).map((c) => this.slotOf(c, cols, rows, size, gap)));
     const slots = [...Array(cols * rows).keys()].filter((i) => !taken.has(i));
+    // 칩을 작게 줄이지 않는다: 자리가 모자라면 방해 자모부터 뺀다 (정답 자모는 항상 남긴다)
+    while (made.length > slots.length && this.dropSpare(made)) {
+      /* dropSpare가 하나씩 뺀다 */
+    }
     for (let i = slots.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [slots[i], slots[j]] = [slots[j], slots[i]];
@@ -480,6 +485,29 @@ export class Cockpit {
     this.framesEl.style.setProperty('--c', color);
     this.framesEl.classList.add('connected');
     sfx.play('connect');
+  }
+
+  /** list 안에서 지금 필요 없는 칩(방해 자모) 하나를 치운다 */
+  private dropSpare(list: JamoChip[]): boolean {
+    const counts = new Map<string, number>();
+    for (const j of this.neededNow()) counts.set(j, (counts.get(j) ?? 0) + 1);
+    for (const c of this.chips.filter((x) => !x.placed && !list.includes(x))) {
+      const n = counts.get(c.jamo) ?? 0;
+      if (n > 0) counts.set(c.jamo, n - 1);
+    }
+    const spare = list.filter((c) => {
+      const n = counts.get(c.jamo) ?? 0;
+      if (n > 0) {
+        counts.set(c.jamo, n - 1);
+        return false;
+      }
+      return true;
+    });
+    const victim = spare[spare.length - 1];
+    if (!victim) return false;
+    list.splice(list.indexOf(victim), 1);
+    this.removeChip(victim);
+    return true;
   }
 
   /** 남은 방해 자모 하나를 치운다 (계속 막힐 때) */

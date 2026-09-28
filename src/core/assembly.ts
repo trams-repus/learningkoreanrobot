@@ -106,6 +106,42 @@ export function distractorsFor(needed: string[], count: number, rng: () => numbe
   return out;
 }
 
+/**
+ * 헷갈리는 방해 자모를 고른다 (예: 수박 → ㅈ·ㅗ·ㅁ·ㅓ·ㅋ 중에서).
+ * target: 지금 보이는 정답 자모 (한 음절 또는 단어 전체), exclude: 단어 전체 자모 (정답과 같은 칩은 내지 않는다).
+ * 자모마다 첫 번째 후보부터 쓰고, 자음·모음이 한쪽으로 몰리지 않게 번갈아 고른다. 모자라면 기본 자모에서 채운다.
+ */
+export function confusableDistractors(
+  target: string[],
+  exclude: string[],
+  count: number,
+  rng: () => number,
+  table: Record<string, string[]>,
+): string[] {
+  const out: string[] = [];
+  const usable = (j: string) => !exclude.includes(j) && !out.includes(j);
+  const uniq = [...new Set(target)];
+  const depth = Math.max(0, ...uniq.map((j) => table[j]?.length ?? 0));
+  for (let k = 0; k < depth && out.length < count; k++) {
+    const round = [...new Set(uniq.map((j) => table[j]?.[k]).filter((c): c is string => !!c && usable(c)))];
+    for (let i = round.length - 1; i > 0; i--) {
+      const r = Math.floor(rng() * (i + 1));
+      [round[i], round[r]] = [round[r], round[i]];
+    }
+    const cons = round.filter((c) => !isVowel(c));
+    const vows = round.filter((c) => isVowel(c));
+    let wantVowel = out.length > 0 ? !isVowel(out[out.length - 1]) : rng() < 0.5;
+    while (out.length < count && (cons.length || vows.length)) {
+      const from = (wantVowel ? vows : cons).length ? (wantVowel ? vows : cons) : wantVowel ? cons : vows;
+      const c = from.shift()!;
+      if (usable(c)) out.push(c);
+      wantVowel = !isVowel(c);
+    }
+  }
+  if (out.length < count) out.push(...distractorsFor([...exclude, ...out], count - out.length, rng));
+  return out;
+}
+
 export interface WordFeatures {
   syllables: number;
   hasJong: boolean;

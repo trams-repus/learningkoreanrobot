@@ -2,8 +2,9 @@
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
 import { STAGES, entryDifficulty, stageById, stageWords, type StageDef } from '../content/stages';
+import { CONFUSABLE, DISTRACTORS_PER_LEVEL } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
-import { distractorsFor, jamoCount, requiredJamo, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
+import { confusableDistractors, jamoCount, requiredJamo, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
 import { createBattle, foeTurn, robotAttack, spawnFoe } from '../core/battle';
 import { bonusTimeMs, ComboClock, damageFor, nextCombo, tierFor, type HelpLevel } from '../core/combo';
 import { helpLevelFor, recordSuccess, wordStats } from '../core/progress';
@@ -249,13 +250,12 @@ export class Game {
     const ws = wordStats(saves.data.stats, entry.id);
     ws.attempts++;
     saves.save();
-    // 방해 자모: 익숙해진 뒤에만 조금씩
-    const extra = level === 'D' ? (sequential ? 1 : 2) : level === 'C' && ws.independent > 0 ? 1 : 0;
+    // 방해 자모: 첫 수박부터 헷갈리는 자모를 섞는다 (계속 틀리면 cockpit이 하나씩 치운다)
+    const all = requiredJamo(frames);
+    const extra = DISTRACTORS_PER_LEVEL[level];
     const supply = frames.map((f) => cellsOf(f).map((r) => f[r]));
-    if (extra > 0) {
-      if (sequential) supply.forEach((list) => list.push(...distractorsFor(requiredJamo(frames), extra, Math.random)));
-      else supply[0].push(...distractorsFor(requiredJamo(frames), extra, Math.random));
-    }
+    if (sequential) supply.forEach((list) => list.push(...confusableDistractors([...list], all, extra.perSyllable, Math.random, CONFUSABLE)));
+    else supply[0].push(...confusableDistractors(all, all, extra.perWord, Math.random, CONFUSABLE));
     const ghost = frames.map((_, i) => level === 'A' || (level === 'B' && i === 0));
     const color = WORD_COLORS[this.wordIndex % WORD_COLORS.length];
     this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, guarded: false, color };
