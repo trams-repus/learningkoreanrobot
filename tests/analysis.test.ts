@@ -84,7 +84,7 @@ describe('분석과 제안', () => {
     expect(a.roleMiss.jong).toEqual({ miss: 3, slots: 3 });
     expect(a.suggestions.some((s) => s.seen.includes('받침'))).toBe(true);
   });
-  it('최근 7일 플레이한 날을 센다', () => {
+  it('기간을 고르면 그 기간 기록만 분석한다 (기본 최근 7일)', () => {
     const now = Date.UTC(2026, 8, 28, 12);
     const day = 86400000;
     const ev: LogEvent[] = [
@@ -92,7 +92,12 @@ describe('분석과 제안', () => {
       { k: 'battle', t: now - 2 * day, stage: 's1' },
       { k: 'battle', t: now, stage: 's1' },
     ];
-    expect(analyze(ev, now)).toMatchObject({ daysPlayed7: 2, battles7: 2 });
+    expect(analyze(ev, now)).toMatchObject({ period: '7d', daysPlayed: 2, battles: 2 });
+    expect(analyze(ev, now, '30d')).toMatchObject({ daysPlayed: 3, battles: 3 });
+    expect(analyze(ev, now, 'all').battles).toBe(3);
+    const old: LogEvent[] = [{ k: 'miss', t: now - 40 * day, w: '거미', syl: '거', role: 'jung', want: 'ㅓ', got: 'ㅏ', trap: false }];
+    expect(analyze(old, now, '30d').recentMisses).toEqual([]);
+    expect(analyze(old, now, 'all').recentMisses).toHaveLength(1);
   });
 });
 
@@ -127,7 +132,7 @@ describe('오답 패턴', () => {
       l2.finish(true, 1000);
     }
     for (const w of ['나무', '바다']) play(l2, w);
-    const a = analyze(l2.events);
+    const a = analyze(l2.events, Date.now(), 'all');
     expect(a.jamoTrouble[0]).toEqual({ jamo: 'ㄱ', miss: 3, seen: 3 });
     expect(a.trap).toEqual({ misses: 3, drops: 0, words: 3, finished: 5 });
     expect(a.jongSyl.withJong).toEqual({ miss: 3, slots: 3 });
