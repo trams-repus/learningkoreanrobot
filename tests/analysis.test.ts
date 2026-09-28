@@ -177,7 +177,7 @@ describe('AI에게 물어보기 프롬프트', () => {
     expect(text).toContain('완성한 단어 5개');
     expect(text).toContain('게임 설정 조정 제안');
     expect(text).toContain('발달 진단, 점수, 등급, 또래 비교는 하지 마세요');
-    expect(aiPrompt(analyze(log.events), { ...ctx, age: null })).toContain('나이는 부모가 입력하지 않음');
+    expect(aiPrompt(analyze(log.events), { ...ctx, age: null })).toContain('4~6세 어휘팩으로 플레이하는 아이');
     expect(text).not.toMatch(/20\d\d|오전|오후/);
   });
 });

@@ -422,7 +422,7 @@ export interface PromptContext {
  * 게임은 아무것도 밖으로 보내지 않는다. 이름(게임 제목의 아이 이름 포함)·생년월일·날짜·기기 정보는 넣지 않고 집계 숫자와 단어 예시만 넣는다.
  */
 export function aiPrompt(a: Analysis, ctx: PromptContext): string {
-  const who = ctx.age !== null ? `만 ${ctx.age}세 아이` : '유아(나이는 부모가 입력하지 않음)';
+  const who = ctx.age !== null ? `만 ${ctx.age}세 아이` : `${ctx.pack === '7-8' ? '7~8세' : '4~6세'} 어휘팩으로 플레이하는 아이(부모가 나이는 입력하지 않음)`;
   const rn = { cho: '첫소리', jung: '모음', jong: '받침' } as const;
   const m = a.mistakes;
   const L: string[] = [];
