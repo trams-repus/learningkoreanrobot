@@ -21,9 +21,20 @@ css = css.replace(/url\(([^)]+\.woff2)\)/g, (_, rel) => {
 });
 const js = fs.readFileSync(path.join(dist, jsSrc[1]), 'utf8').replace(/<\/script/gi, '<\\/script');
 
+// 단어 녹음(WAV)도 data: 주소로 넣는다. 게임은 window.__HD_AUDIO__에서 먼저 찾는다.
+const audioDir = path.join(dist, 'audio/words');
+const audioMap = {};
+if (fs.existsSync(audioDir)) {
+  for (const f of fs.readdirSync(audioDir).filter((x) => x.endsWith('.wav'))) {
+    audioMap[`audio/words/${f}`] = `data:audio/wav;base64,${fs.readFileSync(path.join(audioDir, f)).toString('base64')}`;
+  }
+}
+const audioScript = Object.keys(audioMap).length ? `<script>window.__HD_AUDIO__=${JSON.stringify(audioMap)};</script>\n` : '';
+
 html = html.replace(cssHref[0], () => `<style>${css}</style>`);
 html = html.replace(jsSrc[0], () => '');
-html = html.replace('</body>', () => `<script type="module">${js}</script>\n</body>`);
+html = html.replace('</body>', () => `${audioScript}<script type="module">${js}</script>\n</body>`);
+console.log(`단어 녹음 ${Object.keys(audioMap).length}개를 파일 안에 넣음`);
 
 fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, 'inwoo-hangul-robot.html'), html);

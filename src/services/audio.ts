@@ -2,6 +2,7 @@
 // - 단어 음성은 대사를 끊고, 재생 중에는 효과음을 줄인다.
 // - 단어가 나오는 중에는 대사를 건너뛴다 (대기열을 만들지 않아 뒤늦은 재생이 없다).
 // - 재생 완료 이벤트가 오지 않아도 제한 시간 뒤 반드시 끝난다.
+// - 단어 녹음 파일(WAV)은 첫 터치에서 열린 Web Audio 장치로 해독·재생한다 (모바일 자동 재생 제한 대응).
 // 앱 포장 때는 이 파일만 네이티브 음성 경로로 바꾸면 된다.
 import { assetById, textFor } from '../content/audio';
 import type { Recordings } from './recordings';
@@ -28,6 +29,12 @@ export class AudioManager {
   private current: { ch: Channel; finish: () => void } | null = null;
   private audioEl: HTMLAudioElement | null = null;
   private lastDialogueAt = new Map<string, number>();
+  private webSource: AudioBufferSourceNode | null = null;
+  private buffers = new Map<string, Promise<AudioBuffer>>();
+  /** 캐릭터별 대사 목소리 (단어 발음에는 쓰지 않는다) */
+  dialogueVoice = { rate: 1.1, pitch: 1.0 };
+  /** 파일별 마지막 재생 결과 (부모 화면 '소리 확인'에 그대로 보여준다) */
+  readonly fileStatus = new Map<string, string>();
 
   constructor(private sfx: SfxService, private recordings: Recordings, disabled = false) {
     try {
@@ -117,6 +124,15 @@ export class AudioManager {
       this.audioEl.pause();
       this.audioEl = null;
     }
+    if (this.webSource) {
+      try {
+        this.webSource.onended = null;
+        this.webSource.stop();
+      } catch {
+        /* 이미 끝남 */
+      }
+      this.webSource = null;
+    }
     const c = this.current;
     this.current = null;
     c?.finish();
@@ -156,13 +172,20 @@ export class AudioManager {
       this.current = { ch, finish };
       if (this.muted || this.volume <= 0 || method === 'none') return;
 
-      const url = method === 'recording' ? this.recordings.url(id) : method === 'file' ? assetById(id)!.localPath : null;
+      if (method === 'file') {
+        this.playFile(id, my, success, () => {
+          // 파일을 못 틀면 그 단어만 TTS로 대신한다 (전체가 무음이 되지 않게)
+          if (this.token === my) this.speakTts(ch, text, my, success, finish);
+        });
+        return;
+      }
+      const url = method === 'recording' ? this.recordings.url(id) : null;
       if (url) {
         try {
           const a = new Audio(url);
           a.volume = this.volume;
           a.onended = success;
-          a.onerror = () => (method === 'file' ? this.speakTts(ch, text, my, success, finish) : finish());
+          a.onerror = () => finish();
           this.audioEl = a;
           a.play().catch(() => finish());
         } catch {
@@ -174,15 +197,98 @@ export class AudioManager {
     });
   }
 
+  /** 녹음 파일 주소: 한 파일 빌드면 안에 넣어 둔 data: 주소, 아니면 base 경로 기준 상대 주소 */
+  private fileUrl(path: string): string {
+    return window.__HD_AUDIO__?.[path] ?? `${import.meta.env.BASE_URL}${path}`;
+  }
+
+  private async fileBytes(path: string): Promise<ArrayBuffer> {
+    const url = this.fileUrl(path);
+    const m = url.match(/^data:[^;,]+;base64,(.*)$/);
+    if (m) {
+      // data: 주소는 fetch 없이 직접 푼다 (fetch가 막힌 환경 대비)
+      const bin = atob(m[1]);
+      const out = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+      return out.buffer;
+    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.arrayBuffer();
+  }
+
+  /** 해독은 단어마다 한 번만 한다 */
+  private decode(id: string, ctx: AudioContext): Promise<AudioBuffer> {
+    let p = this.buffers.get(id);
+    if (!p) {
+      const path = assetById(id)!.localPath!;
+      p = this.fileBytes(path).then((bytes) => new Promise<AudioBuffer>((res, rej) => ctx.decodeAudioData(bytes, res, rej)));
+      p.catch(() => this.buffers.delete(id));
+      this.buffers.set(id, p);
+    }
+    return p;
+  }
+
+  /** 다음에 낼 단어 파일을 미리 해독해 둔다 (첫 재생 지연 줄이기) */
+  preload(ids: string[]): void {
+    const ctx = this.sfx.context;
+    if (!ctx) return;
+    for (const id of ids) if (this.methodFor(id) === 'file') this.decode(id, ctx).catch(() => {});
+  }
+
+  private playFile(id: string, my: number, success: () => void, fail: () => void): void {
+    const ctx = this.sfx.context;
+    const path = assetById(id)!.localPath!;
+    const failWith = (why: string) => {
+      this.fileStatus.set(id, `재생 실패: ${why} → 기기 음성으로 대신함`);
+      fail();
+    };
+    if (!ctx || ctx.state !== 'running') {
+      // Web Audio를 못 쓰면 audio 요소로 시도
+      try {
+        const a = new Audio(this.fileUrl(path));
+        a.volume = this.volume;
+        a.onended = () => {
+          this.fileStatus.set(id, '재생 완료 (audio 요소)');
+          success();
+        };
+        a.onerror = () => failWith('audio 요소가 파일을 열지 못함');
+        this.audioEl = a;
+        a.play().catch(() => failWith('브라우저가 재생을 막음 (화면을 한 번 터치한 뒤 다시 시도)'));
+      } catch {
+        failWith('audio 요소 생성 실패');
+      }
+      return;
+    }
+    this.decode(id, ctx).then(
+      (buf) => {
+        if (this.token !== my) return;
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const g = ctx.createGain();
+        g.gain.value = this.volume;
+        src.connect(g).connect(ctx.destination);
+        src.onended = () => {
+          if (this.webSource === src) this.webSource = null;
+          this.fileStatus.set(id, `재생 완료 (Web Audio, ${buf.duration.toFixed(2)}초, ${buf.sampleRate}Hz)`);
+          success();
+        };
+        this.webSource = src;
+        src.start();
+      },
+      (e) => failWith(`해독 실패 (${e instanceof Error ? e.message : String(e)})`),
+    );
+  }
+
   private speakTts(ch: Channel, text: string, my: number, success: () => void, fail: () => void): void {
     if (!this.synth || !this.ttsVoice) return fail();
     try {
       const u = new SpeechSynthesisUtterance(text);
       u.lang = this.ttsVoice.lang || 'ko-KR';
       u.voice = this.ttsVoice;
-      // 단어: 또렷하고 약간 느리게. 대사: 빠르고 높게 (긴박하지만 화나지 않게)
-      u.rate = ch === 'word' ? 0.8 : 1.12;
-      u.pitch = ch === 'word' ? 1.0 : 1.2;
+      // 단어: 또렷하고 약간 느리게 (캐릭터와 무관). 대사: 캐릭터별 설정 (긴박하지만 화나지 않게)
+      u.rate = ch === 'word' ? 0.8 : this.dialogueVoice.rate;
+      u.pitch = ch === 'word' ? 1.0 : this.dialogueVoice.pitch;
       u.volume = this.volume;
       u.onend = success;
       u.onerror = fail;

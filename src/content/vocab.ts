@@ -53,14 +53,14 @@ export const VOCAB: VocabEntry[] = [
   v('아기', '4-6', 'core', '가족'),
   v('엄마', '4-6', 'core', '가족'),
   v('아빠', '4-6', 'core', '가족'),
-  v('발', '4-6', 'core', '신체'),
+  v('다리', '4-6', 'core', '신체'),
   v('집', '4-6', 'core', '장소'),
   v('바나나', '4-6', 'recommended', '음식'),
   v('머리', '4-6', 'recommended', '신체'),
   v('사자', '4-6', 'recommended', '동물'),
-  v('포도', '4-6', 'recommended', '음식'),
-  v('신발', '4-6', 'recommended', '생활용품'),
-  v('우산', '4-6', 'recommended', '생활용품'),
+  v('꼬리', '4-6', 'recommended', '신체'),
+  v('나비', '4-6', 'recommended', '동물'),
+  v('개미', '4-6', 'recommended', '동물'),
   v('자다', '4-6', 'recommended', '행동'),
   v('크다', '4-6', 'recommended', '상태'),
   // 7~8세 팩
@@ -86,8 +86,11 @@ export const VOCAB: VocabEntry[] = [
   v('기쁘다', '7-8', 'recommended', '상태'),
 ];
 
-/** 2단계 반복 플레이용 쉬운 단어 5개 (+수박) */
-export const EASY_FIVE = ['나무', '바다', '모자', '오이', '우유'];
+/**
+ * 2단계 쉬운 단어 5개 (+수박): 받침·쌍자음·ㅐ 없는 두 글자이고 실제 녹음 음원 목록에 있는 단어.
+ * 녹음이 있다는 이유만으로 쉬운 단어가 되지는 않는다 (꼬리·개미·바나나는 뒤 단계에서 낸다).
+ */
+export const EASY_FIVE = ['나무', '바다', '나비', '사자', '다리'];
 
 export function vocabById(id: string): VocabEntry | undefined {
   return VOCAB.find((x) => x.id === id);

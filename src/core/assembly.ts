@@ -105,3 +105,40 @@ export function distractorsFor(needed: string[], count: number, rng: () => numbe
   while (out.length < count && pool.length) out.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
   return out;
 }
+
+export interface WordFeatures {
+  syllables: number;
+  hasJong: boolean;
+  /** ㄲ·ㄸ·ㅃ·ㅆ·ㅉ (예: 꼬리) */
+  hasDoubleConsonant: boolean;
+  /** ㅐ·ㅔ·ㅒ·ㅖ (예: 개미) */
+  hasComplexVowel: boolean;
+  /** 같은 자모가 여러 번 필요 (예: 바나나의 ㅏ) */
+  hasRepeatedJamo: boolean;
+}
+
+const DOUBLE = new Set(['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']);
+const COMPLEX_VOWEL = new Set(['ㅐ', 'ㅔ', 'ㅒ', 'ㅖ']);
+
+export function wordFeatures(word: string): WordFeatures | null {
+  const frames = wordFrames(word);
+  if (!frames) return null;
+  const need = requiredJamo(frames);
+  return {
+    syllables: frames.length,
+    hasJong: frames.some((f) => f.hasJong),
+    hasDoubleConsonant: frames.some((f) => DOUBLE.has(f.cho) || DOUBLE.has(f.jong)),
+    hasComplexVowel: frames.some((f) => COMPLEX_VOWEL.has(f.jung)),
+    hasRepeatedJamo: new Set(need).size < need.length,
+  };
+}
+
+/**
+ * 조립 난이도 (0 = 받침 없는 두 글자). 음원 유무·연령 팩과는 별개다.
+ * 처음 배우는 단계에서는 이 값이 낮은 단어를 먼저 낸다.
+ */
+export function wordDifficulty(word: string): number {
+  const f = wordFeatures(word);
+  if (!f) return 99;
+  return Math.max(0, f.syllables - 2) + (f.hasJong ? 1 : 0) + (f.hasDoubleConsonant ? 1 : 0) + (f.hasComplexVowel ? 1 : 0) + (f.hasRepeatedJamo ? 0.5 : 0);
+}

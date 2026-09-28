@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { AUDIO_MANIFEST } from '../src/content/audio';
+import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
 import { STAGES } from '../src/content/stages';
 import { EASY_FIVE, VOCAB, packWords, vocabById } from '../src/content/vocab';
-import { isSupportedWord, wordFrames } from '../src/core/assembly';
+import { isSupportedWord, wordDifficulty, wordFeatures, wordFrames } from '../src/core/assembly';
 import { composeSyllable } from '../src/hangul/hangul';
 
 describe('어휘팩', () => {
@@ -39,6 +39,34 @@ describe('어휘팩', () => {
       expect(a!.type).toBe('word');
       expect(a!.text).toBe(v.word);
     }
-    for (const a of AUDIO_MANIFEST) expect(a.localPath).toBeNull();
+    // 이 테스트 환경에는 녹음 파일을 내려받지 못했으므로 파일 경로가 하나도 없어야 한다
+    const present = new Set(__WORD_AUDIO_FILES__);
+    for (const a of AUDIO_MANIFEST) {
+      if (a.localPath) expect(present.has(a.localPath.replace('audio/words/', '')), a.assetId).toBe(true);
+      else expect(a.playback).not.toBe('file');
+    }
+  });
+  it('녹음 목록 10개는 모두 어휘에 있고 올바른 모양으로 조립할 수 있다', () => {
+    expect(WORD_AUDIO_SOURCES).toHaveLength(10);
+    for (const s of WORD_AUDIO_SOURCES) {
+      expect(vocabById(s.word), s.word).toBeDefined();
+      expect(isSupportedWord(s.word), s.word).toBe(true);
+      expect(s.commonsFile).toBe(`LL-Q9176_(kor)-호로조-${s.word}.wav`);
+      expect(s.license).toBe('CC0-1.0');
+      expect(s.file).toMatch(/^[a-z]+\.wav$/);
+    }
+  });
+  it('쉬운 다섯 단어는 녹음 목록에 있고, 받침·쌍자음·ㅐ가 없다', () => {
+    for (const w of EASY_FIVE) {
+      expect(WORD_AUDIO_SOURCES.some((s) => s.word === w), w).toBe(true);
+      expect(wordDifficulty(w), w).toBeLessThan(1);
+    }
+  });
+  it('녹음이 있어도 난이도는 따로 계산한다 (꼬리·개미·바나나)', () => {
+    expect(wordFeatures('꼬리')!.hasDoubleConsonant).toBe(true);
+    expect(wordFeatures('개미')!.hasComplexVowel).toBe(true);
+    expect(wordFeatures('바나나')!.hasRepeatedJamo).toBe(true);
+    expect(wordFeatures('수박')!.hasJong).toBe(true);
+    for (const w of ['꼬리', '개미', '바나나', '수박']) expect(wordDifficulty(w), w).toBeGreaterThan(0);
   });
 });

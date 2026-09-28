@@ -5,3 +5,4 @@ dist-single/
 .DS_Store
 test-results/
 e2e/screens/
+public/audio/words/download-report.json
