@@ -4,6 +4,7 @@
     python3 scripts/download_audio.py --limit 1   # 수박 하나만 먼저
     python3 scripts/download_audio.py             # 전체
     python3 scripts/download_audio.py --check     # 내려받지 않고 있는 파일만 검사
+    python3 scripts/download_audio.py --delay 5   # 파일 사이 5초 간격
 
 목록: src/content/word-audio-sources.json  저장: public/audio/words/<file>
 목록의 url(사용자가 준 Special:FilePath 링크)을 먼저 쓰고, 실패하면 Special:Redirect/file로 한 번 더 시도한다.
@@ -76,17 +77,30 @@ def _valid_wav(data: bytes) -> bool:
 
 
 def fetch(url: str) -> bytes:
-    req = urllib.request.Request(url, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=30) as res:
-        if res.status != 200:
-            raise ValueError(f"HTTP {res.status}")
-        return res.read()
+    """429(요청 제한)이면 서버가 알려 준 Retry-After(120초 이하)만큼 기다렸다가 한 번만 다시 요청한다.
+    더 길게 기다리라고 하거나 두 번째도 429면 그 파일은 실패로 둔다 (다른 경로로 우회하지 않는다)."""
+    for attempt in range(2):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        try:
+            with urllib.request.urlopen(req, timeout=30) as res:
+                if res.status != 200:
+                    raise ValueError(f"HTTP {res.status}")
+                return res.read()
+        except urllib.error.HTTPError as e:
+            wait = e.headers.get("Retry-After", "")
+            if e.code == 429 and attempt == 0 and wait.isdigit() and int(wait) <= 120:
+                print(f"     429 요청 제한: 서버 안내대로 {wait}초 기다린 뒤 한 번 더", file=sys.stderr)
+                time.sleep(int(wait))
+                continue
+            raise
+    raise ValueError("요청 제한")
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=0, help="앞에서부터 이 개수만")
     ap.add_argument("--check", action="store_true", help="내려받지 않고 있는 파일만 검사")
+    ap.add_argument("--delay", type=float, default=0.5, help="파일 사이 간격(초)")
     args = ap.parse_args()
 
     sources = json.loads(SOURCES.read_text(encoding="utf-8"))
@@ -132,7 +146,8 @@ def main() -> int:
             entry["error"] = str(e)
             print(f"FAIL {s['word']}: {e}", file=sys.stderr)
         report.append(entry)
-        time.sleep(0.5)
+        if not args.check and entry.get("url") != "(이미 있음)":
+            time.sleep(args.delay)
     REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"{ok}/{len(report)}개 성공. 보고: {REPORT.relative_to(ROOT)}")
     return 0 if ok == len(report) else 1

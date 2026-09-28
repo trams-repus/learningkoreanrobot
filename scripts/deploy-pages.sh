@@ -6,7 +6,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-REMOTE="$(git remote get-url origin)"
+# GitHub Actions에서는 DEPLOY_REMOTE로 토큰이 든 주소를 넘긴다
+REMOTE="${DEPLOY_REMOTE:-$(git remote get-url origin)}"
 SRC="$(git rev-parse --short HEAD)"
 NAME="$(git config user.name || echo deploy)"
 EMAIL="$(git config user.email || echo deploy@localhost)"

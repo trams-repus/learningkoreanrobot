@@ -1,0 +1,63 @@
+# GitHub Actions 워크플로 (아직 꺼져 있음).
+# 켜는 법: GitHub 웹에서 이 파일을 열고 연필(편집) → 파일 이름 칸을 .github/workflows/pages-and-audio.yml 로 바꿔 커밋.
+# (Claude 작업 환경의 GitHub 권한으로는 .github/workflows에 파일을 올릴 수 없어서 여기에 둔다.)
+#
+# 하는 일 (main에 코드가 올라올 때마다, 또는 Actions 탭에서 직접 실행):
+#  1. 단어 녹음(Wikimedia Commons, 목록: src/content/word-audio-sources.json)을 GitHub 서버에서 받아 본다.
+#     이미 저장소에 있는 파일은 다시 받지 않고, 요청 제한(429)이면 우회하지 않고 그 단어만 기기 음성으로 남는다.
+#  2. 새로 받은 WAV는 저장소에 커밋해 다음부터는 받지 않는다.
+#  3. 브라우저(Chromium)로 해독·재생·무음 검사 → 통과한 녹음만 게임에 연결.
+#  4. 테스트 후 로그인 없는 주소(gh-pages 브랜치 → https://trams-repus.github.io/learningkoreanrobot/)에 배포.
+name: 녹음 받기와 Pages 배포
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: 단어 녹음 받기 (실패한 단어는 기기 음성)
+        continue-on-error: true
+        run: python3 scripts/download_audio.py --delay 5
+
+      - name: 새로 받은 녹음을 저장소에 저장
+        run: |
+          git add public/audio/words/*.wav 2>/dev/null || true
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+              commit -m "단어 녹음 파일 추가 (GitHub Actions에서 받아 WAV 검사 통과)"
+            git push origin HEAD:main
+          fi
+
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      - name: 녹음 브라우저 해독·재생 검사 (실패한 파일은 빌드에서 빠진다)
+        run: npm run audio:check || true
+
+      - name: 로그인 없는 주소에 배포
+        env:
+          DEPLOY_REMOTE: https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          npm run deploy:pages
