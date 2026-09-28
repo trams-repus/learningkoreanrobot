@@ -78,9 +78,11 @@ export interface Analysis {
   alone: number;
   help: number;
   stopped: number;
-  daysPlayed7: number;
-  battles7: number;
-  words7: number;
+  /** 분석한 기간 */
+  period: Period;
+  /** 기간 안에서 플레이한 날 수, 출동 수 */
+  daysPlayed: number;
+  battles: number;
   confusions: Confusion[];
   roleMiss: Record<CellRole, { miss: number; slots: number }>;
   /** 두 번 이상 끝냈지만 혼자 끝낸 적 없는 단어 */
@@ -133,18 +135,26 @@ function tipFor(c: Confusion): string {
 
 const ROLE_NAME: Record<CellRole, string> = { cho: '첫소리(초성)', jung: '모음(중성)', jong: '받침(종성)' };
 
-export function analyze(events: LogEvent[], now: number = Date.now()): Analysis {
+/** 분석 기간: 오래된 기록으로 지금 아이를 판단하지 않게 기본은 최근 7일 (2026-09-28 사용자 요청) */
+export type Period = '7d' | '30d' | 'all';
+export const PERIOD_NAME: Record<Period, string> = { '7d': '최근 7일', '30d': '최근 30일', all: '전체 기간' };
+
+export function eventsInPeriod(events: LogEvent[], period: Period, now: number = Date.now()): LogEvent[] {
+  if (period === 'all') return events;
+  const since = now - (period === '7d' ? 7 : 30) * DAY;
+  return events.filter((e) => e.t >= since);
+}
+
+export function analyze(allEvents: LogEvent[], now: number = Date.now(), period: Period = '7d'): Analysis {
+  const events = eventsInPeriod(allEvents, period, now);
   const words = events.filter((e): e is WordEv => e.k === 'word');
   const misses = events.filter((e): e is MissEv => e.k === 'miss');
   const done = words.filter((w) => w.res !== 'stop');
   const alone = done.filter((w) => w.res === 'alone').length;
 
-  // 최근 7일
-  const since = now - 7 * DAY;
   const days = new Set<string>();
-  for (const e of events) if (e.t >= since) days.add(new Date(e.t).toDateString());
-  const battles7 = events.filter((e) => e.k === 'battle' && e.t >= since).length;
-  const words7 = done.filter((w) => w.t >= since).length;
+  for (const e of events) days.add(new Date(e.t).toDateString());
+  const battles = events.filter((e) => e.k === 'battle').length;
 
   // 헷갈림 쌍 (방향 없이 묶고 방향별 횟수도 센다)
   const pairs = new Map<string, Confusion>();
@@ -252,9 +262,9 @@ export function analyze(events: LogEvent[], now: number = Date.now()): Analysis 
     alone,
     help: done.length - alone,
     stopped: words.length - done.length,
-    daysPlayed7: days.size,
-    battles7,
-    words7,
+    period,
+    daysPlayed: days.size,
+    battles,
     confusions,
     roleMiss,
     needHelp,
