@@ -5,6 +5,10 @@
     python3 scripts/download_audio.py             # 전체
     python3 scripts/download_audio.py --check     # 내려받지 않고 있는 파일만 검사
     python3 scripts/download_audio.py --delay 5   # 파일 사이 5초 간격
+    python3 scripts/download_audio.py --no-discover  # 게임 어휘 녹음 찾기(discover_audio.py)를 건너뛴다
+
+받기 전에 게임 어휘(src/content/vocab.ts) 중 목록에 없는 단어의 녹음을 Commons에서 찾아 목록에 더한다 (discover_audio.py).
+GitHub Actions에서 돌면 고친 목록과 받은 WAV를 git add 해 둔다 → 워크플로의 다음 단계가 함께 커밋한다.
 
 목록: src/content/word-audio-sources.json  저장: public/audio/words/<file>
 목록의 url(사용자가 준 Special:FilePath 링크)을 먼저 쓰고, 실패하면 Special:Redirect/file로 한 번 더 시도한다.
@@ -15,8 +19,10 @@ upload.wikimedia.org가 429(요청 제한)를 돌려주면 우회하지 않고 �
 """
 import argparse
 import json
+import os
 import pathlib
 import struct
+import subprocess
 import sys
 import time
 import urllib.error
@@ -27,6 +33,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 SOURCES = ROOT / "src/content/word-audio-sources.json"
 OUT = ROOT / "public/audio/words"
 REPORT = OUT / "download-report.json"
+VOCAB_TS = ROOT / "src/content/vocab.ts"
 UA = "inwoo-hangul-robot/0.1 (children's Hangul game; https://github.com/trams-repus/learningkoreanrobot)"
 
 
@@ -101,7 +108,17 @@ def main() -> int:
     ap.add_argument("--limit", type=int, default=0, help="앞에서부터 이 개수만")
     ap.add_argument("--check", action="store_true", help="내려받지 않고 있는 파일만 검사")
     ap.add_argument("--delay", type=float, default=0.5, help="파일 사이 간격(초)")
+    ap.add_argument("--no-discover", action="store_true", help="게임 어휘 녹음 찾기를 건너뛴다")
     args = ap.parse_args()
+
+    if not (args.no_discover or args.check or args.limit):
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from discover_audio import discover
+
+        try:
+            discover(SOURCES, VOCAB_TS, UA)
+        except Exception as e:  # noqa: BLE001 - 찾기가 실패해도 이미 목록에 있는 녹음은 받는다
+            print(f"찾기 실패 (목록은 그대로 두고 계속): {e}", file=sys.stderr)
 
     sources = json.loads(SOURCES.read_text(encoding="utf-8"))
     if args.limit:
@@ -149,6 +166,9 @@ def main() -> int:
         if not args.check and entry.get("url") != "(이미 있음)":
             time.sleep(args.delay)
     REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if os.environ.get("GITHUB_ACTIONS") == "true" and not args.check:
+        # 워크플로의 커밋 단계는 WAV만 add 한다. 찾기로 고친 목록도 같은 커밋에 들어가게 여기서 add 한다.
+        subprocess.run(["git", "add", str(SOURCES.relative_to(ROOT))], cwd=ROOT, check=False)
     print(f"{ok}/{len(report)}개 성공. 보고: {REPORT.relative_to(ROOT)}")
     return 0 if ok == len(report) else 1
 
