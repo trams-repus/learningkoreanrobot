@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
-import { MIN_STAGE_WORDS, STAGES, entryDifficulty, stageWords } from '../src/content/stages';
+import { MIN_STAGE_WORDS, STAGES, drawWord, entryDifficulty, stageWords } from '../src/content/stages';
+import { createRng } from '../src/core/rng';
 import { EASY_FIVE, EASY_MORE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
 import { isSupportedWord, wordDifficulty, wordFeatures, wordFrames, wordTier } from '../src/core/assembly';
 import { composeSyllable } from '../src/hangul/hangul';
@@ -148,5 +149,40 @@ describe('난이도 단계별 전투', () => {
       const plain = stageWords(STAGES.find((s) => s.id === 's3')!, pack, true);
       expect(plain.filter((w) => entryDifficulty(w) < 1.5).length, pack).toBeGreaterThanOrEqual(5);
     }
+  });
+});
+
+describe('무작위 출제 (단어 주머니)', () => {
+  const pool = ['나무', '바다', '나비', '사자', '다리', '모자', '아기'];
+  it('주머니를 다 쓰기 전에는 같은 단어가 다시 나오지 않고, 연달아 같은 단어도 없다', () => {
+    const rng = createRng(11);
+    let bag: string[] = [];
+    let last = '';
+    const seen: string[] = [];
+    for (let n = 0; n < pool.length * 6; n++) {
+      const r = drawWord(bag, pool, last, rng);
+      expect(r.word, `${n}`).not.toBe(last);
+      seen.push(r.word);
+      bag = r.bag;
+      last = r.word;
+    }
+    for (let k = 0; k < 6; k++) expect(new Set(seen.slice(k * pool.length, (k + 1) * pool.length)).size, `round ${k}`).toBe(pool.length);
+  });
+  it('매번 순서가 달라진다 (고정 순서가 아니다)', () => {
+    const orders = new Set<string>();
+    for (let seed = 1; seed <= 10; seed++) {
+      const rng = createRng(seed);
+      let bag: string[] = [];
+      let last = '';
+      const out: string[] = [];
+      for (let n = 0; n < pool.length; n++) ({ word: last, bag } = drawWord(bag, pool, last, rng)), out.push(last);
+      orders.add(out.join(','));
+    }
+    expect(orders.size).toBeGreaterThan(5);
+  });
+  it('후보가 바뀌면 주머니에서 없는 단어를 빼고, 후보가 하나뿐이어도 멈추지 않는다', () => {
+    const r = drawWord(['수박', '나무'], ['나무', '바다'], '', createRng(2));
+    expect(r.word).toBe('나무');
+    expect(drawWord([], ['수박'], '수박', createRng(3)).word).toBe('수박');
   });
 });

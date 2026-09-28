@@ -1,7 +1,7 @@
 // 게임 흐름: 적 등장 → (대사) → 암호 수신기가 단어를 말함 → 자모 조립 → 단어 완성 → 로봇 공격 → 적 차례 → 다음 단어.
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
-import { STAGES, entryDifficulty, stageById, stageWords, type StageDef } from '../content/stages';
+import { STAGES, drawWord, stageById, stageWords, type StageDef } from '../content/stages';
 import { CONFUSABLE, DISTRACTORS_PER_LEVEL } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
 import { confusableDistractors, jamoCount, requiredJamo, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
@@ -40,6 +40,8 @@ export class Game {
   private foeIndex = 0;
   private wordIndex = 0;
   private lastWord = '';
+  /** 전투별 남은 단어 주머니 */
+  private bags = new Map<string, string[]>();
   private combo = 0;
   private current: WordRun | null = null;
   private clock = new ComboClock();
@@ -215,26 +217,12 @@ export class Game {
     const s = this.stage!;
     if (s.fixedWords && this.wordIndex < s.fixedWords.length) return vocabById(s.fixedWords[this.wordIndex])!;
     const set = saves.data.settings;
-    const pool = stageWords(s, set.pack, set.includeRecommended);
-    let candidates = pool.filter((w) => w.word !== this.lastWord);
-    // 혼자 성공이 아직 적으면 쌍자음·ㅐ·받침·세 글자·소리≠표기 같은 어려운 단어는 뒤로 미룬다 (음원 유무와 무관)
-    const solo = Object.values(saves.data.stats.words).reduce((n, w) => n + w.independent, 0);
-    if (solo < 3) {
-      const easy = candidates.filter((w) => entryDifficulty(w) < 1.5);
-      if (easy.length) candidates = easy;
-    }
-    // 아직 덜 익힌 단어를 조금 더 자주 (완전 무작위보다 연습이 고르게)
-    const weight = (w: VocabEntry) => {
-      const ws = saves.data.stats.words[w.id];
-      return 1 / (1 + (ws?.independent ?? 0)) / (1 + entryDifficulty(w) * 0.5);
-    };
-    const total = candidates.reduce((n, w) => n + weight(w), 0);
-    let r = Math.random() * total;
-    for (const w of candidates) {
-      r -= weight(w);
-      if (r <= 0) return w;
-    }
-    return candidates[0] ?? pool[0];
+    const pool = stageWords(s, set.pack, set.includeRecommended).map((w) => w.word);
+    // 전투마다 섞은 주머니에서 하나씩: 다 쓰기 전엔 반복 없음, 다시 해도 이어서 뽑는다 (기기에는 저장하지 않음)
+    const key = `${s.id}|${set.pack}|${set.includeRecommended}`;
+    const { word, bag } = drawWord(this.bags.get(key) ?? [], pool, this.lastWord, Math.random);
+    this.bags.set(key, bag);
+    return vocabById(word)!;
   }
 
   private async presentWord(my: number, firstForFoe: boolean): Promise<void> {

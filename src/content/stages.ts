@@ -95,3 +95,22 @@ export function stageWords(stage: StageDef, pack: PackId, includeRecommended: bo
 export function entryDifficulty(entry: VocabEntry): number {
   return wordDifficulty(entry.word) + (entry.soundMatchesSpelling ? 0 : 1);
 }
+
+/**
+ * 단어 주머니: 전투 후보를 무작위로 섞어 하나씩 뽑는다 (2026-09-28 사용자 지시 "문제 랜덤으로").
+ * 주머니를 다 비우기 전에는 같은 단어를 다시 내지 않고, 새로 섞을 때도 방금 낸 단어가 바로 나오지 않게 한다.
+ */
+export function drawWord(bag: string[], pool: string[], last: string, rng: () => number): { word: string; bag: string[] } {
+  // 부모 설정이 바뀌어 후보가 달라졌으면 주머니에서 없는 단어를 뺀다
+  let rest = bag.filter((w) => pool.includes(w) && w !== last);
+  if (!rest.length) {
+    rest = [...pool];
+    for (let i = rest.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [rest[i], rest[j]] = [rest[j], rest[i]];
+    }
+    if (rest.length > 1 && rest[0] === last) [rest[0], rest[rest.length - 1]] = [rest[rest.length - 1], rest[0]];
+  }
+  const [word, ...remaining] = rest;
+  return { word, bag: remaining };
+}
