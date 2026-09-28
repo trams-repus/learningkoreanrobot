@@ -28,6 +28,8 @@ export interface CockpitCallbacks {
   onTapOnly: () => void;
   /** 칸 위에 놓았지만 받지 않았을 때 (자음·모음이 칸과 안 맞거나 차례가 아닌 칸). 부모 화면 분석용 기록. */
   onRejectedDrop?: (jamo: string, expected: { frame: number; role: CellRole } | null, over: { frame: number; role: CellRole } | null) => void;
+  /** 판에서 꺼낸 자모를 칸이 아닌 빈 곳에 떨어뜨렸을 때 (조작 미끄러짐. 실수로 세지 않는다) */
+  onSlipDrop?: () => void;
 }
 
 interface JamoChip {
@@ -643,7 +645,7 @@ export class Cockpit {
 
   // ───────────── 끌어서 놓기 ─────────────
 
-  private drag: { chip: JamoChip; pointerId: number; sx: number; sy: number; active: boolean; unlisten: () => void } | null = null;
+  private drag: { chip: JamoChip; pointerId: number; sx: number; sy: number; active: boolean; fromCell?: boolean; unlisten: () => void } | null = null;
 
   private bindPointer(c: JamoChip): void {
     const el = c.el;
@@ -695,6 +697,7 @@ export class Cockpit {
       d.active = true;
       el.classList.add('dragging');
       if (c.placed) {
+        d.fromCell = true;
         // 칸에 있던 칩을 끌어내면 영역으로 옮긴 뒤 이어서 끈다
         const r = el.getBoundingClientRect();
         this.unplace(c, true);
@@ -740,7 +743,7 @@ export class Cockpit {
         this.cb.onRejectedDrop?.(c.jamo, this.expected(), this.cellAt(e.clientX, e.clientY));
         sfx.play('reject');
         this.blinkExpected();
-      }
+      } else if (!d.fromCell) this.cb.onSlipDrop?.(); // 칸에서 빼려고 끌어낸 것은 미끄러짐이 아니다
     }
     // 칸 밖이면 취소: 영역 안 제자리로 부드럽게 돌아간다
     const from = el.getBoundingClientRect();

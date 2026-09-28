@@ -143,6 +143,24 @@ describe('오답 패턴', () => {
   });
 });
 
+describe('실수 종류', () => {
+  it('되돌아간 끌어 놓기도 실수로 세고, 빈 곳에 떨어뜨린 것은 미끄러짐으로 따로 센다', () => {
+    const log = new PlayLog(mem());
+    log.begin('수박', 's2', 'C');
+    log.drop('수', 'jung', 'ㅜ', 'ㅅ', 'jung', false); // 자음을 모음 칸에 → 칸 종류
+    log.drop('수', 'cho', 'ㅅ', 'ㅂ', 'other', false); // 다음 글자 칸에 → 순서
+    log.drop('수', 'cho', 'ㅅ', 'ㅈ', null, true); // 틀 위 칸 사이 → 미끄러짐
+    log.slip(); // 빈 곳 → 미끄러짐
+    log.miss('수', 'jung', 'ㅜ', 'ㅗ', true); // 함정
+    log.miss('박', 'jong', 'ㄱ', 'ㅂ', false); // 맞는 칸에 다른 자모
+    log.finish(false, 1000);
+    const a = analyze(log.events);
+    expect(a.mistakes).toEqual({ kind: 1, order: 1, trap: 1, wrong: 1, total: 4, slip: 2 });
+    expect(a.orderMix.lines.map((l) => l.label)).toContain('지금 글자를 다 채우기 전에 다음 글자 칸에 놓으려 함');
+    expect(log.events.at(-1)).toMatchObject({ k: 'word', slip: 1, drop: 3 });
+  });
+});
+
 describe('더 자주 내기', () => {
   it('집중 자모가 든 단어를 한 번 더 넣는다', () => {
     expect(focusPool(['나무', '거미', '바다'], ['ㅓ'], [])).toEqual(['나무', '거미', '바다', '거미']);

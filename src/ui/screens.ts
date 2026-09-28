@@ -352,6 +352,15 @@ export class Screens {
       ${sugg}
       ${good.length ? `<h3 class="sec">늘어난 점</h3><ul>${good.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
       <h3 class="sec">오답 패턴 <small>(${pname} 기록)</small></h3>
+      <h4>실수 종류</h4>
+      <table><thead><tr><th>종류</th><th>횟수</th></tr></thead><tbody>
+        <tr><td>칸 종류 틀림 (자음을 모음 칸에, 모음을 첫소리 칸에 등)</td><td>${a.mistakes.kind}번</td></tr>
+        <tr><td>순서 틀림 (아직 차례가 아닌 칸에)</td><td>${a.mistakes.order}번</td></tr>
+        <tr><td>함정 자모를 칸에 넣음</td><td>${a.mistakes.trap}번</td></tr>
+        <tr><td>맞는 칸에 다른 자모를 넣음</td><td>${a.mistakes.wrong}번</td></tr>
+        <tr><td><b>합계</b></td><td><b>${a.mistakes.total}번</b></td></tr>
+      </tbody></table>
+      <p class="muted">칸 종류·순서가 틀려 자모가 되돌아간 것도 실수로 셉니다. 칸이 아닌 빈 곳에 떨어뜨린 것(조작 미끄러짐 ${a.mistakes.slip}번)은 실수에 넣지 않았습니다.</p>
       <h4>자음·모음 순서 엇갈림</h4>
       ${order}
       <h4>자주 틀리는 자모</h4>

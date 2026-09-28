@@ -8,14 +8,14 @@ export type LogEvent =
   /** 전투 시작 */
   | { k: 'battle'; t: number; stage: string }
   /** 단어 한 문제의 끝. alone = 도움 없이 완성, help = 흐린 자모·안내·정답 보기를 본 완성, stop = 끝내지 못함 */
-  | { k: 'word'; t: number; w: string; stage: string; level: string; res: WordResult; ms: number | null; mis: number; rep: number; hint: number; trap: number; drop: number }
+  | { k: 'word'; t: number; w: string; stage: string; level: string; res: WordResult; ms: number | null; mis: number; rep: number; hint: number; trap: number; drop: number; slip: number }
   /** 다른 글자가 된 칸: want 자리에 got을 넣음. trap = 넣은 자모가 이 단어에 없는 함정 자모 */
   | { k: 'miss'; t: number; w: string; syl: string; role: CellRole; want: string; got: string | null; trap: boolean }
   /**
    * 칸이 받지 않은 끌어 놓기: 차례인 칸(role, 정답 want)에 got을 놓으려 했거나, 차례가 아닌 칸(over)에 놓으려 함.
    * 자음·모음 순서를 엇갈리는 버릇을 보려고 남긴다.
    */
-  | { k: 'drop'; t: number; w: string; syl: string; role: CellRole; want: string; got: string; over: CellRole | null; trap: boolean };
+  | { k: 'drop'; t: number; w: string; syl: string; role: CellRole; want: string; got: string; over: CellRole | 'other' | null; trap: boolean };
 
 /** 오래된 기록부터 버린다 (localStorage 용량과 저장 시간 때문에) */
 export const LOG_CAP = 1500;
@@ -34,6 +34,7 @@ interface Pending {
   hint: number;
   trap: number;
   drop: number;
+  slip: number;
 }
 
 export class PlayLog {
@@ -61,7 +62,7 @@ export class PlayLog {
   /** 새 문제 시작. 앞 문제를 끝내지 못했으면 stop으로 남긴다. */
   begin(w: string, stage: string, level: string): void {
     this.abandon();
-    this.pending = { w, stage, level, mis: 0, rep: 0, hint: 0, trap: 0, drop: 0 };
+    this.pending = { w, stage, level, mis: 0, rep: 0, hint: 0, trap: 0, drop: 0, slip: 0 };
   }
 
   miss(syl: string, role: CellRole, want: string, got: string | null, trap: boolean): void {
@@ -72,7 +73,12 @@ export class PlayLog {
     this.push({ k: 'miss', t: this.now(), w: p.w, syl, role, want, got, trap });
   }
 
-  drop(syl: string, role: CellRole, want: string, got: string, over: CellRole | null, trap: boolean): void {
+  /** 칸이 아닌 빈 곳에 떨어뜨림: 조작 미끄러짐. 실수와 따로 센다 */
+  slip(): void {
+    if (this.pending) this.pending.slip++;
+  }
+
+  drop(syl: string, role: CellRole, want: string, got: string, over: CellRole | 'other' | null, trap: boolean): void {
     const p = this.pending;
     if (!p) return;
     p.drop++;
@@ -100,7 +106,7 @@ export class PlayLog {
     const p = this.pending;
     if (!p) return;
     this.pending = null;
-    this.push({ k: 'word', t: this.now(), w: p.w, stage: p.stage, level: p.level, res, ms, mis: p.mis, rep: p.rep, hint: p.hint, trap: p.trap, drop: p.drop });
+    this.push({ k: 'word', t: this.now(), w: p.w, stage: p.stage, level: p.level, res, ms, mis: p.mis, rep: p.rep, hint: p.hint, trap: p.trap, drop: p.drop, slip: p.slip });
   }
 
   clear(): void {
@@ -124,11 +130,11 @@ export function sanitizeLog(raw: unknown): LogEvent[] {
     const t = n(e.t);
     if (e.k === 'battle' && str(e.stage)) out.push({ k: 'battle', t, stage: e.stage });
     else if (e.k === 'word' && str(e.w) && (e.res === 'alone' || e.res === 'help' || e.res === 'stop'))
-      out.push({ k: 'word', t, w: e.w, stage: str(e.stage) ? e.stage : '', level: str(e.level) ? e.level : '', res: e.res, ms: typeof e.ms === 'number' ? e.ms : null, mis: n(e.mis), rep: n(e.rep), hint: n(e.hint), trap: n(e.trap), drop: n(e.drop) });
+      out.push({ k: 'word', t, w: e.w, stage: str(e.stage) ? e.stage : '', level: str(e.level) ? e.level : '', res: e.res, ms: typeof e.ms === 'number' ? e.ms : null, mis: n(e.mis), rep: n(e.rep), hint: n(e.hint), trap: n(e.trap), drop: n(e.drop), slip: n(e.slip) });
     else if (e.k === 'miss' && str(e.w) && str(e.want) && str(e.role) && ROLES.includes(e.role))
       out.push({ k: 'miss', t, w: e.w, syl: str(e.syl) ? e.syl : '', role: e.role as CellRole, want: e.want, got: str(e.got) ? e.got : null, trap: e.trap === true });
     else if (e.k === 'drop' && str(e.w) && str(e.want) && str(e.got) && str(e.role) && ROLES.includes(e.role))
-      out.push({ k: 'drop', t, w: e.w, syl: str(e.syl) ? e.syl : '', role: e.role as CellRole, want: e.want, got: e.got, over: str(e.over) && ROLES.includes(e.over) ? (e.over as CellRole) : null, trap: e.trap === true });
+      out.push({ k: 'drop', t, w: e.w, syl: str(e.syl) ? e.syl : '', role: e.role as CellRole, want: e.want, got: e.got, over: e.over === 'other' ? 'other' : str(e.over) && ROLES.includes(e.over) ? (e.over as CellRole) : null, trap: e.trap === true });
   }
   return out.slice(-LOG_CAP);
 }

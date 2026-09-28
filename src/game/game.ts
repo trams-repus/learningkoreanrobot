@@ -85,8 +85,9 @@ export class Game {
         const cur = this.current;
         if (!cur || !exp) return;
         const f = cur.frames[exp.frame];
-        playlog.drop(f.syllable, exp.role, f[exp.role], jamo, over && over.frame === exp.frame ? over.role : null, !requiredJamo(cur.frames).includes(jamo));
+        playlog.drop(f.syllable, exp.role, f[exp.role], jamo, !over ? null : over.frame === exp.frame ? over.role : 'other', !requiredJamo(cur.frames).includes(jamo));
       },
+      onSlipDrop: () => playlog.slip(),
       onTapOnly: () => {
         this.resetIdle();
         sfx.play('tap');

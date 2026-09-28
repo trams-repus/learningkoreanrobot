@@ -92,6 +92,12 @@ export interface Analysis {
   trend: { before: number; after: number; window: number } | null;
   replaysRecent: { words: number; replays: number };
   recentMisses: RecentMiss[];
+  /**
+   * 실수 종류별 횟수 (2026-09-28 사용자 요청: 되돌아간 끌어 놓기도 실수로 센다).
+   * kind 칸 종류 틀림(자음→모음 칸 등), order 차례가 아닌 칸, trap 함정 자모를 칸에 넣음, wrong 맞는 칸에 다른 자모.
+   * slip = 칸이 아닌 곳에 떨어뜨림 (조작 미끄러짐, total에 넣지 않음)
+   */
+  mistakes: { kind: number; order: number; trap: number; wrong: number; total: number; slip: number };
   /** 자음·모음 순서 엇갈림 (칸이 받지 않은 끌어 놓기) */
   orderMix: OrderMix;
   /** 자주 틀리는 자모: 정답 자모 기준, 완성 단어에 나온 횟수 대비 */
@@ -220,11 +226,26 @@ export function analyze(allEvents: LogEvent[], now: number = Date.now(), period:
     if (!canHold(d.role, d.got)) {
       if (d.role === 'jung') addOrder('모음 차례에 자음을 먼저 놓으려 함', ex);
       else addOrder(`${ROLE_SHORT[d.role]} 차례에 모음을 놓으려 함`, ex);
-    } else if (d.over && d.over !== d.role) addOrder(`${ROLE_SHORT[d.role]} 차례에 ${ROLE_SHORT[d.over]} 칸에 먼저 놓으려 함`, ex);
+    } else if (d.over === 'other') addOrder('지금 글자를 다 채우기 전에 다음 글자 칸에 놓으려 함', ex);
+    else if (d.over && d.over !== d.role) addOrder(`${ROLE_SHORT[d.role]} 차례에 ${ROLE_SHORT[d.over]} 칸에 먼저 놓으려 함`, ex);
   }
   const orderLines = [...orderCount.entries()].map(([label, c]) => ({ label, count: c.n, example: c.ex })).sort((x, y) => y.count - x.count);
   const placedSlots = roleMiss.cho.slots + roleMiss.jung.slots + roleMiss.jong.slots;
   const orderTotal = orderLines.reduce((s2, l) => s2 + l.count, 0);
+
+  // 실수 종류 (서로 겹치지 않게: 칸 종류 → 순서 → 함정 → 맞는 칸에 다른 자모). 빈 곳에 떨어뜨린 것은 미끄러짐으로 따로
+  const kindN = drops.filter((d) => !canHold(d.role, d.got)).length;
+  const orderN = drops.filter((d) => canHold(d.role, d.got) && (d.over === 'other' || (d.over !== null && d.over !== d.role))).length;
+  const edgeN = drops.length - kindN - orderN; // 틀 위지만 칸 사이 등: 미끄러짐
+  const mistakes = {
+    kind: kindN,
+    order: orderN,
+    trap: misses.filter((m) => m.trap).length,
+    wrong: misses.filter((m) => !m.trap).length,
+    total: 0,
+    slip: edgeN + words.reduce((s2, w) => s2 + w.slip, 0),
+  };
+  mistakes.total = mistakes.kind + mistakes.order + mistakes.trap + mistakes.wrong;
 
   // 자주 틀리는 자모 (정답 자모 기준)
   const seenJamo = new Map<string, number>();
@@ -272,6 +293,7 @@ export function analyze(allEvents: LogEvent[], now: number = Date.now(), period:
     trend,
     replaysRecent,
     recentMisses,
+    mistakes,
     orderMix: { total: orderTotal, attempts: placedSlots + orderTotal, lines: orderLines },
     jamoTrouble,
     trap,
