@@ -2,7 +2,8 @@
 import { SfxService } from '../services/sfx';
 import { AudioManager } from '../services/audio';
 import { Recordings } from '../services/recordings';
-import { SaveService } from '../services/storage';
+import { logStore, SaveService } from '../services/storage';
+import { PlayLog } from '../core/playlog';
 
 const params = new URLSearchParams(typeof location !== 'undefined' ? location.search : '');
 
@@ -19,6 +20,8 @@ export const sfx = new SfxService();
 export const recordings = new Recordings();
 export const audio = new AudioManager(sfx, recordings, options.voiceOff);
 export const saves = new SaveService();
+/** 부모 화면 오답 분석용 플레이 로그 (기기 안에만) */
+export const playlog = new PlayLog(logStore());
 
 export function applySettings(): void {
   const s = saves.data.settings;

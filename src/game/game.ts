@@ -8,13 +8,15 @@ import { pictureSvg } from '../content/pictures';
 import { jamoCount, pickTraps, requiredJamo, wordFrames, cellsOf, type FrameSpec, type TrapGrade } from '../core/assembly';
 import { actorOf, createBattle, foeTurn, planTier, robotAttack, spawnWave, strongerTier, target, waveHp } from '../core/battle';
 import { bonusTimeMs, ComboClock, comboTimeMs, nextCombo, tierFor, type HelpLevel } from '../core/combo';
+import { focusPool } from '../core/analysis';
 import { helpLevelFor, recordSuccess, wordStats } from '../core/progress';
+import { decomposeSyllable } from '../hangul/hangul';
 import type { BattleState } from '../core/types';
 import type { BattleScene } from '../scene/BattleScene';
 import { Cockpit } from '../ui/cockpit';
 import { ICONS } from '../ui/icons';
 import { Screens } from '../ui/screens';
-import { audio, options, saves, sfx } from './services';
+import { audio, options, playlog, saves, sfx } from './services';
 
 type Phase = 'menu' | 'intro' | 'compose' | 'execute' | 'victory';
 
@@ -68,7 +70,11 @@ export class Game {
       onFrameResult: (i, r) => {
         const cur = this.current;
         if (!cur) return;
-        if (r.kind === 'different') this.onWrongSyllable(cur, r.wrongCells.map((role) => cur.frames[i][role]), r.made);
+        if (r.kind === 'different') {
+          const got = r.made ? decomposeSyllable(r.made) : null;
+          for (const role of r.wrongCells) playlog.miss(cur.frames[i].syllable, role, cur.frames[i][role], got ? got[role] || null : null);
+          this.onWrongSyllable(cur, r.wrongCells.map((role) => cur.frames[i][role]), r.made);
+        }
         // 한 음절이 맞으면 그 음절 소리로 읽는다 (사용자 지시). 한 글자 단어는 곧 단어로 읽으므로 건너뛴다.
         // (예전의 '거의 다 됐어' 격려 대사는 음절 소리와 겹쳐서 뺐다)
         else if (r.kind === 'correct' && cur.frames.length >= 2) cur.syllableSaid = audio.playSyllable(cur.frames[i].syllable);
@@ -155,6 +161,7 @@ export class Game {
 
   toMenu(): void {
     this.run++;
+    playlog.abandon();
     this.phase = 'menu';
     this.setPausedState(false);
     this.clearIdle();
@@ -190,6 +197,7 @@ export class Game {
     this.showCombo(false);
     const st = saves.data.stats;
     st.battlesPlayed[id] = (st.battlesPlayed[id] ?? 0) + 1;
+    playlog.battle(stage.id);
     saves.data.lastStage = stage.id;
     saves.save();
     this.scene.resetBattle(this.state.robotHp);
@@ -266,7 +274,7 @@ export class Game {
     const s = this.stage!;
     if (s.fixedWords && this.wordIndex < s.fixedWords.length) return vocabById(s.fixedWords[this.wordIndex])!;
     const set = saves.data.settings;
-    const pool = stageWords(s, set.pack, set.includeRecommended).map((w) => w.word);
+    const pool = focusPool(stageWords(s, set.pack, set.includeRecommended).map((w) => w.word), set.focusJamo, set.focusWords);
     // 전투마다 섞은 주머니에서 하나씩: 다 쓰기 전엔 반복 없음, 다시 해도 이어서 뽑는다 (기기에는 저장하지 않음)
     const key = `${s.id}|${set.pack}|${set.includeRecommended}`;
     const { word, bag } = drawWord(this.bags.get(key) ?? [], pool, this.lastWord, Math.random);
@@ -287,6 +295,7 @@ export class Game {
     const ws = wordStats(saves.data.stats, entry.id);
     ws.attempts++;
     saves.save();
+    playlog.begin(entry.id, this.stage!.id, level);
     // 함정 자모: 첫 수박부터 전투가 정한 수·난이도로 섞는다 (계속 틀리면 cockpit이 하나씩 치운다, 최소 1개)
     const stage = this.stage!;
     const all = requiredJamo(frames);
@@ -399,6 +408,7 @@ export class Game {
     if (!cur || this.paused || (this.phase !== 'compose' && this.phase !== 'intro')) return;
     if (count) {
       wordStats(saves.data.stats, cur.entry.id).replays++;
+      playlog.replay();
       saves.save();
     }
     this.clock.hold('replay');
@@ -416,6 +426,7 @@ export class Game {
     cur.assisted = true;
     const ws = wordStats(saves.data.stats, cur.entry.id);
     ws.hintViews++;
+    playlog.hint();
     saves.save();
     const fi = this.cockpit.currentFrame;
     if (ws.hintViews % 2 === 1) this.cockpit.setGhost(fi, true);
@@ -482,6 +493,7 @@ export class Game {
     this.attacks++;
     const st = saves.data.stats;
     recordSuccess(st, cur.entry.id, cur.assisted, elapsed);
+    playlog.finish(cur.assisted, elapsed);
     st.bestCombo = Math.max(st.bestCombo, this.combo);
     if (tier === 'finisher' || tier === 'ultimate') st.finishers++;
     saves.save();
