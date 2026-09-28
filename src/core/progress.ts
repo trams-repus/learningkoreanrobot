@@ -21,6 +21,9 @@ export interface Settings {
   useWordRecordings: boolean;
   /** 함께 싸울 캐릭터. 아직 고르지 않았으면 null. 바꿔도 기록·해금은 그대로 둔다. */
   characterTheme: CharacterTheme | null;
+  /** 부모 화면 제안으로 켠 '더 자주 내기': 이 자모가 든 단어·이 단어를 전투 안에서 두 배로 자주 낸다 */
+  focusJamo: string[];
+  focusWords: string[];
 }
 
 export interface WordStats {
@@ -82,6 +85,8 @@ export function defaultSettings(): Settings {
     autoHelp: true,
     useWordRecordings: false,
     characterTheme: null,
+    focusJamo: [],
+    focusWords: [],
   };
 }
 
@@ -106,6 +111,8 @@ const countMap = (v: unknown): Record<string, number> => {
   for (const [k, x] of Object.entries(obj(v))) if (typeof x === 'number' && Number.isFinite(x) && x >= 0) out[k] = Math.floor(x);
   return out;
 };
+
+const strList = (v: unknown, max: number): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string').slice(0, max) : []);
 
 /** 손상되거나 옛 형식인 저장 데이터를 안전한 값으로 되돌린다. 어떤 입력에도 예외를 던지지 않는다. */
 export function sanitizeSave(raw: unknown): SaveData {
@@ -147,6 +154,8 @@ export function sanitizeSave(raw: unknown): SaveData {
       autoHelp: bool(s.autoHelp, d.settings.autoHelp),
       useWordRecordings: bool(s.useWordRecordings, d.settings.useWordRecordings),
       characterTheme: s.characterTheme === 'robot' || s.characterTheme === 'magicalGirl' ? s.characterTheme : null,
+      focusJamo: strList(s.focusJamo, 8),
+      focusWords: strList(s.focusWords, 8),
     },
     stats: {
       battlesPlayed: countMap(st.battlesPlayed),
