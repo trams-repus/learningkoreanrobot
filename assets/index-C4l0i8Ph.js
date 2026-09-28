@@ -168,10 +168,11 @@ return new `+this.key+`();
             </section>`).join(``):`<p class="big-note">지금 기록에서는 눈에 띄게 반복되는 실수가 없어요.</p>`,c=[];e.trend&&c.push(`혼자 완성한 단어: 처음 ${e.trend.window}개 중 ${e.trend.before}개 → 최근 ${e.trend.window}개 중 ${e.trend.after}개`),e.improved.length&&c.push(`처음엔 도움을 받았지만 최근 두 번은 혼자 끝낸 단어: ${e.improved.slice(0,6).join(`, `)}`);let l={cho:`첫소리`,jung:`모음`,jong:`받침`},u=[`cho`,`jung`,`jong`].map(t=>`<tr><td>${l[t]}</td><td>${e.roleMiss[t].slots}칸</td><td>${e.roleMiss[t].miss}번</td></tr>`).join(``),d=e.confusions.length?`<table><thead><tr><th>헷갈린 두 자모</th><th>횟수</th><th>나온 단어</th></tr></thead><tbody>${e.confusions.slice(0,8).map(e=>`<tr><td class="jamo">${e.pair[0]} · ${e.pair[1]}</td><td>${e.total}번</td><td>${en(e.words.slice(0,4).join(`, `))}</td></tr>`).join(``)}</tbody></table>`:`<p class="muted">두 번 이상 바꿔 넣은 자모 쌍은 아직 없어요.</p>`,f=e.orderMix.total?`<p>칸에 놓으려 한 ${e.orderMix.attempts}번 중 <b>${e.orderMix.total}번</b>은 차례나 칸 종류가 맞지 않아 돌아갔어요.</p>
          <table><thead><tr><th>무엇을</th><th>횟수</th><th>예</th></tr></thead><tbody>${e.orderMix.lines.map(e=>`<tr><td>${en(e.label)}</td><td>${e.count}번</td><td>${en(e.example??``)}</td></tr>`).join(``)}</tbody></table>`:`<p class="muted">순서가 엇갈린 기록이 아직 없어요.</p>`,p=e.jamoTrouble.length?`<table><thead><tr><th>자모</th><th>나온 횟수</th><th>틀린 횟수</th></tr></thead><tbody>${e.jamoTrouble.slice(0,8).map(e=>`<tr><td class="jamo">${en(e.jamo)}</td><td>${e.seen}번</td><td>${e.miss}번 (${i(e.miss,e.seen)}%)</td></tr>`).join(``)}</tbody></table>`:`<p class="muted">두 번 이상 틀린 자모는 아직 없어요.</p>`,m=e=>new Date(e).toLocaleString(`ko-KR`,{month:`numeric`,day:`numeric`,hour:`2-digit`,minute:`2-digit`,hour12:!1}),h=e.recentMisses.length?`<table><thead><tr><th>언제</th><th>단어</th><th>맞는 자모 → 넣은 자모</th></tr></thead><tbody>${e.recentMisses.map(e=>`<tr><td>${m(e.t)}</td><td>${en(e.word)} (${en(e.syl)})</td><td class="jamo">${en(e.want)} → ${en(e.got??`?`)}</td></tr>`).join(``)}</tbody></table>`:`<p class="muted">아직 틀린 기록이 없어요.</p>`;return`${a}
       <section class="ask-claude">
-        <h3>AI에게 조언 받기</h3>
-        <p>${t} 기록과 게임 설명, 질문을 담은 글 전체를 복사합니다. Claude·ChatGPT 같은 AI 채팅에 붙여 넣으면 약점과 집에서 도울 방법을 물어볼 수 있어요. 게임은 아무것도 밖으로 보내지 않고, 이름·생년월일·날짜·기기 정보는 넣지 않습니다.</p>
+        <h3>AI에게 학습 전략 물어보기</h3>
+        <p>게임 설명과 ${t} 기록, 질문을 담은 글로 아이의 약점과 집에서 도울 방법을 AI에게 물어볼 수 있어요. 게임은 아무것도 밖으로 보내지 않고, 이름·생년월일·날짜·기기 정보는 넣지 않습니다.</p>
         ${r.childAge===null?`<p class="muted">'설정'에서 아이 나이(만 나이)를 고르면 글에 함께 들어가 더 알맞은 조언을 받을 수 있어요.</p>`:``}
-        <div class="btns"><button class="small-btn primary" id="an-claude">AI에게 물어보기 (복사)</button></div>
+        <div class="btns"><button class="small-btn primary" id="an-claude">AI에게 학습 전략 물어보기</button></div>
+        <p class="muted">누르면 질문 글 전체가 복사돼요. Claude·ChatGPT 같은 AI 채팅에 붙여 넣으세요.</p>
         <p class="copy-note" id="an-claude-note" hidden></p>
         <details><summary>복사될 글 보기</summary><textarea id="an-claude-text" readonly rows="10">${en(et(e,{age:r.childAge,pack:r.pack,helpMode:r.helpMode,autoHelp:r.autoHelp,focus:[...r.focusJamo.map(e=>`${e}가 든 단어`),...r.focusWords]}))}</textarea></details>
       </section>
@@ -232,7 +233,7 @@ return new `+this.key+`();
       <p class="muted">어휘팩은 게임 내부의 임시 선정입니다. 공식 어휘 등급과 대조하기 전이며, 아이 나이에 따른 공식 기준이 아닙니다.</p>
       <h3>아이</h3>
       <label>아이 나이 (만)<select id="se-age"><option value="" ${e.childAge===null?`selected`:``}>입력 안 함</option>${[3,4,5,6,7,8,9].map(t=>`<option value="${t}" ${e.childAge===t?`selected`:``}>만 ${t}세</option>`).join(``)}</select></label>
-      <p class="muted">'AI에게 물어보기'로 복사하는 글에만 들어갑니다. 생년월일·이름은 받지 않습니다.</p>
+      <p class="muted">'AI에게 학습 전략 물어보기'로 복사하는 글에만 들어갑니다. 생년월일·이름은 받지 않습니다.</p>
       <h3>도움</h3>
       <label>도움 정도<select id="se-help"><option value="auto" ${e.helpMode===`auto`?`selected`:``}>자동 (플레이에 맞춰)</option><option value="more" ${e.helpMode===`more`?`selected`:``}>많이 (늘 부분 안내)</option></select></label>
       ${t(`se-autohelp`,e.autoHelp,`막히면 선택지 줄이기·다음 자모 안내`)}
