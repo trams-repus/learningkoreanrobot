@@ -161,7 +161,13 @@ async function run(vp) {
     const syl = a.playSyllable.bind(a);
     const word = a.playWord.bind(a);
     a.playSyllable = (x) => (window.__said.push(`음절:${x}`), syl(x));
-    a.playWord = (x) => (window.__said.push(`단어:${x.replace(/^w_/, '')}`), word(x));
+    window.__wordPlays = [];
+    a.playWord = (x) => {
+      window.__said.push(`단어:${x.replace(/^w_/, '')}`);
+      const p = word(x);
+      p.then((r) => window.__wordPlays.push(`${x.replace(/^w_/, '')}:${r.method}:${r.ok ? 'ok' : 'x'}`));
+      return p;
+    };
   });
 
   // 탭만 하면 들어가지 않는다
@@ -217,6 +223,9 @@ async function run(vp) {
   const said = await page.evaluate(() => window.__said.slice());
   const i1 = said.indexOf('음절:수');
   const i2 = said.indexOf('음절:박', i1 + 1);
+  // 녹음이 있는 수박은 녹음 파일로, 끝까지 재생되어야 한다
+  const wordPlays = await page.evaluate(() => window.__wordPlays.slice());
+  const subakRecording = wordPlays.some((x) => x === '수박:file:ok');
   const syllablesRead = i1 >= 0 && i2 > i1 && said.indexOf('단어:수박', i2 + 1) > i2;
   await page.screenshot({ path: `${OUT}/${vp.name}-04-victory.png` });
 
@@ -305,6 +314,8 @@ async function run(vp) {
     trapsSeen,
     trapsLeft,
     syllablesRead,
+    subakRecording,
+    wordPlays: wordPlays.slice(0, 6).join(' '),
     said: said.slice(0, 8).join(' '),
     robot: log,
     bestCombo: combo1,
@@ -328,7 +339,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
     const r = await run(vp);
     console.log(JSON.stringify(r));
     if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
-    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead) failed = true;
+    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording) failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);
