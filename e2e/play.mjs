@@ -22,7 +22,7 @@ async function waitFor(page, fn, arg, timeout = 20000) {
   try {
     await page.waitForFunction(fn, arg, { timeout, polling: 50 });
   } catch (e) {
-    const st = await page.evaluate(() => JSON.stringify({ phase: window.__hd.game.phase, paused: window.__hd.game.paused, word: window.__hd.game.current?.entry.word, level: window.__hd.game.current?.level, chips: [...document.querySelectorAll('#zone .jamo-chip')].map((c) => c.dataset.jamo + (c.classList.contains('in-cell') ? '*' : '')).join(''), overlay: !document.getElementById('overlay').hidden }));
+    const st = await page.evaluate(() => JSON.stringify({ phase: window.__hd.game.phase, paused: window.__hd.game.paused, word: window.__hd.game.current?.entry.word, level: window.__hd.game.current?.level, chips: [...document.querySelectorAll('#zone .jamo-chip')].map((c) => c.dataset.jamo + (c.classList.contains('in-cell') ? '*' : '')).join(''), overlay: !document.getElementById('overlay').hidden, stuckDrag: window.__hd.game.cockpit.drag ? window.__hd.game.cockpit.drag.chip.jamo + (window.__hd.game.cockpit.drag.active ? ':끄는중' : ':눌림') : null }));
     await page.screenshot({ path: `${OUT}/timeout.png` });
     throw new Error(`기다리다 시간 초과: ${fn.toString().slice(0, 80)} 상태=${st}`);
   }
@@ -187,6 +187,41 @@ async function run(vp) {
   await sleep(300);
   const farDropInserted = (await inCells(page)) > 0;
 
+  // 잘못 넣은 자모 빼기 → 다시 넣기 (사용자 제보: 빼려고 하면 탭·끌기가 안 먹음)
+  const placedAt = (j) => page.evaluate((j) => {
+    const el = [...document.querySelectorAll('#frames .jamo-chip.in-cell')].find((e) => e.dataset.jamo === j);
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }, j);
+  const zoneMid = await page.evaluate(() => {
+    const r = document.getElementById('zone').getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height * 0.6 };
+  });
+  const trap0 = (await freeChips(page)).find((j) => !'ㅅㅜ'.includes(j) && !/[ㅏ-ㅣ]/.test(j));
+  await dragTo(page, vp, await chipCenter(page, trap0), await cellCenter(page, 0, 'cho'));
+  await sleep(250);
+  const wrongIn = (await inCells(page)) === 1;
+  await dragTo(page, vp, await placedAt(trap0), zoneMid);
+  await sleep(700);
+  const removeByDrag = (await inCells(page)) === 0 && (await freeChips(page)).includes(trap0);
+  await dragTo(page, vp, await chipCenter(page, trap0), await cellCenter(page, 0, 'cho'));
+  await sleep(250);
+  const wrongInAgain = (await inCells(page)) === 1;
+  const p1 = await placedAt(trap0);
+  if (p1) await tapAt(page, vp, p1.x, p1.y);
+  await sleep(700);
+  const removeByTap = (await inCells(page)) === 0;
+  await dragTo(page, vp, await chipCenter(page, 'ㅅ'), await cellCenter(page, 0, 'cho'));
+  await sleep(250);
+  const reinsert = (await placedAt('ㅅ')) !== null;
+  const p2 = await placedAt('ㅅ');
+  if (p2) await tapAt(page, vp, p2.x, p2.y);
+  await sleep(700);
+  const removeFix = { wrongIn, removeByDrag, wrongInAgain, removeByTap, reinsert, emptyAfter: (await inCells(page)) === 0 };
+  const removeOk = Object.values(removeFix).every(Boolean);
+  if (process.env.DEBUG_REMOVE) console.log(vp.name, JSON.stringify(removeFix));
+
   // 함정으로 네 번 틀려도 함정 자모가 하나는 남는다 (계속 막히면 줄여 주되 0개로는 안 줄인다)
   const trapsSeen = [];
   for (let t = 0; t < 4; t++) {
@@ -309,6 +344,8 @@ async function run(vp) {
     firstChips: firstChips.join(''),
     firstDistractors: firstDistractors.join(''),
     tapInserted,
+    removeOk,
+    removeFix: Object.entries(removeFix).filter(([, v]) => !v).map(([k]) => k).join(',') || 'all ok',
     outOfOrderInserted,
     farDropInserted,
     trapsSeen,
@@ -339,7 +376,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
     const r = await run(vp);
     console.log(JSON.stringify(r));
     if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
-    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording) failed = true;
+    if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording || !r.removeOk) failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);

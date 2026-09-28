@@ -83,6 +83,7 @@ export class Cockpit {
   // ───────────── 준비 ─────────────
 
   setup(s: CockpitSetup): void {
+    this.cancelDrag();
     this.stopLoop();
     this.hideHand();
     this.setupData = s;
@@ -131,7 +132,7 @@ export class Cockpit {
     const view: FrameView = { spec, el, cells, fill: {}, chips: {}, done: false };
     for (const role of cellsOf(spec)) {
       cells[role]!.addEventListener('pointerup', (e) => {
-        if (e.target !== cells[role] && !(e.target as HTMLElement).classList.contains('ghost')) return;
+        if (this.drag || (e.target !== cells[role] && !(e.target as HTMLElement).classList.contains('ghost'))) return;
         this.tapCell(view, role);
       });
     }
@@ -578,6 +579,7 @@ export class Cockpit {
   }
 
   private removeChip(c: JamoChip): void {
+    if (this.drag?.chip === c) this.cancelDrag();
     this.chips = this.chips.filter((x) => x !== c);
     c.el.classList.add('leaving');
     setTimeout(() => c.el.remove(), 300);
@@ -639,77 +641,116 @@ export class Cockpit {
 
   // ───────────── 끌어서 놓기 ─────────────
 
-  private drag: { chip: JamoChip; pointerId: number; sx: number; sy: number; active: boolean } | null = null;
+  private drag: { chip: JamoChip; pointerId: number; sx: number; sy: number; active: boolean; unlisten: () => void } | null = null;
 
   private bindPointer(c: JamoChip): void {
     const el = c.el;
     el.addEventListener('pointerdown', (e) => {
-      if (!this.canAct() || this.drag) return;
+      if (!this.canAct()) return;
       if (c.placed && this.frames[c.placed.frame]?.done) return;
+      // 앞 끌기의 '손 뗌'을 못 받은 채 남아 있으면(다른 손가락, 사라진 칩) 그 끌기를 접고 새로 시작한다.
+      // 예전에는 여기서 그냥 무시해서, 한 번 꼬이면 모든 칩이 탭·끌기에 반응하지 않았다.
+      if (this.drag) this.cancelDrag();
       e.preventDefault();
       // 손을 대면 이 칩은 즉시 멈추고, 주변 칩도 잠시 멈춘다
       c.frozenUntil = Number.POSITIVE_INFINITY;
       this.globalFreezeUntil = performance.now() + 100000;
-      this.drag = { chip: c, pointerId: e.pointerId, sx: e.clientX, sy: e.clientY, active: false };
-      el.setPointerCapture?.(e.pointerId);
+      const id = e.pointerId;
+      // 움직임·손 뗌은 창(window)에서 받는다. 칸에 있던 칩을 끌어내면 칩이 다른 부모로 옮겨지면서
+      // 포인터 캡처가 풀려 칩이 손 뗌을 못 받고 끌기 상태가 남던 문제(2026-09-28 제보)를 막는다.
+      const move = (ev: PointerEvent) => ev.pointerId === id && this.dragMove(c, ev);
+      const up = (ev: PointerEvent) => ev.pointerId === id && this.dragEnd(c, ev, false);
+      const cancel = (ev: PointerEvent) => ev.pointerId === id && this.dragEnd(c, ev, true);
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', cancel);
+      const unlisten = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        window.removeEventListener('pointercancel', cancel);
+      };
+      this.drag = { chip: c, pointerId: id, sx: e.clientX, sy: e.clientY, active: false, unlisten };
+      this.capture(el, id);
     });
-    el.addEventListener('pointermove', (e) => {
-      const d = this.drag;
-      if (!d || d.pointerId !== e.pointerId) return;
-      const dx = e.clientX - d.sx;
-      const dy = e.clientY - d.sy;
-      if (!d.active && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
-        d.active = true;
-        el.classList.add('dragging');
-        if (c.placed) {
-          // 칸에 있던 칩을 끌어내면 영역으로 옮긴 뒤 이어서 끈다
-          const r = el.getBoundingClientRect();
-          this.unplace(c, true);
-          const zr = this.zone.getBoundingClientRect();
-          c.x = r.left - zr.left;
-          c.y = r.top - zr.top;
-          d.sx = e.clientX;
-          d.sy = e.clientY;
-        }
+  }
+
+  /** 손가락을 칩에 붙잡아 둔다 (다른 요소가 이 손가락의 이벤트를 가져가지 않게) */
+  private capture(el: HTMLElement, pointerId: number): void {
+    try {
+      el.setPointerCapture?.(pointerId);
+    } catch {
+      /* 이미 뗀 손가락이면 무시: 창에서 받는 이벤트로 충분하다 */
+    }
+  }
+
+  private dragMove(c: JamoChip, e: PointerEvent): void {
+    const d = this.drag;
+    if (!d || d.chip !== c) return;
+    const el = c.el;
+    const dx = e.clientX - d.sx;
+    const dy = e.clientY - d.sy;
+    if (!d.active && Math.hypot(dx, dy) > DRAG_THRESHOLD) {
+      d.active = true;
+      el.classList.add('dragging');
+      if (c.placed) {
+        // 칸에 있던 칩을 끌어내면 영역으로 옮긴 뒤 이어서 끈다
+        const r = el.getBoundingClientRect();
+        this.unplace(c, true);
+        el.getAnimations().forEach((a) => a.cancel()); // 돌아가는 연출 없이 손가락을 바로 따라오게
+        sfx.play('unplace');
+        const zr = this.zone.getBoundingClientRect();
+        c.x = r.left - zr.left;
+        c.y = r.top - zr.top;
+        d.sx = e.clientX;
+        d.sy = e.clientY;
+        this.capture(el, d.pointerId);
       }
-      if (d.active) {
-        this.render(c, e.clientX - d.sx, e.clientY - d.sy);
-        this.highlightDrop(e.clientX, e.clientY, c.jamo);
-      }
-    });
-    const end = (e: PointerEvent, cancelled: boolean) => {
-      const d = this.drag;
-      if (!d || d.pointerId !== e.pointerId) return;
-      this.drag = null;
-      el.classList.remove('dragging');
-      this.clearDropHighlight();
-      this.releaseFreeze(c);
-      if (!d.active) {
-        if (!cancelled) this.tapChip(c);
+    }
+    if (d.active) {
+      this.render(c, e.clientX - d.sx, e.clientY - d.sy);
+      this.highlightDrop(e.clientX, e.clientY, c.jamo);
+    }
+  }
+
+  private dragEnd(c: JamoChip, e: PointerEvent, cancelled: boolean): void {
+    const d = this.drag;
+    if (!d || d.chip !== c) return;
+    const el = c.el;
+    this.drag = null;
+    d.unlisten();
+    el.classList.remove('dragging');
+    this.clearDropHighlight();
+    this.releaseFreeze(c);
+    if (!this.chips.includes(c)) return; // 끄는 사이에 치워진 칩
+    if (!d.active) {
+      if (!cancelled) this.tapChip(c);
+      return;
+    }
+    if (!cancelled && this.canAct()) {
+      this.cb.onInteract();
+      const target = this.dropTarget(e.clientX, e.clientY, c.jamo);
+      if (target) {
+        this.place(c, target.frame, target.role);
         return;
       }
-      const moved = { dx: e.clientX - d.sx, dy: e.clientY - d.sy };
-      if (!cancelled && this.canAct()) {
-        this.cb.onInteract();
-        const target = this.dropTarget(e.clientX, e.clientY, c.jamo);
-        if (target) {
-          this.place(c, target.frame, target.role);
-          return;
-        }
-        // 차례가 아닌 칸이나 맞지 않는 칸에 놓았으면: 돌려보내고 차례인 칸을 알려준다
-        if (this.overFrames(e.clientX, e.clientY)) {
-          sfx.play('reject');
-          this.blinkExpected();
-        }
+      // 차례가 아닌 칸이나 맞지 않는 칸에 놓았으면: 돌려보내고 차례인 칸을 알려준다
+      if (this.overFrames(e.clientX, e.clientY)) {
+        sfx.play('reject');
+        this.blinkExpected();
       }
-      // 칸 밖이면 취소: 영역 안 제자리로 부드럽게 돌아간다
-      const from = el.getBoundingClientRect();
-      this.render(c);
-      void moved;
-      this.flip(el, from);
-    };
-    el.addEventListener('pointerup', (e) => end(e, false));
-    el.addEventListener('pointercancel', (e) => end(e, true));
+    }
+    // 칸 밖이면 취소: 영역 안 제자리로 부드럽게 돌아간다
+    const from = el.getBoundingClientRect();
+    this.clampIntoZone(c);
+    this.render(c);
+    this.flip(el, from);
+  }
+
+  /** 칸에서 끌어낸 칩이 영역 밖 자리에 남지 않게 한다 */
+  private clampIntoZone(c: JamoChip): void {
+    const size = this.chipSize();
+    c.x = Math.max(0, Math.min(this.zone.clientWidth - size, c.x));
+    c.y = Math.max(0, Math.min(this.zone.clientHeight - size, c.y));
   }
 
   private releaseFreeze(c: JamoChip): void {
@@ -722,10 +763,14 @@ export class Cockpit {
     const d = this.drag;
     if (!d) return;
     this.drag = null;
+    d.unlisten();
     d.chip.el.classList.remove('dragging');
     this.clearDropHighlight();
     this.releaseFreeze(d.chip);
-    if (!d.chip.placed) this.render(d.chip);
+    if (!d.chip.placed) {
+      this.clampIntoZone(d.chip);
+      this.render(d.chip);
+    }
   }
 
   /** 차례인 칸 위(조금 벗어난 곳까지)에, 그 칸이 받을 수 있는 자모(자음/모음)를 놓았을 때만 그 칸 */
