@@ -8,7 +8,8 @@
     "preview": "vite preview --host",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "e2e": "node e2e/play.mjs"
+    "e2e": "node e2e/play.mjs",
+    "build:single": "npm run build && node scripts/build-single.mjs"
   },
   "keywords": [],
   "author": "",

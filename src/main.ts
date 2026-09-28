@@ -1,0 +1,77 @@
+// 시작점: 서비스 준비 → Phaser 전투 장면 → 화면 배치 → 시작 화면.
+import Phaser from 'phaser';
+import './styles.css';
+import { Game } from './game/game';
+import { applySettings, audio, options, recordings, saves, sfx } from './game/services';
+import { BattleScene } from './scene/BattleScene';
+
+const dpr = () => Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+
+async function boot(): Promise<void> {
+  applySettings();
+  document.body.classList.toggle('reduce-motion', saves.data.settings.reduceEffects);
+
+  const scene = new BattleScene();
+  scene.reduceEffects = saves.data.settings.reduceEffects;
+  let d = dpr();
+  // 선명한 그림을 위해 캔버스는 실제 픽셀 크기로 만들고, CSS 크기는 zoom으로 맞춘다
+  const phaser = new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: 'game',
+    transparent: true,
+    width: Math.round(window.innerWidth * d),
+    height: Math.round(window.innerHeight * d),
+    scale: { mode: Phaser.Scale.NONE, zoom: 1 / d },
+    render: { antialias: true, roundPixels: false },
+    audio: { noAudio: true },
+    input: { mouse: false, touch: false, keyboard: false, gamepad: false },
+    banner: false,
+    scene: [scene],
+  });
+
+  await Promise.all([
+    scene.ready,
+    document.fonts?.load('900 20px HDFont').catch(() => undefined),
+    document.fonts?.load('700 16px HDFont').catch(() => undefined),
+    recordings.load(),
+    Promise.race([audio.init(), new Promise((r) => setTimeout(r, 3000))]),
+  ]);
+
+  const battleEl = document.getElementById('battle')!;
+  const hud = document.getElementById('hud')!;
+  const layout = () => {
+    d = dpr();
+    const w = Math.round(window.innerWidth * d);
+    const h = Math.round(window.innerHeight * d);
+    if (phaser.scale.width !== w || phaser.scale.height !== h) phaser.scale.resize(w, h);
+    phaser.scale.setZoom(1 / d);
+    const r = battleEl.getBoundingClientRect();
+    Object.assign(hud.style, { left: `${r.left}px`, top: `${r.top}px`, width: `${r.width}px`, height: `${r.height}px` });
+    scene.layout({ x: r.left, y: r.top, w: r.width, h: r.height }, d);
+  };
+  new ResizeObserver(layout).observe(battleEl);
+  window.addEventListener('resize', layout);
+  window.addEventListener('hd-layout', layout);
+  layout();
+
+  const game = new Game(scene);
+  scene.resetBattle(6);
+  document.getElementById('boot')!.remove();
+  game.screens.title();
+
+  // 첫 터치에서 소리 잠금 해제 (모바일 자동 재생 제한)
+  const firstTouch = () => {
+    sfx.unlock();
+    audio.unlock();
+    window.removeEventListener('pointerdown', firstTouch, true);
+  };
+  window.addEventListener('pointerdown', firstTouch, true);
+
+  if (options.dev) (window as unknown as { __hd: unknown }).__hd = { game, scene, audio, saves, sfx };
+}
+
+boot().catch((e) => {
+  const el = document.getElementById('boot');
+  if (el) el.textContent = `시작하지 못했습니다: ${e instanceof Error ? e.message : String(e)}`;
+  console.error(e);
+});
