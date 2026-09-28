@@ -102,21 +102,21 @@
   {
     "word": "공룡",
     "file": "dinosaur.wav",
-    "commonsFile": "LL-Q9176_(kor)-호로조-공룡.wav",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%B5%EB%A3%A1.wav",
-    "link": "없음: 2026-09-28 이 이름의 호로조 녹음이 Commons에 없음(Special:FilePath 404) → 기기 TTS",
-    "speaker": "호로조",
-    "license": "확인 전",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-공룡.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B3%B5%EB%A3%A1.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
     "collection": "Lingua Libre (Wikimedia Commons)"
   },
   {
     "word": "가방",
     "file": "bag.wav",
-    "commonsFile": "LL-Q9176_(kor)-호로조-가방.wav",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B0%80%EB%B0%A9.wav",
-    "link": "없음: 2026-09-28 이 이름의 호로조 녹음이 Commons에 없음(Special:FilePath 404) → 기기 TTS",
-    "speaker": "호로조",
-    "license": "확인 전",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-가방.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B0%80%EB%B0%A9.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
     "collection": "Lingua Libre (Wikimedia Commons)"
   },
   {
@@ -148,5 +148,1365 @@
     "speaker": "호로조",
     "license": "CC0-1.0",
     "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "모자",
+    "file": "moja.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-모자.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%AA%A8%EC%9E%90.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "오이",
+    "file": "oi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-오이.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%98%A4%EC%9D%B4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "우유",
+    "file": "uyu.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-우유.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%9A%B0%EC%9C%A0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "아기",
+    "file": "agi.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-아기.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%95%84%EA%B8%B0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "엄마",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-엄마.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "아빠",
+    "file": "appa.wav",
+    "commonsFile": "LL-Q9176_(kor)-HappyMidnight-아빠.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EC%95%84%EB%B9%A0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: HappyMidnight\nRecorder: HappyMidnight",
+    "license": "CC BY-SA 4.0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "집",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-집.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "자다",
+    "file": "jada.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-자다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%9E%90%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "크다",
+    "file": "keuda.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-크다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%ED%81%AC%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "누나",
+    "file": "nuna.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-누나.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%88%84%EB%82%98.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "오빠",
+    "file": "oppa.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-오빠.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%98%A4%EB%B9%A0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "코",
+    "file": "ko.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-코.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%BD%94.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "눈",
+    "file": "nun.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-눈.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%88%88.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "입",
+    "file": "ip.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-입.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%9E%85.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "손",
+    "file": "son.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-손.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%86%90.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "발",
+    "file": "bal.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-발.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B0%9C.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "포도",
+    "file": "podo.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-포도.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%ED%8F%AC%EB%8F%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "두부",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-두부.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "고기",
+    "file": "gogi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-고기.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%A0%EA%B8%B0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "밥",
+    "file": "bap.wav",
+    "commonsFile": "LL-Q9176_(kor)-HappyMidnight-밥.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EB%B0%A5.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: HappyMidnight\nRecorder: HappyMidnight",
+    "license": "CC BY-SA 4.0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "피자",
+    "file": "pija.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-피자.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%ED%94%BC%EC%9E%90.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "오리",
+    "file": "ori.wav",
+    "commonsFile": "LL-Q9176_(kor)-HappyMidnight-오리.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EC%98%A4%EB%A6%AC.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: HappyMidnight\nRecorder: HappyMidnight",
+    "license": "CC BY-SA 4.0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "여우",
+    "file": "yeou.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-여우.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%97%AC%EC%9A%B0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "하마",
+    "file": "hama.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-하마.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%ED%95%98%EB%A7%88.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "공",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-공.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "책",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-책.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "신발",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-신발.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "우산",
+    "file": "usan.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-우산.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%9A%B0%EC%82%B0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "방",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-방.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "해",
+    "file": "hae.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-해.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%ED%95%B4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "별",
+    "file": "byeol.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-별.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B3%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "물",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-물.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "가다",
+    "file": "gada.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-가다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B0%80%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "보다",
+    "file": "boda.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-보다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B3%B4%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "아프다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-아프다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "언니",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-언니.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "이모",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-이모.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "이마",
+    "file": "ima.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-이마.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%9D%B4%EB%A7%88.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "허리",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-허리.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "빵",
+    "file": "ppang.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-빵.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B9%B5.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "토마토",
+    "file": "tomato.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-토마토.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%ED%86%A0%EB%A7%88%ED%86%A0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "고구마",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-고구마.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "치즈",
+    "file": "chijeu.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-치즈.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%B9%98%EC%A6%88.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "기린",
+    "file": "girin.wav",
+    "commonsFile": "LL-Q9176_(kor)-Jeebeen_(호로조)-기린.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-Jeebeen_(%ED%98%B8%EB%A1%9C%EC%A1%B0)-%EA%B8%B0%EB%A6%B0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: Jeebeen\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "코끼리",
+    "file": "kokkiri.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-코끼리.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%BD%94%EB%81%BC%EB%A6%AC.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "개구리",
+    "file": "gaeguri.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-개구리.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B0%9C%EA%B5%AC%EB%A6%AC.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "고래",
+    "file": "gorae.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-고래.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B3%A0%EB%9E%98.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "비누",
+    "file": "binu.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-비누.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%B9%84%EB%88%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "바지",
+    "file": "baji.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-바지.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%B0%94%EC%A7%80.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "양말",
+    "file": "yangmal.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-양말.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%96%91%EB%A7%90.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "베개",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-베개.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "로봇",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-로봇.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "길",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-길.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "가게",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-가게.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "달",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-달.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "비",
+    "file": "bi.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-비.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%B9%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "무지개",
+    "file": "mujigae.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-무지개.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%AC%B4%EC%A7%80%EA%B0%9C.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "오다",
+    "file": "oda.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-오다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%98%A4%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "놀다",
+    "file": "nolda.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-놀다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%86%80%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "느리다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-느리다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "빠르다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-빠르다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "연필",
+    "file": "yeonpil.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-연필.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%97%B0%ED%95%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "공책",
+    "file": "gongchaek.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-공책.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B3%B5%EC%B1%85.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "가족",
+    "file": "gajok.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-가족.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B0%80%EC%A1%B1.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "친구",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-친구.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "동생",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-동생.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "어깨",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-어깨.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "감자",
+    "file": "gamja.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-감자.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B0%90%EC%9E%90.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "토끼",
+    "file": "tokki.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-토끼.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%ED%86%A0%EB%81%BC.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "하늘",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-하늘.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "시장",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-시장.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "달리다",
+    "file": "dalrida.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-달리다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%8B%AC%EB%A6%AC%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "할머니",
+    "file": "halmeoni.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-할머니.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%ED%95%A0%EB%A8%B8%EB%8B%88.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "사탕",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-사탕.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "거북",
+    "file": "geobuk.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-거북.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B1%B0%EB%B6%81.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "호랑이",
+    "file": "horangi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-호랑이.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%ED%98%B8%EB%9E%91%EC%9D%B4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "구름",
+    "file": "gureum.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-구름.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B5%AC%EB%A6%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "바람",
+    "file": "baram.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-바람.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%B0%94%EB%9E%8C.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "그리다",
+    "file": "geurida.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-그리다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B7%B8%EB%A6%AC%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "기쁘다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-기쁘다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "삼촌",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-삼촌.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "아저씨",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-아저씨.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "얼굴",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-얼굴.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "가슴",
+    "file": "gaseum.wav",
+    "commonsFile": "LL-Q9176_(kor)-HappyMidnight-가슴.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EA%B0%80%EC%8A%B4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: HappyMidnight\nRecorder: HappyMidnight",
+    "license": "CC BY-SA 4.0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "팔",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-팔.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "김치",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-김치.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "딸기",
+    "file": "ttalgi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-딸기.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%94%B8%EA%B8%B0.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "호박",
+    "file": "hobak.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-호박.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%ED%98%B8%EB%B0%95.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "만두",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-만두.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "계란",
+    "file": "gyeran.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-계란.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%84%EB%9E%80.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "강아지",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-강아지.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "병아리",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-병아리.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "사슴",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-사슴.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "너구리",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-너구리.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "시계",
+    "file": "sigye.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-시계.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%8B%9C%EA%B3%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "거울",
+    "file": "geoul.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-거울.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EA%B1%B0%EC%9A%B8.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "안경",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-안경.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "장갑",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-장갑.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "지우개",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-지우개.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "학교",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-학교.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "교실",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-교실.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "마을",
+    "file": "maeul.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-마을.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%A7%88%EC%9D%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "여름",
+    "file": "yeoreum.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-여름.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%97%AC%EB%A6%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "겨울",
+    "file": "gyeoul.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-겨울.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B2%A8%EC%9A%B8.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "마시다",
+    "file": "masida.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-마시다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%A7%88%EC%8B%9C%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "만들다",
+    "file": "mandeulda.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-만들다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%A7%8C%EB%93%A4%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "예쁘다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-예쁘다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "졸리다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-졸리다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "사촌",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-사촌.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "할아버지",
+    "file": "halabeoji.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-할아버지.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%ED%95%A0%EC%95%84%EB%B2%84%EC%A7%80.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "엉덩이",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-엉덩이.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "배꼽",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-배꼽.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "눈썹",
+    "file": "nunsseop.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-눈썹.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%88%88%EC%8D%B9.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "고추",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-고추.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "양파",
+    "file": "yangpa.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-양파.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%96%91%ED%8C%8C.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "햄버거",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-햄버거.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "김밥",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-김밥.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "오징어",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-오징어.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "달팽이",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-달팽이.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "돌고래",
+    "file": "dolgorae.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-돌고래.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EB%8F%8C%EA%B3%A0%EB%9E%98.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "참새",
+    "file": "chamsae.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-참새.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%B0%B8%EC%83%88.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "악어",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-악어.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "자전거",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-자전거.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "바구니",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-바구니.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "장난감",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-장난감.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "운동장",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-운동장.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "우체국",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-우체국.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "봄",
+    "file": "bom.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-봄.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B4%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "가을",
+    "file": "gaeul.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-가을.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B0%80%EC%9D%84.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "번개",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-번개.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "파도",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-파도.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "얼음",
+    "file": "eoleum.wav",
+    "commonsFile": "LL-Q9176_(kor)-CHK2605-얼음.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-CHK2605-%EC%96%BC%EC%9D%8C.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: CHK2605\nRecorder: CHK2605",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "기다리다",
+    "file": "gidarida.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-기다리다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B8%B0%EB%8B%A4%EB%A6%AC%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "던지다",
+    "file": "deonjida.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-던지다.wav",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%8D%98%EC%A7%80%EB%8B%A4.wav",
+    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
+    "speaker": "Speaker: 호로조\nRecorder: 호로조",
+    "license": "CC0",
+    "collection": "Lingua Libre (Wikimedia Commons)"
+  },
+  {
+    "word": "조용하다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-조용하다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
+  },
+  {
+    "word": "뜨겁다",
+    "file": "",
+    "commonsFile": "LL-Q9176_(kor)-*-뜨겁다.wav",
+    "url": "",
+    "link": "없음: 2026-09-28 Commons에 Lingua Libre 한국어 녹음(허용 라이선스) 없음 → 기기 TTS",
+    "speaker": "",
+    "license": "",
+    "collection": ""
   }
 ]
