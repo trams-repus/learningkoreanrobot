@@ -56,18 +56,23 @@ describe('어휘팩', () => {
       else expect(a.playback).not.toBe('file');
     }
   });
-  it('녹음 목록 15개(사용자 링크 10 + 같은 이름 규칙 후보 5)는 모두 어휘에 있고 올바른 모양으로 조립할 수 있다', () => {
-    expect(WORD_AUDIO_SOURCES).toHaveLength(15);
+  it('녹음 목록: 사용자 링크 10개는 그대로이고, 모든 항목이 어휘에 있으며 올바른 모양으로 조립할 수 있다', () => {
+    // 처음 15개(사용자 링크 10 + 같은 이름 규칙 후보 5) 뒤에 GitHub Actions의 찾기(scripts/discover_audio.py)가 어휘를 더한다.
+    expect(WORD_AUDIO_SOURCES.length).toBeGreaterThanOrEqual(15);
     expect(WORD_AUDIO_SOURCES[0].word).toBe('수박');
-    expect(new Set(WORD_AUDIO_SOURCES.map((s) => s.file)).size).toBe(15);
+    expect(new Set(WORD_AUDIO_SOURCES.map((s) => s.word)).size).toBe(WORD_AUDIO_SOURCES.length);
+    const files = WORD_AUDIO_SOURCES.map((s) => s.file).filter(Boolean);
+    expect(new Set(files).size).toBe(files.length);
     for (const s of WORD_AUDIO_SOURCES) {
       expect(vocabById(s.word), s.word).toBeDefined();
       expect(isSupportedWord(s.word), s.word).toBe(true);
-      expect(s.commonsFile).toBe(`LL-Q9176_(kor)-호로조-${s.word}.wav`);
-      expect(s.file).toMatch(/^[a-z]+\.wav$/);
-      // 사용자가 준 주소 형식 그대로 (한글만 인코딩, 괄호는 그대로, 두 번 인코딩하지 않음)
+      if (s.link.startsWith('없음')) continue; // 녹음 없음 → 기기 TTS
+      expect(s.commonsFile).toMatch(new RegExp(`^LL-Q9176_\\(kor\\)-.+-${s.word}\\.wav$`));
+      expect(s.file).toMatch(/^[a-z0-9_]+\.wav$/);
+      // 한글만 인코딩, 괄호는 그대로, 두 번 인코딩하지 않음
       expect(s.url).toBe(
-        'https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-' + encodeURIComponent('호로조-' + s.word) + '.wav',
+        'https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-' +
+          encodeURIComponent(s.commonsFile.slice('LL-Q9176_(kor)-'.length)).replace(/%28/g, '(').replace(/%29/g, ')'),
       );
     }
     expect(WORD_AUDIO_SOURCES.find((s) => s.word === '수박')!.url).toBe(
@@ -76,10 +81,10 @@ describe('어휘팩', () => {
     const userGiven = WORD_AUDIO_SOURCES.filter((s) => s.link.startsWith('사용자 제공'));
     expect(userGiven.map((s) => s.word).sort()).toEqual(['개미', '꼬리', '나무', '나비', '다리', '머리', '바나나', '바다', '사자', '수박'].sort());
     for (const s of userGiven) expect(s.license).toBe('CC0-1.0');
-    // 후보는 파일 존재·라이선스를 확인하기 전이므로 CC0라고 적지 않는다. 공룡·가방은 404로 없음이 확인됐다.
-    for (const s of WORD_AUDIO_SOURCES.filter((x) => !userGiven.includes(x))) {
-      expect(s.link, s.word).toMatch(['공룡', '가방'].includes(s.word) ? /^없음/ : /^후보/);
-      expect(s.license, s.word).toBe('확인 전');
+    // 찾기로 더한 항목은 Commons 파일 정보의 라이선스를 적는다 (허용: CC0, CC BY, CC BY-SA, 퍼블릭 도메인)
+    for (const s of WORD_AUDIO_SOURCES.filter((x) => x.link.startsWith('Commons API'))) {
+      expect(s.license, s.word).toMatch(/^(CC0|CC[ -]BY(-SA)?( \d\.\d)?|Public domain)/i);
+      expect(s.speaker, s.word).not.toBe('');
     }
   });
   it('쉬운 다섯 단어는 녹음 목록에 있고, 받침·쌍자음·ㅐ가 없다', () => {
