@@ -205,6 +205,9 @@ export const VOCAB: VocabEntry[] = [
  */
 export const EASY_FIVE = ['나무', '바다', '나비', '사자', '다리'];
 
+/** 2단계에 더 섞는 쉬운 단어: 받침·쌍자음·ㅐ 없는 두 글자 (녹음은 아직 없다) */
+export const EASY_MORE = ['모자', '아기', '머리', '피자', '오리', '비누'];
+
 export function vocabById(id: string): VocabEntry | undefined {
   return VOCAB.find((x) => x.id === id);
 }

@@ -2,7 +2,7 @@
 // 3~5단계는 조립 난이도(받침 없음 → 받침 → 쌍자음·ㅐ)로 단어를 나눠 낸다. 마지막 보스는 팩 전체.
 import { wordDifficulty, wordTier, type WordTier } from '../core/assembly';
 import type { FoeSpawn } from '../core/types';
-import { EASY_FIVE, packWords, vocabById, type PackId, type VocabEntry } from './vocab';
+import { EASY_FIVE, EASY_MORE, packWords, vocabById, type PackId, type VocabEntry } from './vocab';
 
 export interface StageDef {
   id: string;
@@ -20,21 +20,22 @@ export interface StageDef {
 
 export const STAGES: StageDef[] = [
   {
+    // 수박은 첫 문제 한 번만. 세 번 반복하면 "수박만 나온다"로 느껴졌다 (2026-09-28 사용자 제보).
     id: 's1',
     name: '첫 출동: 수박',
-    focus: '수박',
+    focus: '수박부터',
     icon: 'dino',
     foes: [{ kind: 'dino', harmless: true }],
-    fixedWords: ['수박', '수박', '수박'],
-    pool: ['수박'],
+    fixedWords: ['수박'],
+    pool: [...EASY_FIVE],
   },
   {
     id: 's2',
-    name: '쉬운 단어 다섯',
+    name: '쉬운 단어',
     focus: '쉬운 단어',
     icon: 'imp',
     foes: [{ kind: 'imp' }, { kind: 'dino' }],
-    pool: ['수박', ...EASY_FIVE],
+    pool: [...EASY_FIVE, ...EASY_MORE],
   },
   {
     id: 's3',

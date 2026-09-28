@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
 import { MIN_STAGE_WORDS, STAGES, entryDifficulty, stageWords } from '../src/content/stages';
-import { EASY_FIVE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
+import { EASY_FIVE, EASY_MORE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
 import { isSupportedWord, wordDifficulty, wordFeatures, wordFrames, wordTier } from '../src/core/assembly';
 import { composeSyllable } from '../src/hangul/hangul';
 
@@ -94,6 +94,17 @@ describe('어휘팩', () => {
     expect(wordFeatures('수박')!.hasJong).toBe(true);
     for (const w of ['꼬리', '개미', '바나나', '수박']) expect(wordDifficulty(w), w).toBeGreaterThan(0);
   });
+  it('수박은 첫 문제 한 번만 나오고, 첫 두 전투는 받침·쌍자음·ㅐ 없는 쉬운 단어로 이어진다', () => {
+    const [s1, s2] = STAGES;
+    expect(s1.fixedWords).toEqual(['수박']);
+    for (const s of [s1, s2]) {
+      const words = stageWords(s, '4-6', true).map((w) => w.word);
+      expect(words, s.id).not.toContain('수박');
+      expect(new Set(words).size, s.id).toBeGreaterThanOrEqual(5);
+      for (const w of words) expect(entryDifficulty(vocabById(w)!), `${s.id} ${w}`).toBeLessThan(1);
+    }
+    for (const w of EASY_MORE) expect(wordTier(w), w).toBe('plain');
+  });
   it('소리와 표기가 다른 단어는 표시하고 출제 순서에서 더 어렵게 본다', () => {
     for (const w of ['공룡', '학교', '로봇', '김밥']) {
       const v = vocabById(w)!;
@@ -123,8 +134,7 @@ describe('난이도 단계별 전투', () => {
         for (const s of STAGES) {
           const words = stageWords(s, pack, rec);
           expect(new Set(words.map((w) => w.id)).size, `${s.id} ${pack} ${rec}`).toBe(words.length);
-          if (s.fixedWords) continue;
-          expect(words.length, `${s.id} ${pack} ${rec}`).toBeGreaterThanOrEqual(s.id === 's2' ? 6 : MIN_STAGE_WORDS);
+          expect(words.length, `${s.id} ${pack} ${rec}`).toBeGreaterThanOrEqual(s.id === 's1' ? 5 : MIN_STAGE_WORDS);
           if (typeof s.pool === 'object' && !Array.isArray(s.pool)) {
             const tier = s.pool.tier;
             for (const w of words) expect(wordTier(w.word), `${s.id} ${w.word}`).toBe(tier);
