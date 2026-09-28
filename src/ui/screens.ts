@@ -7,7 +7,7 @@ import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
 import { applySettings, audio, options, playlog, recordings, saves, sfx } from '../game/services';
-import { analyze, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
+import { analyze, claudePrompt, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
 
@@ -348,6 +348,13 @@ export class Screens {
       : '<p class="muted">아직 틀린 기록이 없어요.</p>';
 
     return `${head}
+      <section class="ask-claude">
+        <h3>Claude에게 조언 받기</h3>
+        <p>${pname} 기록을 요약한 글을 복사합니다. Claude 앱(claude.ai)에 붙여 넣으면 집에서 도울 방법을 물어볼 수 있어요. 게임은 아무것도 밖으로 보내지 않고, 이름·날짜·기기 정보는 넣지 않습니다.</p>
+        <div class="btns"><button class="small-btn primary" id="an-claude">요약 복사하기</button></div>
+        <p class="copy-note" id="an-claude-note" hidden></p>
+        <details><summary>복사될 글 보기</summary><textarea id="an-claude-text" readonly rows="10">${esc(claudePrompt(a, set.pack === '7-8' ? '7~8세' : '4~6세'))}</textarea></details>
+      </section>
       <h3 class="sec">해 볼 만한 것 <small>(${pname} 기록)</small></h3>
       ${sugg}
       ${good.length ? `<h3 class="sec">늘어난 점</h3><ul>${good.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
@@ -382,6 +389,27 @@ export class Screens {
 
   private bindAnalysis(el: HTMLElement): void {
     const a = analyze(playlog.events, Date.now(), this.period);
+    el.querySelector('#an-claude')?.addEventListener('click', async () => {
+      const ta = el.querySelector('#an-claude-text') as HTMLTextAreaElement;
+      const note = el.querySelector('#an-claude-note') as HTMLElement;
+      let ok = false;
+      try {
+        await navigator.clipboard.writeText(ta.value);
+        ok = true;
+      } catch {
+        // 클립보드가 막힌 환경: 글을 펼쳐 선택해 두어 직접 복사하게 한다
+        (ta.closest('details') as HTMLDetailsElement).open = true;
+        ta.focus();
+        ta.select();
+        try {
+          ok = document.execCommand('copy');
+        } catch {
+          ok = false;
+        }
+      }
+      note.hidden = false;
+      note.textContent = ok ? '복사했어요. Claude 앱에서 새 대화를 열고 붙여 넣으세요.' : '자동 복사가 막혀 있어요. 아래 글을 길게 눌러 모두 선택한 뒤 복사해 주세요.';
+    });
     el.querySelectorAll<HTMLButtonElement>('[data-period]').forEach((b) =>
       b.addEventListener('click', () => {
         this.period = b.dataset.period as Period;

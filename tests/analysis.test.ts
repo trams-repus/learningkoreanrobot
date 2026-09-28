@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyze, focusPool } from '../src/core/analysis';
+import { analyze, claudePrompt, focusPool } from '../src/core/analysis';
 import { LOG_CAP, PlayLog, sanitizeLog, type LogEvent, type LogStore } from '../src/core/playlog';
 
 const mem = (): LogStore & { saved: LogEvent[] } => {
@@ -158,6 +158,20 @@ describe('실수 종류', () => {
     expect(a.mistakes).toEqual({ kind: 1, order: 1, trap: 1, wrong: 1, total: 4, slip: 2 });
     expect(a.orderMix.lines.map((l) => l.label)).toContain('지금 글자를 다 채우기 전에 다음 글자 칸에 놓으려 함');
     expect(log.events.at(-1)).toMatchObject({ k: 'word', slip: 1, drop: 3 });
+  });
+});
+
+describe('Claude에게 물어보기 요약', () => {
+  it('집계 숫자와 단어 예시만 넣고, 날짜·진단 요청은 넣지 않는다', () => {
+    const log = new PlayLog(mem());
+    play(log, '거미', { miss: [['거', 'jung', 'ㅓ', 'ㅏ']] });
+    play(log, '머리', { miss: [['머', 'jung', 'ㅓ', 'ㅏ']] });
+    for (const w of ['나무', '나비', '바다']) play(log, w);
+    const text = claudePrompt(analyze(log.events), '4~6세');
+    expect(text).toContain('ㅏ·ㅓ 2번');
+    expect(text).toContain('완성한 단어 5개');
+    expect(text).toContain('진단이나 점수·등급은 매기지');
+    expect(text).not.toMatch(/20\d\d|오전|오후/);
   });
 });
 

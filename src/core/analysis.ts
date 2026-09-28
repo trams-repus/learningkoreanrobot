@@ -399,3 +399,35 @@ export function focusPool(pool: string[], focusJamo: string[], focusWords: strin
   // 모든 단어가 해당되면 늘려도 비율이 같으니 그대로 둔다
   return extra.length && extra.length < pool.length ? [...pool, ...extra] : pool;
 }
+
+/**
+ * 'Claude에게 물어보기'용 요약 글. 부모가 직접 복사해 Claude 앱에 붙여 넣는다 (게임은 밖으로 보내지 않는다).
+ * 이름·날짜·기기 정보는 넣지 않고, 집계 숫자와 단어 예시만 넣는다.
+ */
+export function claudePrompt(a: Analysis, packLabel: string): string {
+  const L: string[] = [];
+  L.push(`${packLabel} 어휘를 쓰는 아이가 한 한글 자모 조립 게임 기록(${PERIOD_NAME[a.period]})입니다.`);
+  L.push('게임 방법: 단어 소리를 듣고, 자모 조각을 끌어서 글자 틀의 첫소리 → 모음 → 받침 칸에 차례대로 넣어 단어를 만듭니다. 단어에 없는 함정 자모도 섞여 나옵니다.');
+  L.push('이 기록을 보고, 부모가 집에서 게임 밖에서 도울 수 있는 방법을 쉬운 말로 3~5개 제안해 주세요. 각 제안이 기록의 어느 숫자에 근거하는지 함께 말해 주세요. 진단이나 점수·등급은 매기지 말고, 기록이 적으면 적다고 말해 주세요.');
+  L.push('');
+  L.push('[완성]');
+  L.push(`- 완성한 단어 ${a.finished}개 (혼자 ${a.alone}개, 도움 받고 ${a.help}개), 끝내지 못한 문제 ${a.stopped}개, 플레이한 날 ${a.daysPlayed}일`);
+  const m = a.mistakes;
+  L.push('[실수 종류]');
+  L.push(`- 칸 종류 틀림(자음을 모음 칸에 등) ${m.kind}번, 순서 틀림(차례가 아닌 칸) ${m.order}번, 함정 자모 넣음 ${m.trap}번, 맞는 칸에 다른 자모 ${m.wrong}번 (실수로 세지 않은 조작 미끄러짐 ${m.slip}번)`);
+  if (a.orderMix.lines.length) L.push(`- 칸이 받지 않아 되돌아간 끌어 놓기: ${a.orderMix.lines.slice(0, 4).map((l) => `${l.label} ${l.count}번 (예: ${l.example})`).join('; ')}`);
+  const rn = { cho: '첫소리', jung: '모음', jong: '받침' } as const;
+  L.push('[칸별로 다른 글자가 된 횟수]');
+  L.push(`- ${(['cho', 'jung', 'jong'] as const).map((r) => `${rn[r]} ${a.roleMiss[r].slots}칸 중 ${a.roleMiss[r].miss}번`).join(', ')}`);
+  L.push(`- 받침 있는 음절 ${a.jongSyl.withJong.slots}개 중 ${a.jongSyl.withJong.miss}번, 받침 없는 음절 ${a.jongSyl.noJong.slots}개 중 ${a.jongSyl.noJong.miss}번 다른 글자`);
+  if (a.confusions.length) {
+    L.push('[자주 헷갈린 두 자모]');
+    for (const c of a.confusions.slice(0, 6)) L.push(`- ${c.pair[0]}·${c.pair[1]} ${c.total}번 (단어: ${c.words.slice(0, 4).join(', ')})`);
+  }
+  if (a.jamoTrouble.length) L.push(`[자주 틀린 자모] ${a.jamoTrouble.slice(0, 6).map((j) => `${j.jamo} ${j.seen}번 중 ${j.miss}번`).join(', ')}`);
+  if (a.needHelp.length) L.push(`[아직 혼자 끝낸 적 없는 단어] ${a.needHelp.slice(0, 6).map((w) => `${w.word}(도움 ${w.help}번)`).join(', ')}`);
+  if (a.improved.length) L.push(`[처음엔 도움, 최근엔 혼자 끝낸 단어] ${a.improved.slice(0, 6).join(', ')}`);
+  L.push(`[다시 듣기] 최근 ${a.replaysRecent.words}단어에서 ${a.replaysRecent.replays}번`);
+  if (a.recentMisses.length) L.push(`[최근 틀린 예] ${a.recentMisses.slice(0, 8).map((x) => `${x.word}(${x.syl}) ${x.want}→${x.got ?? '?'}`).join(', ')}`);
+  return L.join('\n');
+}
