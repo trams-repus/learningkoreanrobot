@@ -7,7 +7,7 @@ import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
 import { applySettings, audio, options, playlog, recordings, saves, sfx } from '../game/services';
-import { analyze, MIN_WORDS_FOR_ANALYSIS } from '../core/analysis';
+import { analyze, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
 import { regionArt } from './regionArt';
@@ -16,6 +16,8 @@ const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 
 export class Screens {
   private overlay = document.getElementById('overlay')!;
+  /** 부모 화면 분석 기간 (앱을 다시 열면 최근 7일로) */
+  private period: Period = '7d';
 
   constructor(private game: Game) {}
 
@@ -327,7 +329,11 @@ export class Screens {
   }
 
   private analysisHtml(): string {
-    const a = analyze(playlog.events);
+    const a = analyze(playlog.events, Date.now(), this.period);
+    const pname = PERIOD_NAME[this.period];
+    const periods = (Object.keys(PERIOD_NAME) as Period[])
+      .map((p) => `<button class="small-btn ${p === this.period ? 'primary' : ''}" data-period="${p}" aria-pressed="${p === this.period}">${PERIOD_NAME[p]}</button>`)
+      .join('');
     const set = saves.data.settings;
     const pct = (x: number, of: number) => (of ? Math.round((x / of) * 100) : 0);
     const focusOn = set.focusJamo.length || set.focusWords.length;
@@ -338,13 +344,19 @@ export class Screens {
     const head = `
       <p class="muted">이 기기 안의 플레이 기록만 세어서 보여 줍니다. 밖으로 보내지 않고, 점수나 등급을 매기지 않습니다. 아래 제안은 기록에서 보이는 것을 바탕으로 한 참고이며, 학습 효과가 검증된 진단이 아닙니다.</p>
       ${focus}
+      <div class="period-row"><span>볼 기간</span>${periods}</div>
+      <p class="period-note">아래는 모두 <b>${pname}</b> 기록 기준입니다.</p>
       <div class="stat-grid">
-        <div><b>${a.daysPlayed7}일</b><span>최근 7일 중 플레이한 날</span></div>
-        <div><b>${a.words7}개</b><span>최근 7일 완성한 단어</span></div>
-        <div><b>${a.alone}개</b><span>혼자 완성 (전체 ${a.finished}개 중 ${pct(a.alone, a.finished)}%)</span></div>
+        <div><b>${a.daysPlayed}일</b><span>${pname} 중 플레이한 날</span></div>
+        <div><b>${a.finished}개</b><span>${pname} 완성한 단어</span></div>
+        <div><b>${a.alone}개</b><span>혼자 완성 (${pct(a.alone, a.finished)}%)</span></div>
         <div><b>${a.help}개</b><span>도움 받고 완성</span></div>
       </div>`;
-    if (!a.enough) return `${head}<p class="big-note">기록이 조금 더 쌓이면(단어 ${MIN_WORDS_FOR_ANALYSIS}개 이상 완성) 약점과 제안을 보여 드려요. 지금 ${a.finished}개.</p>`;
+    const clearBtn = `<h3 class="sec">오류 기록 지우기</h3>
+      <p class="muted">분석에 쓰는 플레이·오답 기록만 지웁니다. 깬 전투·단어별 도움 단계·설정·녹음은 그대로 남습니다.</p>
+      <div class="btns"><button class="small-btn danger" id="an-clear">오류 기록 지우기</button></div>`;
+    if (!a.enough)
+      return `${head}<p class="big-note">${pname} 기록이 조금 더 쌓이면(단어 ${MIN_WORDS_FOR_ANALYSIS}개 이상 완성) 약점과 제안을 보여 드려요. 지금 ${a.finished}개.${this.period !== 'all' && playlog.events.length ? ' 위에서 기간을 늘려 볼 수도 있어요.' : ''}</p>${clearBtn}`;
 
     const sugg = a.suggestions.length
       ? a.suggestions
@@ -373,6 +385,18 @@ export class Screens {
           .map((c) => `<tr><td class="jamo">${c.pair[0]} · ${c.pair[1]}</td><td>${c.total}번</td><td>${esc(c.words.slice(0, 4).join(', '))}</td></tr>`)
           .join('')}</tbody></table>`
       : '<p class="muted">두 번 이상 바꿔 넣은 자모 쌍은 아직 없어요.</p>';
+    const order = a.orderMix.total
+      ? `<p>칸에 놓으려 한 ${a.orderMix.attempts}번 중 <b>${a.orderMix.total}번</b>은 차례나 칸 종류가 맞지 않아 돌아갔어요.</p>
+         <table><thead><tr><th>무엇을</th><th>횟수</th><th>예</th></tr></thead><tbody>${a.orderMix.lines
+           .map((l) => `<tr><td>${esc(l.label)}</td><td>${l.count}번</td><td>${esc(l.example ?? '')}</td></tr>`)
+           .join('')}</tbody></table>`
+      : '<p class="muted">순서가 엇갈린 기록이 아직 없어요.</p>';
+    const trouble = a.jamoTrouble.length
+      ? `<table><thead><tr><th>자모</th><th>나온 횟수</th><th>틀린 횟수</th></tr></thead><tbody>${a.jamoTrouble
+          .slice(0, 8)
+          .map((j) => `<tr><td class="jamo">${esc(j.jamo)}</td><td>${j.seen}번</td><td>${j.miss}번 (${pct(j.miss, j.seen)}%)</td></tr>`)
+          .join('')}</tbody></table>`
+      : '<p class="muted">두 번 이상 틀린 자모는 아직 없어요.</p>';
     const time = (t: number) => new Date(t).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
     const misses = a.recentMisses.length
       ? `<table><thead><tr><th>언제</th><th>단어</th><th>맞는 자모 → 넣은 자모</th></tr></thead><tbody>${a.recentMisses
@@ -381,21 +405,62 @@ export class Screens {
       : '<p class="muted">아직 틀린 기록이 없어요.</p>';
 
     return `${head}
-      <h3 class="sec">해 볼 만한 것</h3>
+      <h3 class="sec">해 볼 만한 것 <small>(${pname} 기록)</small></h3>
       ${sugg}
       ${good.length ? `<h3 class="sec">늘어난 점</h3><ul>${good.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-      <h3 class="sec">오답 분석</h3>
-      <h4>자주 바꿔 넣은 자모</h4>
+      <h3 class="sec">오답 패턴 <small>(${pname} 기록)</small></h3>
+      <h4>실수 종류</h4>
+      <table><thead><tr><th>종류</th><th>횟수</th></tr></thead><tbody>
+        <tr><td>칸 종류 틀림 (자음을 모음 칸에, 모음을 첫소리 칸에 등)</td><td>${a.mistakes.kind}번</td></tr>
+        <tr><td>순서 틀림 (아직 차례가 아닌 칸에)</td><td>${a.mistakes.order}번</td></tr>
+        <tr><td>함정 자모를 칸에 넣음</td><td>${a.mistakes.trap}번</td></tr>
+        <tr><td>맞는 칸에 다른 자모를 넣음</td><td>${a.mistakes.wrong}번</td></tr>
+        <tr><td><b>합계</b></td><td><b>${a.mistakes.total}번</b></td></tr>
+      </tbody></table>
+      <p class="muted">칸 종류·순서가 틀려 자모가 되돌아간 것도 실수로 셉니다. 칸이 아닌 빈 곳에 떨어뜨린 것(조작 미끄러짐 ${a.mistakes.slip}번)은 실수에 넣지 않았습니다.</p>
+      <h4>자음·모음 순서 엇갈림</h4>
+      ${order}
+      <h4>자주 틀리는 자모</h4>
+      ${trouble}
+      <h4>자주 헷갈리는 두 자모</h4>
       ${conf}
+      <h4>함정 자모</h4>
+      <p>완성한 단어 ${a.trap.finished}개 중 <b>${a.trap.words}개</b>에서 단어에 없는 함정 자모를 넣었어요 (${pct(a.trap.words, a.trap.finished)}%). 함정 자모를 칸에 넣은 횟수 ${a.trap.misses}번${a.trap.drops ? `, 칸이 받지 않은 함정 놓기 ${a.trap.drops}번` : ''}.</p>
+      <h4>받침 있는 음절</h4>
+      <p>받침 있는 음절 ${a.jongSyl.withJong.slots}개 중 <b>${a.jongSyl.withJong.miss}번</b> 다른 글자 (${pct(a.jongSyl.withJong.miss, a.jongSyl.withJong.slots)}%) · 받침 없는 음절 ${a.jongSyl.noJong.slots}개 중 <b>${a.jongSyl.noJong.miss}번</b> (${pct(a.jongSyl.noJong.miss, a.jongSyl.noJong.slots)}%)</p>
       <h4>칸 종류별로 틀린 횟수</h4>
       <table><thead><tr><th>칸</th><th>완성 단어의 칸 수</th><th>다른 글자</th></tr></thead><tbody>${roleRows}</tbody></table>
       <h4>최근 틀린 기록</h4>
+      <p class="muted">'다른 글자'는 칸을 다 채웠는데 들은 글자와 달라진 경우입니다.</p>
       ${misses}
-      ${a.stopped ? `<p class="muted">끝내지 못하고 나간 문제 ${a.stopped}개는 완성 수에 넣지 않았습니다.</p>` : ''}`;
+      ${a.stopped ? `<p class="muted">끝내지 못하고 나간 문제 ${a.stopped}개는 완성 수에 넣지 않았습니다.</p>` : ''}
+      ${clearBtn}`;
   }
 
   private bindAnalysis(el: HTMLElement): void {
-    const a = analyze(playlog.events);
+    const a = analyze(playlog.events, Date.now(), this.period);
+    el.querySelectorAll<HTMLButtonElement>('[data-period]').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.period = b.dataset.period as Period;
+        this.parent('analysis');
+      }),
+    );
+    // 확인 창(confirm)은 막힌 환경이 있어, 같은 버튼을 한 번 더 눌러 확인한다
+    const clear = el.querySelector('#an-clear') as HTMLButtonElement | null;
+    let armed = false;
+    clear?.addEventListener('click', () => {
+      if (!armed) {
+        armed = true;
+        clear.textContent = '정말 지울까요? 한 번 더 누르세요';
+        setTimeout(() => {
+          armed = false;
+          if (clear.isConnected) clear.textContent = '오류 기록 지우기';
+        }, 4000);
+        return;
+      }
+      playlog.clear();
+      this.parent('analysis');
+    });
     const set = saves.data.settings;
     el.querySelectorAll<HTMLButtonElement>('[data-focus]').forEach((b) =>
       b.addEventListener('click', () => {

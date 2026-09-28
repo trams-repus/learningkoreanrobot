@@ -9,7 +9,7 @@ const mem = (): LogStore & { saved: LogEvent[] } => {
 
 function play(log: PlayLog, w: string, opts: { miss?: [string, 'cho' | 'jung' | 'jong', string, string][]; help?: boolean; rep?: number } = {}) {
   log.begin(w, 's2', 'C');
-  for (const [syl, role, want, got] of opts.miss ?? []) log.miss(syl, role, want, got);
+  for (const [syl, role, want, got] of opts.miss ?? []) log.miss(syl, role, want, got, false);
   for (let i = 0; i < (opts.rep ?? 0); i++) log.replay();
   log.finish(!!opts.help, 3000);
 }
@@ -20,11 +20,11 @@ describe('플레이 로그', () => {
     const log = new PlayLog(store, () => 1000);
     log.battle('s1');
     log.begin('수박', 's1', 'A');
-    log.miss('수', 'jung', 'ㅜ', 'ㅗ');
+    log.miss('수', 'jung', 'ㅜ', 'ㅗ', true);
     log.replay();
     log.hint();
     log.finish(true, 4200);
-    expect(store.saved.at(-1)).toMatchObject({ k: 'word', w: '수박', res: 'help', mis: 1, rep: 1, hint: 1, ms: 4200 });
+    expect(store.saved.at(-1)).toMatchObject({ k: 'word', w: '수박', res: 'help', mis: 1, rep: 1, hint: 1, ms: 4200, trap: 1 });
     expect(store.saved.filter((e) => e.k === 'miss')).toHaveLength(1);
   });
   it('끝내지 못한 문제는 stop으로 남고 완성 수에 들어가지 않는다', () => {
@@ -84,7 +84,7 @@ describe('분석과 제안', () => {
     expect(a.roleMiss.jong).toEqual({ miss: 3, slots: 3 });
     expect(a.suggestions.some((s) => s.seen.includes('받침'))).toBe(true);
   });
-  it('최근 7일 플레이한 날을 센다', () => {
+  it('기간을 고르면 그 기간 기록만 분석한다 (기본 최근 7일)', () => {
     const now = Date.UTC(2026, 8, 28, 12);
     const day = 86400000;
     const ev: LogEvent[] = [
@@ -92,7 +92,72 @@ describe('분석과 제안', () => {
       { k: 'battle', t: now - 2 * day, stage: 's1' },
       { k: 'battle', t: now, stage: 's1' },
     ];
-    expect(analyze(ev, now)).toMatchObject({ daysPlayed7: 2, battles7: 2 });
+    expect(analyze(ev, now)).toMatchObject({ period: '7d', daysPlayed: 2, battles: 2 });
+    expect(analyze(ev, now, '30d')).toMatchObject({ daysPlayed: 3, battles: 3 });
+    expect(analyze(ev, now, 'all').battles).toBe(3);
+    const old: LogEvent[] = [{ k: 'miss', t: now - 40 * day, w: '거미', syl: '거', role: 'jung', want: 'ㅓ', got: 'ㅏ', trap: false }];
+    expect(analyze(old, now, '30d').recentMisses).toEqual([]);
+    expect(analyze(old, now, 'all').recentMisses).toHaveLength(1);
+  });
+});
+
+describe('오답 패턴', () => {
+  it('자음·모음 순서 엇갈림을 종류별로 센다', () => {
+    const log = new PlayLog(mem());
+    log.begin('나무', 's2', 'C');
+    log.drop('나', 'cho', 'ㄴ', 'ㅏ', null, false); // 첫소리 차례에 모음
+    log.drop('나', 'cho', 'ㄴ', 'ㅏ', 'jung', false);
+    log.drop('나', 'jung', 'ㅏ', 'ㄴ', null, false); // 모음 차례에 자음
+    log.finish(false, 1000);
+    for (const w of ['바다', '나비', '오리', '다리']) play(log, w);
+    const a = analyze(log.events);
+    expect(a.orderMix.total).toBe(3);
+    expect(a.orderMix.lines[0]).toMatchObject({ label: '첫소리 차례에 모음을 놓으려 함', count: 2 });
+    expect(a.orderMix.lines[1]).toMatchObject({ label: '모음 차례에 자음을 먼저 놓으려 함', count: 1 });
+    expect(a.suggestions[0].seen).toContain('순서');
+    expect(a.suggestions[0].evidence).toContain('2번');
+  });
+  it('차례가 아닌 칸에 맞는 종류를 놓으면 칸 순서 엇갈림으로 센다', () => {
+    const log = new PlayLog(mem());
+    log.begin('수박', 's2', 'C');
+    log.drop('박', 'jung', 'ㅏ', 'ㅏ', 'cho', false);
+    expect(analyze(log.events).orderMix.lines[0].label).toBe('모음 차례에 첫소리 칸에 먼저 놓으려 함');
+  });
+  it('자주 틀리는 자모·함정 비율·받침 음절 오류를 센다', () => {
+    let t = 0;
+    const l2 = new PlayLog(mem(), () => ++t);
+    for (let i = 0; i < 3; i++) {
+      l2.begin('수박', 's4', 'C');
+      l2.miss('박', 'jong', 'ㄱ', 'ㅈ', true);
+      l2.finish(true, 1000);
+    }
+    for (const w of ['나무', '바다']) play(l2, w);
+    const a = analyze(l2.events, Date.now(), 'all');
+    expect(a.jamoTrouble[0]).toEqual({ jamo: 'ㄱ', miss: 3, seen: 3 });
+    expect(a.trap).toEqual({ misses: 3, drops: 0, words: 3, finished: 5 });
+    expect(a.jongSyl.withJong).toEqual({ miss: 3, slots: 3 });
+    expect(a.jongSyl.noJong.miss).toBe(0);
+    expect(a.suggestions.some((s) => s.seen.includes('함정'))).toBe(true);
+    // ㄱ은 ㄱ·ㅈ 쌍 제안에 이미 들어가 따로 반복하지 않는다
+    expect(a.suggestions.filter((s) => s.focusJamo?.includes('ㄱ'))).toHaveLength(1);
+  });
+});
+
+describe('실수 종류', () => {
+  it('되돌아간 끌어 놓기도 실수로 세고, 빈 곳에 떨어뜨린 것은 미끄러짐으로 따로 센다', () => {
+    const log = new PlayLog(mem());
+    log.begin('수박', 's2', 'C');
+    log.drop('수', 'jung', 'ㅜ', 'ㅅ', 'jung', false); // 자음을 모음 칸에 → 칸 종류
+    log.drop('수', 'cho', 'ㅅ', 'ㅂ', 'other', false); // 다음 글자 칸에 → 순서
+    log.drop('수', 'cho', 'ㅅ', 'ㅈ', null, true); // 틀 위 칸 사이 → 미끄러짐
+    log.slip(); // 빈 곳 → 미끄러짐
+    log.miss('수', 'jung', 'ㅜ', 'ㅗ', true); // 함정
+    log.miss('박', 'jong', 'ㄱ', 'ㅂ', false); // 맞는 칸에 다른 자모
+    log.finish(false, 1000);
+    const a = analyze(log.events);
+    expect(a.mistakes).toEqual({ kind: 1, order: 1, trap: 1, wrong: 1, total: 4, slip: 2 });
+    expect(a.orderMix.lines.map((l) => l.label)).toContain('지금 글자를 다 채우기 전에 다음 글자 칸에 놓으려 함');
+    expect(log.events.at(-1)).toMatchObject({ k: 'word', slip: 1, drop: 3 });
   });
 });
 
