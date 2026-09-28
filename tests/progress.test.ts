@@ -88,6 +88,24 @@ describe('저장과 복구', () => {
     const t = new SaveService(throwing);
     expect(() => t.save()).not.toThrow();
   });
+  it('캐릭터 선택은 저장되고, 바꿔도 기록·해금은 그대로', () => {
+    const mem = new Mem();
+    const a = new SaveService(mem);
+    expect(a.data.settings.characterTheme).toBeNull();
+    a.data.settings.characterTheme = 'robot';
+    a.data.cleared.push('s1');
+    recordSuccess(a.data.stats, '수박', false, 4000);
+    a.save();
+    const b = new SaveService(mem);
+    expect(b.data.settings.characterTheme).toBe('robot');
+    b.data.settings.characterTheme = 'magicalGirl';
+    b.save();
+    const c = new SaveService(mem);
+    expect(c.data.settings.characterTheme).toBe('magicalGirl');
+    expect(c.data.cleared).toEqual(['s1']);
+    expect(c.data.stats.words['수박']?.independent).toBe(1);
+    expect(sanitizeSave({ settings: { characterTheme: 'princess' } }).settings.characterTheme).toBeNull();
+  });
   it('진행 초기화는 설정을 유지', () => {
     const s = new SaveService(new Mem());
     s.data.cleared.push('s1');

@@ -1,6 +1,7 @@
 // 게임 밖 화면: 시작, 전투 고르기, 승리, 일시정지, 부모 화면.
 // 아이 화면은 글 대신 큰 그림 버튼. 부모 화면은 길게 눌러야 열린다.
-import { AUDIO_MANIFEST, DIALOGUE } from '../content/audio';
+import { AUDIO_MANIFEST, DIALOGUE, WORD_AUDIO_SOURCES } from '../content/audio';
+import { THEMES, type CharacterTheme } from '../content/characters';
 import { STAGES, type StageDef } from '../content/stages';
 import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
@@ -36,21 +37,53 @@ export class Screens {
 
   // ───────────── 시작 ─────────────
 
+  /**
+   * 첫 화면: 함께 싸울 캐릭터 고르기 (로봇 / 마법소녀). 카드 전체가 버튼이고,
+   * 고르면 그 캐릭터가 짧게 움직이며 안내 대사를 말한다. 글을 못 읽어도 그림과 소리로 고를 수 있다.
+   */
   title(): void {
     const noVoice = audio.ttsChecked && audio.methodFor('w_수박') === 'none';
+    const chosen = saves.data.settings.characterTheme;
+    const card = (t: CharacterTheme) => {
+      const th = THEMES[t];
+      return `<button class="hero-card ${t === 'robot' ? 'robot' : 'magic'} ${chosen === t ? 'selected' : ''}" data-theme="${t}" aria-label="${th.name}" aria-pressed="${chosen === t}">
+        <span class="hero-art">${t === 'robot' ? ICONS.robotHero : ICONS.magicHero}</span>
+        <span class="hero-name">${th.name}</span>
+      </button>`;
+    };
     const el = this.open(
       `<div class="title-screen">
-        <div class="logo">인우와<br>한글로봇<small>암호를 조립해 로봇을 움직여!</small></div>
+        <div class="logo">인우와 한글로봇</div>
+        <div class="pick-row">${card('robot')}${card('magicalGirl')}</div>
         <div class="title-bottom">
-          <button class="big-btn start-btn" id="t-start" aria-label="출동">${ICONS.play}출동!</button>
-          <button class="big-btn secondary" id="t-map" aria-label="전투 고르기">${ICONS.robot}</button>
-          ${noVoice ? `<div class="note">이 기기에서 한국어 음성을 찾지 못했어요. 부모 화면에서 목소리를 녹음하면 들려줄 수 있어요.</div>` : ''}
+          <button class="big-btn start-btn" id="t-start" aria-label="출격" ${chosen ? '' : 'disabled'}>${ICONS.play}출격!</button>
+          ${noVoice ? `<div class="note">이 기기에서 한국어 음성을 찾지 못했어요. 녹음 파일이 없는 단어는 소리가 나지 않아요.</div>` : ''}
         </div>
       </div>
-      <div class="corner">${this.parentButton()}</div>`,
+      <div class="corner"><button class="icon-btn" id="t-map" aria-label="전투 고르기">${ICONS.star}</button>${this.parentButton()}</div>`,
       true,
     );
-    el.querySelector('#t-start')!.addEventListener('click', () => {
+    const start = el.querySelector('#t-start') as HTMLButtonElement;
+    el.querySelectorAll<HTMLButtonElement>('.hero-card').forEach((b) =>
+      b.addEventListener('click', () => {
+        this.unlockAudio();
+        const t = b.dataset.theme as CharacterTheme;
+        sfx.play(t === 'robot' ? 'deploy' : 'sparkle');
+        el.querySelectorAll('.hero-card').forEach((c) => {
+          c.classList.toggle('selected', c === b);
+          c.setAttribute('aria-pressed', String(c === b));
+          c.classList.remove('go');
+        });
+        void b.offsetWidth;
+        b.classList.add('go');
+        this.game.applyTheme(t);
+        void this.game.pickDemo(t);
+        void audio.playDialogue(THEMES[t].lines.pick, { force: true });
+        start.disabled = false;
+      }),
+    );
+    start.addEventListener('click', () => {
+      if (!saves.data.settings.characterTheme) return;
       this.unlockAudio();
       sfx.play('tap');
       void this.game.startStage(this.game.nextStageId());
@@ -285,6 +318,9 @@ export class Screens {
     const s = saves.data.settings;
     const chk = (id: string, on: boolean, label: string) => `<label>${label}<input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
     return `
+      <h3>함께 싸울 캐릭터</h3>
+      <label>캐릭터<select id="se-theme"><option value="robot" ${s.characterTheme !== 'magicalGirl' ? 'selected' : ''}>로봇</option><option value="magicalGirl" ${s.characterTheme === 'magicalGirl' ? 'selected' : ''}>마법소녀</option></select></label>
+      <p class="muted">바꿔도 단어 기록·해금·도움 단계는 그대로입니다. 전투 그림·효과·대사만 바뀝니다.</p>
       <h3>소리</h3>
       ${chk('se-muted', s.muted, '모든 소리 끄기')}
       <label>목소리 크기<input type="range" id="se-voice" min="0" max="1" step="0.1" value="${s.voiceVolume}"></label>
@@ -311,6 +347,7 @@ export class Screens {
         applySettings();
       });
     on('se-muted', (t) => (s.muted = t.checked));
+    on('se-theme', (t) => this.game.applyTheme(t.value === 'magicalGirl' ? 'magicalGirl' : 'robot'));
     on('se-voice', (t) => (s.voiceVolume = Number(t.value)));
     on('se-sfx', (t) => {
       s.sfxVolume = Number(t.value);
@@ -331,9 +368,13 @@ export class Screens {
     on('se-help', (t) => (s.helpMode = t.value === 'more' ? 'more' : 'auto'));
     on('se-autohelp', (t) => (s.autoHelp = t.checked));
     el.querySelector('#se-default')!.addEventListener('click', () => {
+      const theme = saves.data.settings.characterTheme;
       saves.data.settings = defaultSettings();
       saves.save();
       applySettings();
+      // 캐릭터 선택은 설정 초기화와 무관하게 유지한다
+      saves.data.settings.characterTheme = theme;
+      saves.save();
       document.body.classList.toggle('reduce-motion', false);
       this.game.setReduceEffects(false);
       this.game.setMotion(true);
@@ -344,7 +385,7 @@ export class Screens {
   private methodName(id: string): string {
     const m = audio.methodFor(id);
     if (m === 'recording') return '부모 녹음';
-    if (m === 'file') return '음원 파일';
+    if (m === 'file') return '녹음 파일 (Lingua Libre·Commons, CC0)';
     if (m === 'tts') return `기기 음성 합성 (${esc(audio.ttsVoice?.name ?? '')}${audio.ttsVoice?.localService ? ', 기기 내장' : ', 온라인일 수 있음'})`;
     return '재생 수단 없음';
   }
@@ -355,10 +396,20 @@ export class Screens {
       <table>
         <tr><th>소리</th><th>지금 쓰는 방법</th><th></th></tr>
         <tr><td>단어 '수박'</td><td>${this.methodName('w_수박')}</td><td><button class="small-btn" id="so-word">듣기</button></td></tr>
-        <tr><td>대사 '대장! 빨리 조합해 줘!'</td><td>${this.methodName('d_hurry')}</td><td><button class="small-btn" id="so-dia">듣기</button></td></tr>
+        <tr><td>대사 '${esc(DIALOGUE[this.game.theme.lines.hurry])}'</td><td>${this.methodName(this.game.theme.lines.hurry)}</td><td><button class="small-btn" id="so-dia">듣기</button></td></tr>
         <tr><td>발사 효과음</td><td>기기에서 합성 (WebAudio)</td><td><button class="small-btn" id="so-fire">듣기</button></td></tr>
       </table>
       <p id="so-result" class="muted" aria-live="polite"></p>
+      <h3>단어 녹음 파일 (${WORD_AUDIO_SOURCES.length}개 목록)</h3>
+      <table>
+        <tr><th>단어</th><th>파일</th><th>이 기기 재생 결과</th><th></th></tr>
+        ${WORD_AUDIO_SOURCES.map((w) => {
+          const id = `w_${w.word}`;
+          const has = AUDIO_MANIFEST.find((a) => a.assetId === id)?.localPath;
+          return `<tr><td>${esc(w.word)}</td><td>${has ? '있음' : '아직 없음 (기기 음성으로 대신)'}</td><td>${esc(audio.fileStatus.get(id) ?? '-')}</td><td><button class="small-btn" data-word="${esc(id)}">듣기</button></td></tr>`;
+        }).join('')}
+      </table>
+      <p class="muted">녹음: Lingua Libre (Wikimedia Commons), 녹음자 호로조, CC0-1.0. 로봇과 마법소녀가 같은 녹음을 씁니다.</p>
       <p class="muted">한국어 음성: ${audio.ttsVoice ? esc(`${audio.ttsVoice.name} (${audio.ttsVoice.lang})`) : '찾지 못함'} · 녹음 ${recordings.count}개${saves.data.settings.muted ? ' · <b>지금 소리 끄기가 켜져 있습니다</b>' : ''}</p>`;
   }
 
@@ -373,11 +424,22 @@ export class Screens {
     });
     el.querySelector('#so-dia')!.addEventListener('click', async () => {
       out.textContent = '재생 중…';
-      report('대사', await audio.playDialogue('d_hurry', { force: true }));
+      report('대사', await audio.playDialogue(this.game.theme.lines.hurry, { force: true }));
     });
+    el.querySelectorAll<HTMLButtonElement>('[data-word]').forEach((b) =>
+      b.addEventListener('click', async () => {
+        sfx.unlock();
+        out.textContent = '재생 중…';
+        const id = b.dataset.word!;
+        const r = await audio.playWord(id);
+        report(id.slice(2), r);
+        const cell = b.closest('tr')?.children[2];
+        if (cell) cell.textContent = audio.fileStatus.get(id) ?? (r.ok ? `재생 완료 (${r.method})` : '재생 못 함');
+      }),
+    );
     el.querySelector('#so-fire')!.addEventListener('click', () => {
       sfx.unlock();
-      sfx.play('cannon');
+      sfx.play(this.game.theme.id === 'robot' ? 'cannon' : 'magicShot');
       out.textContent = '발사 효과음을 재생했습니다.';
     });
   }

@@ -2,7 +2,9 @@
 export type SfxName =
   | 'tap' | 'place' | 'unplace' | 'connect' | 'reject' | 'charge' | 'cannon' | 'hit' | 'wave' | 'shield'
   | 'block' | 'repair' | 'step' | 'roar' | 'bite' | 'robotHit' | 'victory' | 'snap' | 'pop' | 'reboot' | 'whoosh'
-  | 'radio' | 'missile' | 'explode' | 'bigExplode' | 'beam' | 'energy' | 'deploy';
+  | 'radio' | 'missile' | 'explode' | 'bigExplode' | 'beam' | 'energy' | 'deploy'
+  // 마법소녀 테마
+  | 'chime' | 'magicShot' | 'magicHit' | 'magicCircle' | 'meteor' | 'magicBeam' | 'magicShield' | 'heal' | 'sparkle';
 
 export class SfxService {
   private ctx: AudioContext | null = null;
@@ -11,6 +13,11 @@ export class SfxService {
   volume = 0.7;
   muted = false;
   private duck = 1;
+
+  /** 단어 녹음 재생에 같은 오디오 장치를 쓴다 (첫 터치에서 열린 것) */
+  get context(): AudioContext | null {
+    return this.ctx;
+  }
 
   /** 첫 터치 안에서 호출 */
   unlock(): void {
@@ -201,6 +208,44 @@ export class SfxService {
         this.noise(t, 0.12, 0.3, 'highpass', 1500, 3000);
         this.tone('square', 200, 140, t, 0.1, 0.1);
         this.tone('square', 300, 420, t + 0.1, 0.08, 0.08);
+        break;
+      // ── 마법소녀: 폭발음 대신 종소리·반짝임 계열. 크기는 로봇과 비슷하게 맞춘다 ──
+      case 'chime':
+        [1047, 1319, 1568].forEach((f, i) => this.tone('sine', f, f, t + i * 0.05, 0.35, 0.16));
+        break;
+      case 'sparkle':
+        for (let i = 0; i < 5; i++) this.tone('sine', 1800 + i * 260, 2000 + i * 260, t + i * 0.035, 0.12, 0.08);
+        break;
+      case 'magicShot':
+        this.tone('sine', 500, 1600, t, 0.22, 0.3);
+        this.tone('triangle', 1000, 2400, t + 0.03, 0.2, 0.12);
+        this.noise(t, 0.25, 0.15, 'highpass', 3000, 7000);
+        break;
+      case 'magicHit':
+        this.tone('sine', 880, 660, t, 0.35, 0.3);
+        this.tone('triangle', 1320, 990, t, 0.3, 0.15);
+        this.noise(t, 0.3, 0.45, 'bandpass', 1800, 500, 0.8);
+        this.tone('sine', 140, 60, t, 0.3, 0.45);
+        break;
+      case 'magicCircle':
+        [523, 784, 1047, 1568].forEach((f, i) => this.tone('triangle', f, f, t + i * 0.045, 0.3, 0.14));
+        this.noise(t, 0.4, 0.1, 'highpass', 5000, 9000);
+        break;
+      case 'meteor':
+        this.tone('sine', 1800, 300, t, 0.5, 0.18);
+        this.noise(t, 0.5, 0.3, 'bandpass', 3000, 600, 1.2);
+        break;
+      case 'magicBeam':
+        [262, 330, 392, 523].forEach((f) => this.tone('sawtooth', f, f * 2, t, 0.9, 0.05));
+        this.tone('sine', 523, 1568, t, 0.9, 0.22);
+        this.noise(t, 0.9, 0.22, 'highpass', 2500, 8000);
+        break;
+      case 'magicShield':
+        [659, 880, 1175, 1760].forEach((f, i) => this.tone('sine', f, f * 1.01, t + i * 0.04, 0.55, 0.13));
+        break;
+      case 'heal':
+        [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone('sine', f, f, t + i * 0.09, 0.35, 0.17));
+        this.noise(t, 0.6, 0.08, 'highpass', 6000, 9000);
         break;
       case 'victory':
         [523, 659, 784, 1047, 784, 1047].forEach((f, i) => this.tone('triangle', f, f, t + i * 0.12, i === 5 ? 0.5 : 0.14, 0.3));

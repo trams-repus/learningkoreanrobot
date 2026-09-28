@@ -1,4 +1,5 @@
 // 진행 기록과 설정. 기기 안(localStorage)에만 저장한다. 아이의 이름·생년월일·목소리는 저장하지 않는다.
+import type { CharacterTheme } from '../content/characters';
 import type { PackId } from '../content/vocab';
 import type { HelpLevel } from './combo';
 
@@ -16,6 +17,8 @@ export interface Settings {
   /** 자동: 플레이에 따라 도움 단계 조절 / 많이: B단계보다 어려워지지 않음 */
   helpMode: 'auto' | 'more';
   autoHelp: boolean;
+  /** 함께 싸울 캐릭터. 아직 고르지 않았으면 null. 바꿔도 기록·해금은 그대로 둔다. */
+  characterTheme: CharacterTheme | null;
 }
 
 export interface WordStats {
@@ -64,6 +67,7 @@ export function defaultSettings(): Settings {
     includeRecommended: true,
     helpMode: 'auto',
     autoHelp: true,
+    characterTheme: null,
   };
 }
 
@@ -123,6 +127,7 @@ export function sanitizeSave(raw: unknown): SaveData {
       includeRecommended: bool(s.includeRecommended, d.settings.includeRecommended),
       helpMode: s.helpMode === 'more' ? 'more' : 'auto',
       autoHelp: bool(s.autoHelp, d.settings.autoHelp),
+      characterTheme: s.characterTheme === 'robot' || s.characterTheme === 'magicalGirl' ? s.characterTheme : null,
     },
     stats: {
       battlesPlayed: countMap(st.battlesPlayed),

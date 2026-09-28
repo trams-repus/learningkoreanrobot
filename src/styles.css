@@ -855,6 +855,180 @@ svg {
   background: #7c89a8;
 }
 
+/* ───────── 캐릭터 선택 카드 ───────── */
+.title-screen .logo {
+  font-size: clamp(32px, 10vw, 56px);
+  /* 오른쪽 위 버튼과 겹치지 않게 그 아래에서 시작 */
+  margin-top: calc(52px + 2vh);
+}
+.pick-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  width: min(460px, 100%);
+}
+.hero-card {
+  flex: 1 1 0;
+  min-width: 0;
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  background: #eaf1ff;
+  color: var(--ink);
+  padding: 8px 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 6px 0 var(--ink);
+  transition: transform 0.15s, background 0.2s;
+}
+.hero-card.magic {
+  background: #f6ecff;
+}
+.hero-card .hero-art {
+  width: 100%;
+  aspect-ratio: 120 / 132;
+  max-height: 28vh;
+}
+.hero-card .hero-name {
+  font-size: clamp(22px, 6.5vw, 30px);
+  font-weight: 900;
+}
+.hero-card.selected {
+  background: var(--trim);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 0 var(--ink), 0 0 0 5px #fff;
+}
+.hero-card.magic.selected {
+  background: #ffb8ec;
+}
+.hero-card:active {
+  transform: translateY(3px);
+}
+.start-btn:disabled {
+  opacity: 0.45;
+  animation: none;
+}
+.hero-art .flash,
+.hero-art .sparkle {
+  opacity: 0;
+}
+.hero-art .hero-bob {
+  animation: breathe 2.2s ease-in-out infinite;
+  transform-origin: 60px 120px;
+}
+/* 로봇: 포신을 들고 어깨 덮개를 연 뒤 발사 준비 빛 */
+.hero-card.go .cannon {
+  transform-box: view-box;
+  transform-origin: 90px 60px;
+  animation: cannonUp 1.2s ease-out;
+}
+.hero-card.go .hatch {
+  transform-box: view-box;
+  transform-origin: 18px 40px;
+  animation: hatchOpen 1.2s ease-out;
+}
+.hero-card.go .flash {
+  animation: flashPop 1.2s ease-out;
+}
+/* 마법소녀: 마법봉에 빛이 모이고 마법진이 펼쳐진다 */
+.hero-art .mcircle {
+  transform-box: view-box;
+  transform-origin: 60px 66px;
+  opacity: 0.35;
+}
+.hero-card.go .mcircle {
+  animation: circleOpen 1.2s ease-out;
+}
+.hero-card.go .wand {
+  transform-box: view-box;
+  transform-origin: 88px 60px;
+  animation: wandUp 1.2s ease-out;
+}
+.hero-card.go .sparkle {
+  animation: flashPop 1.2s ease-out;
+}
+@keyframes cannonUp {
+  0% { transform: rotate(0deg); }
+  30%, 75% { transform: rotate(-120deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes hatchOpen {
+  0%, 100% { transform: rotate(0deg); }
+  25%, 80% { transform: rotate(-60deg); }
+}
+@keyframes flashPop {
+  0%, 30% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes circleOpen {
+  0% { transform: scale(0.3) rotate(0deg); opacity: 0; }
+  40% { transform: scale(1.1) rotate(120deg); opacity: 1; }
+  100% { transform: scale(1) rotate(240deg); opacity: 0.35; }
+}
+@keyframes wandUp {
+  0%, 100% { transform: rotate(0deg); }
+  30%, 75% { transform: rotate(-25deg); }
+}
+
+/* 다시 듣기 안내: 단어 소리가 끝까지 나지 않았을 때 */
+.listen-btn.nudge {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+/* ───────── 마법소녀 테마: 조합판 장식만 바뀐다 (자모 모양·배치는 같다) ───────── */
+body.theme-magic #cockpit {
+  border-top-color: #ff7ad9;
+  background: linear-gradient(180deg, #43307a 0%, #2a2150 45%, #1d1a3d 100%);
+}
+body.theme-magic .listen-btn {
+  color: #ffb8ec;
+  background: #1f1640;
+  box-shadow: 0 4px 0 var(--ink), inset 0 0 0 3px #b06cff;
+}
+body.theme-magic .receiver.on .listen-btn {
+  box-shadow: 0 4px 0 var(--ink), inset 0 0 0 3px #ff7ad9, 0 0 18px #ff7ad9;
+}
+body.theme-magic .receiver.on .wave i {
+  background: #ffb8ec;
+}
+body.theme-magic .combo-gauge .fill {
+  background: linear-gradient(90deg, #b06cff, #ff7ad9, #fff0a8);
+}
+body.theme-magic .zone {
+  background: radial-gradient(ellipse at 50% 40%, #3d2c78 0%, #1d1a3d 70%);
+  border-color: #5a3f9e;
+}
+/* 빛나는 글자 조각: 바탕과 테두리 빛만 다르고 글자 모양은 그대로 */
+body.theme-magic .jamo-chip {
+  background: linear-gradient(160deg, #ffffff 0%, #f3e8ff 100%);
+  box-shadow: 0 5px 0 var(--ink), 0 0 14px rgba(255, 122, 217, 0.55);
+}
+body.theme-magic .frame {
+  background: #1f1640;
+  border-color: #7a5cc4;
+}
+body.theme-magic .frame.active {
+  border-color: #ffb8ec;
+}
+body.theme-magic .frame .cell {
+  border-color: rgba(255, 184, 236, 0.45);
+}
+/* 마법진 활성화: 완성된 글자 틀 뒤로 도는 빛 고리 */
+body.theme-magic .frames.connected .frame::before {
+  content: '';
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  border: 3px dashed #ffb8ec;
+  animation: spin 1.2s linear infinite;
+  pointer-events: none;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes pulse {
   0%,
   100% {

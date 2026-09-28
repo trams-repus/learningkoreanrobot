@@ -80,6 +80,35 @@ async function solveWord(page, vp, mode, shotPrefix) {
   return word;
 }
 
+async function pickHero(page, theme) {
+  await page.click(`.hero-card[data-theme="${theme}"]`, { force: true });
+  await sleep(700);
+}
+
+/** 콤보 단계별 공격을 직접 불러 중간 장면을 찍는다 (연출 확인용, dev 전용 훅) */
+async function fxGallery(page, vp, theme) {
+  await page.evaluate(async (t) => {
+    const { scene, game } = window.__hd;
+    game.toMenu();
+    document.getElementById('overlay').hidden = true;
+    scene.setTheme(t);
+    await scene.spawnFoe('dino', 9, 9);
+  }, theme);
+  for (const tier of ['basic', 'rapid', 'missiles', 'finisher']) {
+    const done = page.evaluate((tier) => window.__hd.scene.attack(tier, 8, false), tier);
+    await sleep(tier === 'basic' ? 250 : tier === 'rapid' ? 450 : 700);
+    await page.screenshot({ path: `${OUT}/${vp.name}-fx-${theme}-${tier}.png` });
+    await done;
+  }
+  await page.evaluate(() => window.__hd.scene.guard(true));
+  await sleep(450);
+  await page.screenshot({ path: `${OUT}/${vp.name}-fx-${theme}-guard.png` });
+  const healing = page.evaluate(() => window.__hd.scene.reboot(4));
+  await sleep(700);
+  await page.screenshot({ path: `${OUT}/${vp.name}-fx-${theme}-heal.png` });
+  await healing;
+}
+
 async function run(vp) {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height }, deviceScaleFactor: vp.dpr, isMobile: vp.mobile, hasTouch: vp.mobile, locale: 'ko-KR' });
@@ -90,16 +119,19 @@ async function run(vp) {
   await page.goto(`${BASE}?dev=1&speed=2`);
   await page.waitForSelector('#t-start', { timeout: 20000 });
   await sleep(300);
+  const startDisabled = await page.evaluate(() => document.getElementById('t-start').disabled);
   await page.screenshot({ path: `${OUT}/${vp.name}-01-title.png` });
-  await page.click('#t-start', { force: true });
 
+  // 1) 로봇 선택 → 수박 전투
+  await pickHero(page, 'robot');
+  await page.screenshot({ path: `${OUT}/${vp.name}-01b-robot-picked.png` });
+  await page.click('#t-start', { force: true });
   const log = [];
-  // 전투 1: 수박 × 3
   for (let n = 0; n < 3; n++) {
     const w = await solveWord(page, vp, vp.name.startsWith('desktop') && n === 1 ? 'drag' : 'tap', n === 0 ? `${vp.name}-02` : null);
-    if (n === 0) {
-      await sleep(350);
-      await page.screenshot({ path: `${OUT}/${vp.name}-03-attack.png` });
+    if (n === 0 || n === 2) {
+      await sleep(n === 0 ? 350 : 700);
+      await page.screenshot({ path: `${OUT}/${vp.name}-03-robot-attack${n}.png` });
     }
     log.push(w);
   }
@@ -107,12 +139,10 @@ async function run(vp) {
   const combo1 = await page.evaluate(() => window.__hd.saves.data.stats.bestCombo);
   await page.screenshot({ path: `${OUT}/${vp.name}-04-victory.png` });
 
-  // 전투 2 (쉬운 단어): 첫 두 단어만
+  // 2) 다음 전투 (쉬운 단어) 두 단어 + 일시정지
   await page.click('#v-next', { force: true });
   const s2 = [];
   for (let n = 0; n < 2; n++) s2.push(await solveWord(page, vp, 'tap', n === 0 ? `${vp.name}-05-s2` : null));
-
-  // 일시정지 → 다시하기
   await waitFor(page, () => window.__hd.game.phase === 'compose');
   await page.click('#btn-pause', { force: true });
   await sleep(200);
@@ -121,9 +151,50 @@ async function run(vp) {
   await page.click('#p-resume', { force: true });
   const resumed = await page.evaluate(() => !window.__hd.game.paused);
 
+  // 3) 처음 화면으로 → 마법소녀 선택 → 기록 유지 확인 → 같은 수박 전투
+  await page.click('#btn-pause', { force: true });
+  await page.click('#p-home', { force: true });
+  await page.waitForSelector('.hero-card');
+  const before = await page.evaluate(() => JSON.stringify({ c: window.__hd.saves.data.cleared, w: window.__hd.saves.data.stats.words['수박'] }));
+  await pickHero(page, 'magicalGirl');
+  await page.screenshot({ path: `${OUT}/${vp.name}-07-magic-picked.png` });
+  const after = await page.evaluate(() => JSON.stringify({ c: window.__hd.saves.data.cleared, w: window.__hd.saves.data.stats.words['수박'] }));
+  await page.click('#t-map', { force: true });
+  await page.click('[data-stage="s1"]', { force: true });
+  const log3 = [];
+  for (let n = 0; n < 3; n++) {
+    const w = await solveWord(page, vp, 'tap', n === 0 ? `${vp.name}-08-magic` : null);
+    if (n === 0 || n === 2) {
+      await sleep(n === 0 ? 350 : 700);
+      await page.screenshot({ path: `${OUT}/${vp.name}-09-magic-attack${n}.png` });
+    }
+    log3.push(w);
+  }
+  await waitFor(page, () => window.__hd.game.phase === 'victory' && !document.getElementById('overlay').hidden, null, 30000);
+  await page.screenshot({ path: `${OUT}/${vp.name}-10-magic-victory.png` });
+  const theme = await page.evaluate(() => window.__hd.saves.data.settings.characterTheme);
+
+  if (vp.name.startsWith('phone-390')) {
+    await fxGallery(page, vp, 'robot');
+    await fxGallery(page, vp, 'magicalGirl');
+  }
+
   const stats = await page.evaluate(() => window.__hd.saves.data.stats.words);
   await browser.close();
-  return { vp: vp.name, battle1: log, bestCombo: combo1, battle2: s2, paused, resumed, words: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, `${v.independent}/${v.assisted}`])), errors };
+  return {
+    vp: vp.name,
+    startDisabledBeforePick: startDisabled,
+    robot: log,
+    bestCombo: combo1,
+    battle2: s2,
+    paused,
+    resumed,
+    keptOnSwitch: before === after,
+    magic: log3,
+    savedTheme: theme,
+    words: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, `${v.independent}/${v.assisted}`])),
+    errors,
+  };
 }
 
 const only = process.argv[2];
@@ -132,7 +203,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
   try {
     const r = await run(vp);
     console.log(JSON.stringify(r));
-    if (r.errors.length || !r.paused || !r.resumed) failed = true;
+    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl') failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);
