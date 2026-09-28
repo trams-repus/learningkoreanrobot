@@ -20,6 +20,8 @@ export class AudioManager {
   muted = false;
   volume = 1;
   ttsVoice: SpeechSynthesisVoice | null = null;
+  /** 받아 둔 단어 녹음 파일을 쓸지 (부모 설정). 끄면 단어도 기기 음성으로 읽는다. */
+  useWordFiles = false;
   ttsChecked = false;
   /** 채널별 재생 표시 (수신기 파형·자막) */
   onPlaying: (ch: Channel | null, text: string) => void = () => {};
@@ -52,8 +54,7 @@ export class AudioManager {
     }
     const pick = () => {
       const ko = this.synth!.getVoices().filter((v) => (v.lang || '').toLowerCase().replace('_', '-').startsWith('ko'));
-      // 기기 내장(localService) 음성을 우선한다 (네트워크 음성은 끊길 수 있다)
-      this.ttsVoice = ko.find((v) => v.localService) ?? ko[0] ?? null;
+      this.ttsVoice = [...ko].sort((a, b) => voiceScore(b) - voiceScore(a))[0] ?? null;
       return this.ttsVoice;
     };
     if (!pick()) {
@@ -86,7 +87,7 @@ export class AudioManager {
 
   methodFor(id: string): Method {
     if (this.recordings.has(id)) return 'recording';
-    if (assetById(id)?.localPath) return 'file';
+    if (this.useWordFiles && assetById(id)?.localPath) return 'file';
     if (this.synth && this.ttsVoice) return 'tts';
     return 'none';
   }
@@ -98,6 +99,15 @@ export class AudioManager {
   /** 출제 단어: 또렷하게, 효과·필터 없이 */
   playWord(id: string): Promise<PlayResult> {
     return this.play('word', id);
+  }
+
+  /** 부모 화면 '소리 확인': 녹음 사용을 꺼 두었어도 그 단어의 녹음 파일을 들어 본다 */
+  previewWordFile(id: string): Promise<PlayResult> {
+    const prev = this.useWordFiles;
+    this.useWordFiles = true;
+    const p = this.play('word', id); // 재생 방법은 play() 첫머리에서 바로 정해진다
+    this.useWordFiles = prev;
+    return p;
   }
 
   /**
@@ -315,4 +325,18 @@ export class AudioManager {
       fail();
     }
   }
+}
+
+/**
+ * 한국어 음성 중 더 자연스러운 것을 고른다 (2026-09-28: 단어도 기기 음성으로 읽기로 해서 품질이 중요해짐).
+ * 신경망·고품질 음성(Edge 'Online (Natural)', iOS 'Premium/Enhanced') > Google·Yuna 기본 음성 > 나머지.
+ * 같은 급이면 기기 내장(localService)을 먼저: 네트워크 음성은 끊길 수 있다.
+ */
+export function voiceScore(v: Pick<SpeechSynthesisVoice, 'name' | 'localService'>): number {
+  const n = v.name || '';
+  let s = 0;
+  if (/natural|neural|premium|enhanced|고품질|향상/i.test(n)) s += 4;
+  else if (/google|yuna|sunhi|injoon|heami/i.test(n)) s += 2;
+  if (v.localService) s += 1;
+  return s;
 }

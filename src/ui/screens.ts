@@ -325,6 +325,8 @@ export class Screens {
       ${chk('se-muted', s.muted, '모든 소리 끄기')}
       <label>목소리 크기<input type="range" id="se-voice" min="0" max="1" step="0.1" value="${s.voiceVolume}"></label>
       <label>효과음 크기<input type="range" id="se-sfx" min="0" max="1" step="0.1" value="${s.sfxVolume}"></label>
+      ${chk('se-wordrec', s.useWordRecordings, '단어를 사람 녹음으로 읽기 (끄면 기기 음성)')}
+      <p class="muted">기본은 기기 음성입니다. 녹음이 있는 단어만 녹음으로 읽고, 녹음을 쓸 때는 녹음한 분 표시가 '소리 확인'에 나옵니다.</p>
       <h3>화면</h3>
       ${chk('se-motion', s.jamoMotion, '자모가 천천히 떠다니기')}
       ${chk('se-reduce', s.reduceEffects, '폭발·흔들림 효과 줄이기')}
@@ -367,6 +369,7 @@ export class Screens {
     on('se-rec', (t) => (s.includeRecommended = t.checked));
     on('se-help', (t) => (s.helpMode = t.value === 'more' ? 'more' : 'auto'));
     on('se-autohelp', (t) => (s.autoHelp = t.checked));
+    on('se-wordrec', (t) => (s.useWordRecordings = t.checked));
     el.querySelector('#se-default')!.addEventListener('click', () => {
       const theme = saves.data.settings.characterTheme;
       saves.data.settings = defaultSettings();
@@ -385,7 +388,7 @@ export class Screens {
   private methodName(id: string): string {
     const m = audio.methodFor(id);
     if (m === 'recording') return '부모 녹음';
-    if (m === 'file') return '녹음 파일 (Lingua Libre·Commons, CC0)';
+    if (m === 'file') return '녹음 파일 (Lingua Libre·Commons)';
     if (m === 'tts') return `기기 음성 합성 (${esc(audio.ttsVoice?.name ?? '')}${audio.ttsVoice?.localService ? ', 기기 내장' : ', 온라인일 수 있음'})`;
     return '재생 수단 없음';
   }
@@ -401,15 +404,17 @@ export class Screens {
       </table>
       <p id="so-result" class="muted" aria-live="polite"></p>
       <h3>단어 녹음 파일 (${WORD_AUDIO_SOURCES.length}개 목록)</h3>
+      <p class="muted">${saves.data.settings.useWordRecordings ? '지금 단어를 녹음으로 읽습니다 (녹음이 없는 단어는 기기 음성).' : "지금은 꺼져 있어 모든 단어를 기기 음성으로 읽습니다. '설정 → 소리'에서 켤 수 있습니다."}</p>
       <table>
-        <tr><th>단어</th><th>파일</th><th>이 기기 재생 결과</th><th></th></tr>
+        <tr><th>단어</th><th>파일</th><th>녹음한 분 · 라이선스</th><th>이 기기 재생 결과</th><th></th></tr>
         ${WORD_AUDIO_SOURCES.map((w) => {
           const id = `w_${w.word}`;
           const has = AUDIO_MANIFEST.find((a) => a.assetId === id)?.localPath;
-          return `<tr><td>${esc(w.word)}</td><td>${has ? '있음' : w.link.startsWith('없음') ? 'Commons에 녹음 없음 (기기 음성)' : '아직 없음 (기기 음성으로 대신)'}</td><td>${esc(audio.fileStatus.get(id) ?? '-')}</td><td><button class="small-btn" data-word="${esc(id)}">듣기</button></td></tr>`;
+          const credit = has && w.speaker ? `${w.speaker} · ${w.license || '확인 전'}` : '-';
+          return `<tr><td>${esc(w.word)}</td><td>${has ? '있음' : w.link.startsWith('없음') ? 'Commons에 녹음 없음 (기기 음성)' : '아직 없음 (기기 음성으로 대신)'}</td><td>${esc(credit)}</td><td>${esc(audio.fileStatus.get(id) ?? '-')}</td><td><button class="small-btn" data-word="${esc(id)}">듣기</button></td></tr>`;
         }).join('')}
       </table>
-      <p class="muted">녹음: Lingua Libre (Wikimedia Commons), 녹음자 호로조. 사용자가 준 10개는 CC0-1.0 표기, 고양이·곰·당근은 라이선스 확인 전. 로봇과 마법소녀가 같은 녹음을 씁니다.</p>
+      <p class="muted">녹음: Lingua Libre (Wikimedia Commons). 녹음한 분과 라이선스는 위 표에 단어마다 적었습니다 (CC BY-SA 녹음은 출처 표시가 필요합니다). 로봇과 마법소녀가 같은 녹음을 씁니다.</p>
       <p class="muted">한국어 음성: ${audio.ttsVoice ? esc(`${audio.ttsVoice.name} (${audio.ttsVoice.lang})`) : '찾지 못함'} · 녹음 ${recordings.count}개${saves.data.settings.muted ? ' · <b>지금 소리 끄기가 켜져 있습니다</b>' : ''}</p>`;
   }
 
@@ -431,9 +436,9 @@ export class Screens {
         sfx.unlock();
         out.textContent = '재생 중…';
         const id = b.dataset.word!;
-        const r = await audio.playWord(id);
+        const r = await audio.previewWordFile(id);
         report(id.slice(2), r);
-        const cell = b.closest('tr')?.children[2];
+        const cell = b.closest('tr')?.children[3];
         if (cell) cell.textContent = audio.fileStatus.get(id) ?? (r.ok ? `재생 완료 (${r.method})` : '재생 못 함');
       }),
     );

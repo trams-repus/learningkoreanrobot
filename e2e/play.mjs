@@ -264,9 +264,15 @@ async function run(vp) {
   const said = await page.evaluate(() => window.__said.slice());
   const i1 = said.indexOf('음절:수');
   const i2 = said.indexOf('음절:박', i1 + 1);
-  // 녹음이 있는 수박은 녹음 파일로, 끝까지 재생되어야 한다
+  // 단어는 기본으로 기기 음성(녹음 파일 아님). 설정에서 녹음을 켜면 수박 녹음 파일이 끝까지 재생되어야 한다
   const wordPlays = await page.evaluate(() => window.__wordPlays.slice());
-  const subakRecording = wordPlays.some((x) => x === '수박:file:ok');
+  const wordNotFileByDefault = wordPlays.length > 0 && wordPlays.every((x) => !x.includes(':file:'));
+  const recordingOption = await page.evaluate(async () => {
+    const a = window.__hd.audio;
+    const r = await a.previewWordFile('w_수박');
+    return `${r.method}:${r.ok ? 'ok' : 'x'}`;
+  });
+  const subakRecording = wordNotFileByDefault && recordingOption === 'file:ok';
   const syllablesRead = i1 >= 0 && i2 > i1 && said.indexOf('단어:수박', i2 + 1) > i2;
   await page.screenshot({ path: `${OUT}/${vp.name}-04-victory.png` });
 
@@ -360,6 +366,7 @@ async function run(vp) {
     trapsLeft,
     syllablesRead,
     subakRecording,
+    recordingOption,
     wordPlays: wordPlays.slice(0, 6).join(' '),
     said: said.slice(0, 8).join(' '),
     robot: log,

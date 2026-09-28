@@ -27,4 +27,5 @@ export function applySettings(): void {
   sfx.applyGain();
   audio.muted = s.muted;
   audio.volume = s.voiceVolume;
+  audio.useWordFiles = s.useWordRecordings;
 }

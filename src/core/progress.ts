@@ -17,6 +17,8 @@ export interface Settings {
   /** 자동: 플레이에 따라 도움 단계 조절 / 많이: B단계보다 어려워지지 않음 */
   helpMode: 'auto' | 'more';
   autoHelp: boolean;
+  /** 단어를 받아 둔 사람 녹음(Commons)으로 읽기. 기본은 꺼짐: 기기 음성이 더 낫다는 사용자 결정 (2026-09-28) */
+  useWordRecordings: boolean;
   /** 함께 싸울 캐릭터. 아직 고르지 않았으면 null. 바꿔도 기록·해금은 그대로 둔다. */
   characterTheme: CharacterTheme | null;
 }
@@ -78,6 +80,7 @@ export function defaultSettings(): Settings {
     includeRecommended: true,
     helpMode: 'auto',
     autoHelp: true,
+    useWordRecordings: false,
     characterTheme: null,
   };
 }
@@ -142,6 +145,7 @@ export function sanitizeSave(raw: unknown): SaveData {
       includeRecommended: bool(s.includeRecommended, d.settings.includeRecommended),
       helpMode: s.helpMode === 'more' ? 'more' : 'auto',
       autoHelp: bool(s.autoHelp, d.settings.autoHelp),
+      useWordRecordings: bool(s.useWordRecordings, d.settings.useWordRecordings),
       characterTheme: s.characterTheme === 'robot' || s.characterTheme === 'magicalGirl' ? s.characterTheme : null,
     },
     stats: {

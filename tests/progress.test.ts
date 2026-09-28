@@ -94,6 +94,11 @@ describe('저장과 복구', () => {
     expect(e.cleared).toEqual(['s1', 's2']);
     expect(e.lastStage).toBe('s2');
   });
+  it('단어 녹음 사용은 기본 꺼짐 (기기 음성), 켠 설정은 저장된다', () => {
+    expect(defaultSave().settings.useWordRecordings).toBe(false);
+    expect(sanitizeSave({ settings: {} }).settings.useWordRecordings).toBe(false);
+    expect(sanitizeSave({ settings: { useWordRecordings: true } }).settings.useWordRecordings).toBe(true);
+  });
   it('저장소를 못 쓰는 환경에서도 동작', () => {
     const s = new SaveService(null);
     s.data.cleared.push('s1');
