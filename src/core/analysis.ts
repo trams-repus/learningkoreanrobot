@@ -91,6 +91,8 @@ export interface Analysis {
   improved: string[];
   trend: { before: number; after: number; window: number } | null;
   replaysRecent: { words: number; replays: number };
+  /** 기간 안 도움 사용: 정답 보기 버튼, 다시 듣기, 정답 보기를 한 번이라도 쓴 문제 수 */
+  helpUse: { hintViews: number; replays: number; wordsWithHint: number };
   recentMisses: RecentMiss[];
   /**
    * 실수 종류별 횟수 (2026-09-28 사용자 요청: 되돌아간 끌어 놓기도 실수로 센다).
@@ -292,6 +294,11 @@ export function analyze(allEvents: LogEvent[], now: number = Date.now(), period:
     improved,
     trend,
     replaysRecent,
+    helpUse: {
+      hintViews: words.reduce((s2, w) => s2 + w.hint, 0),
+      replays: words.reduce((s2, w) => s2 + w.rep, 0),
+      wordsWithHint: words.filter((w) => w.hint > 0).length,
+    },
     recentMisses,
     mistakes,
     orderMix: { total: orderTotal, attempts: placedSlots + orderTotal, lines: orderLines },
@@ -398,4 +405,80 @@ export function focusPool(pool: string[], focusJamo: string[], focusWords: strin
   const extra = pool.filter(hit);
   // 모든 단어가 해당되면 늘려도 비율이 같으니 그대로 둔다
   return extra.length && extra.length < pool.length ? [...pool, ...extra] : pool;
+}
+
+/** AI 프롬프트에 넣을 지금 게임 설정 (AI가 조정할 설정을 제안할 수 있게) */
+export interface PromptContext {
+  /** 부모가 입력한 만 나이. 모르면 null */
+  age: number | null;
+  pack: '4-6' | '7-8';
+  helpMode: 'auto' | 'more';
+  autoHelp: boolean;
+  focus: string[];
+}
+
+/**
+ * 'AI에게 학습 전략 물어보기': 부모가 복사해 Claude·ChatGPT 같은 AI 채팅에 붙여 넣는 프롬프트 전문.
+ * 게임은 아무것도 밖으로 보내지 않는다. 이름(게임 제목의 아이 이름 포함)·생년월일·날짜·기기 정보는 넣지 않고 집계 숫자와 단어 예시만 넣는다.
+ */
+export function aiPrompt(a: Analysis, ctx: PromptContext): string {
+  const who = ctx.age !== null ? `만 ${ctx.age}세 아이` : `${ctx.pack === '7-8' ? '7~8세' : '4~6세'} 어휘팩으로 플레이하는 아이(부모가 나이는 입력하지 않음)`;
+  const rn = { cho: '첫소리', jung: '모음', jong: '받침' } as const;
+  const m = a.mistakes;
+  const L: string[] = [];
+  const p = (...x: string[]) => L.push(...x);
+
+  p(`아래 데이터는 아이용 한글 자모 조립 게임의 플레이 기록이고, ${who}가 직접 플레이한 로그를 게임이 자동으로 집계한 것입니다. 저는 이 아이의 부모입니다.`);
+  p('이 기록을 바탕으로 아이가 한글을 익히는 데 어떤 부분이 약한지 정리하고, 집에서 제가 도울 수 있는 방법을 알려 주세요.');
+  p('');
+  p('## 게임 설명');
+  p('- 아이는 글을 거의 읽지 못해도 할 수 있도록, 글자 대신 음성으로 단어를 듣습니다 (예: "수박").');
+  p('- 화면에 떠다니는 자모 조각(ㅅ, ㅜ, ㅂ, ㅏ, ㄱ 등)을 손가락으로 끌어서, 음절마다 있는 글자 틀의 칸에 넣어 단어를 조립합니다.');
+  p('- 칸은 첫소리(초성) → 모음(중성) → 받침(종성) 순서로 차례가 오고, 차례인 칸에만 들어갑니다. 한 음절을 다 만들어야 다음 음절로 넘어갑니다.');
+  p('- 단어에 없는 헷갈리는 자모(함정 자모, 예: ㅜ 대신 ㅗ)가 함께 섞여 나옵니다.');
+  p('- 단어를 완성하면 로봇(또는 마법소녀)이 공룡을 공격하는 전투 게임입니다. 빨리 연속으로 완성하면 콤보가 됩니다.');
+  p('- 도움 기능: 단어 다시 듣기, 정답 보기(흐린 자모와 손가락 안내), 여러 번 틀리면 선택지를 줄이고 다음 자모를 알려 주는 자동 도움.');
+  p('- 받침 없는 쉬운 단어에서 시작해 받침, 쌍자음 단어로 단계가 올라갑니다.');
+  p('');
+  p('## 기록 기간');
+  p(`- ${PERIOD_NAME[a.period]} (그 기간에 플레이한 날 ${a.daysPlayed}일, 전투 ${a.battles}번)`);
+  p('');
+  p('## 용어 정의');
+  p('- 혼자 완성: 정답 보기·손가락 안내·자동 도움 없이 끝낸 단어. (다시 듣기는 도움으로 치지 않음)');
+  p('- 도움 받고 완성: 정답 보기, 흐린 자모, 손가락 안내, 선택지 줄이기 중 하나라도 보고 끝낸 단어.');
+  p('- 칸 종류 틀림: 자음을 모음 칸에, 모음을 첫소리·받침 칸에 놓으려 해서 자모가 되돌아간 경우.');
+  p('- 순서 틀림: 아직 차례가 아닌 칸(예: 첫소리 차례에 모음 칸, 지금 음절을 다 채우기 전에 다음 음절 칸)에 놓으려 해서 되돌아간 경우.');
+  p('- 함정 자모 넣음: 단어에 없는 함정 자모를 칸에 넣어 다른 글자가 된 경우.');
+  p('- 맞는 칸에 다른 자모: 칸 종류는 맞지만 단어에 있는 다른 자모를 넣어 다른 글자가 된 경우 (예: ㅓ 자리에 ㅏ).');
+  p('- 조작 미끄러짐: 칸이 아닌 빈 곳에 떨어뜨린 경우. 손가락 조작 문제로 보고 실수에 넣지 않음.');
+  p('- 헷갈린 두 자모: 한 자모 자리에 다른 자모를 넣은 쌍 (방향 무관하게 합침).');
+  p('');
+  p('## 집계 데이터');
+  p(`- 완성한 단어 ${a.finished}개: 혼자 ${a.alone}개, 도움 받고 ${a.help}개. 끝내지 못하고 나간 문제 ${a.stopped}개.`);
+  p(`- 도움 사용: 정답 보기 ${a.helpUse.hintViews}번 (정답 보기를 쓴 문제 ${a.helpUse.wordsWithHint}개), 다시 듣기 ${a.helpUse.replays}번.`);
+  p(`- 실수 종류: 칸 종류 틀림 ${m.kind}번, 순서 틀림 ${m.order}번, 함정 자모 넣음 ${m.trap}번, 맞는 칸에 다른 자모 ${m.wrong}번 (합계 ${m.total}번). 조작 미끄러짐 ${m.slip}번(실수 아님).`);
+  if (a.orderMix.lines.length) p(`- 되돌아간 끌어 놓기 내용: ${a.orderMix.lines.slice(0, 4).map((l) => `${l.label} ${l.count}번 (예: ${l.example})`).join('; ')}`);
+  p(`- 칸별로 다른 글자가 된 횟수: ${(['cho', 'jung', 'jong'] as const).map((r) => `${rn[r]} ${a.roleMiss[r].slots}칸 중 ${a.roleMiss[r].miss}번`).join(', ')}.`);
+  p(`- 받침 있는 음절 ${a.jongSyl.withJong.slots}개 중 ${a.jongSyl.withJong.miss}번, 받침 없는 음절 ${a.jongSyl.noJong.slots}개 중 ${a.jongSyl.noJong.miss}번 다른 글자.`);
+  p(`- 헷갈린 두 자모: ${a.confusions.length ? a.confusions.slice(0, 6).map((c) => `${c.pair[0]}·${c.pair[1]} ${c.total}번 (단어: ${c.words.slice(0, 4).join(', ')})`).join('; ') : '두 번 이상 반복된 쌍 없음'}.`);
+  p(`- 자주 틀린 자모 (나온 횟수 중 틀린 횟수): ${a.jamoTrouble.length ? a.jamoTrouble.slice(0, 6).map((j) => `${j.jamo} ${j.seen}번 중 ${j.miss}번`).join(', ') : '없음'}.`);
+  p(`- 아직 혼자 끝낸 적 없는 단어: ${a.needHelp.length ? a.needHelp.slice(0, 6).map((w) => `${w.word}(도움 받아 ${w.help}번)`).join(', ') : '없음'}.`);
+  p(`- 처음엔 도움을 받았지만 최근 두 번은 혼자 끝낸 단어: ${a.improved.length ? a.improved.slice(0, 6).join(', ') : '없음'}.`);
+  if (a.trend) p(`- 혼자 완성 변화: 처음 ${a.trend.window}단어 중 ${a.trend.before}개 → 최근 ${a.trend.window}단어 중 ${a.trend.after}개.`);
+  p(`- 최근 틀린 예 (단어(음절) 맞는 자모→넣은 자모): ${a.recentMisses.length ? a.recentMisses.slice(0, 8).map((x) => `${x.word}(${x.syl}) ${x.want}→${x.got ?? '?'}`).join(', ') : '없음'}.`);
+  p('');
+  p('## 지금 게임 설정 (게임 안에서 바꿀 수 있는 것)');
+  p(`- 어휘팩: ${ctx.pack === '7-8' ? '7~8세' : '4~6세'} 팩 (4~6세 / 7~8세 중 선택)`);
+  p(`- 도움 정도: ${ctx.helpMode === 'more' ? '많이 (늘 부분 안내)' : '자동 (플레이에 맞춰)'} (자동 / 많이 중 선택)`);
+  p(`- 막히면 선택지 줄이기·다음 자모 안내: ${ctx.autoHelp ? '켜짐' : '꺼짐'}`);
+  p(`- 특정 자모나 단어를 더 자주 내기: ${ctx.focus.length ? ctx.focus.join(', ') : '꺼짐'} (원하는 자모·단어를 지정할 수 있음)`);
+  p('');
+  p('## 답변 형식');
+  p('1. 약점 패턴 요약: 기록에서 반복되는 실수 패턴 2~4개를, 근거가 된 숫자와 함께 짧게.');
+  p('2. 집에서 할 수 있는 지도 방법 3~5개: 게임 밖에서 5~10분 안에 할 수 있는 놀이나 말하기 활동으로, 아이 나이에 맞는 쉬운 말로.');
+  p('3. 게임 설정 조정 제안: 위 "지금 게임 설정"에서 바꿔 볼 만한 것과 이유.');
+  p('4. 근거가 부족한 부분: 기록이 적거나 숫자만으로는 판단하기 어려운 것은 부족하다고 분명히 말해 주세요.');
+  p('');
+  p('주의: 발달 진단, 점수, 등급, 또래 비교는 하지 마세요. 이 기록은 한 게임 안의 행동 기록일 뿐이고 학습 능력 검사가 아닙니다. 칭찬할 점이 보이면 함께 알려 주세요.');
+  return L.join('\n');
 }
