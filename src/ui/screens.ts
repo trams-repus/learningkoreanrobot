@@ -7,7 +7,7 @@ import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
 import { applySettings, audio, options, playlog, recordings, saves, sfx } from '../game/services';
-import { analyze, claudePrompt, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
+import { aiPrompt, analyze, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
 
@@ -349,11 +349,12 @@ export class Screens {
 
     return `${head}
       <section class="ask-claude">
-        <h3>Claude에게 조언 받기</h3>
-        <p>${pname} 기록을 요약한 글을 복사합니다. Claude 앱(claude.ai)에 붙여 넣으면 집에서 도울 방법을 물어볼 수 있어요. 게임은 아무것도 밖으로 보내지 않고, 이름·날짜·기기 정보는 넣지 않습니다.</p>
-        <div class="btns"><button class="small-btn primary" id="an-claude">요약 복사하기</button></div>
+        <h3>AI에게 조언 받기</h3>
+        <p>${pname} 기록과 게임 설명, 질문을 담은 글 전체를 복사합니다. Claude·ChatGPT 같은 AI 채팅에 붙여 넣으면 약점과 집에서 도울 방법을 물어볼 수 있어요. 게임은 아무것도 밖으로 보내지 않고, 이름·생년월일·날짜·기기 정보는 넣지 않습니다.</p>
+        ${set.childAge === null ? `<p class="muted">'설정'에서 아이 나이(만 나이)를 고르면 글에 함께 들어가 더 알맞은 조언을 받을 수 있어요.</p>` : ''}
+        <div class="btns"><button class="small-btn primary" id="an-claude">AI에게 물어보기 (복사)</button></div>
         <p class="copy-note" id="an-claude-note" hidden></p>
-        <details><summary>복사될 글 보기</summary><textarea id="an-claude-text" readonly rows="10">${esc(claudePrompt(a, set.pack === '7-8' ? '7~8세' : '4~6세'))}</textarea></details>
+        <details><summary>복사될 글 보기</summary><textarea id="an-claude-text" readonly rows="10">${esc(aiPrompt(a, { age: set.childAge, pack: set.pack, helpMode: set.helpMode, autoHelp: set.autoHelp, focus: [...set.focusJamo.map((j) => `${j}가 든 단어`), ...set.focusWords] }))}</textarea></details>
       </section>
       <h3 class="sec">해 볼 만한 것 <small>(${pname} 기록)</small></h3>
       ${sugg}
@@ -408,7 +409,7 @@ export class Screens {
         }
       }
       note.hidden = false;
-      note.textContent = ok ? '복사했어요. Claude 앱에서 새 대화를 열고 붙여 넣으세요.' : '자동 복사가 막혀 있어요. 아래 글을 길게 눌러 모두 선택한 뒤 복사해 주세요.';
+      note.textContent = ok ? '복사했어요. Claude·ChatGPT 같은 AI 채팅에서 새 대화를 열고 붙여 넣으세요.' : '자동 복사가 막혀 있어요. 아래 글을 길게 눌러 모두 선택한 뒤 복사해 주세요.';
     });
     el.querySelectorAll<HTMLButtonElement>('[data-period]').forEach((b) =>
       b.addEventListener('click', () => {
@@ -523,6 +524,9 @@ export class Screens {
       <label>어휘팩<select id="se-pack"><option value="4-6" ${s.pack === '4-6' ? 'selected' : ''}>4~6세 팩</option><option value="7-8" ${s.pack === '7-8' ? 'selected' : ''}>7~8세 팩</option></select></label>
       ${chk('se-rec', s.includeRecommended, '권장 단어도 섞기 (끄면 핵심 단어만)')}
       <p class="muted">어휘팩은 게임 내부의 임시 선정입니다. 공식 어휘 등급과 대조하기 전이며, 아이 나이에 따른 공식 기준이 아닙니다.</p>
+      <h3>아이</h3>
+      <label>아이 나이 (만)<select id="se-age"><option value="" ${s.childAge === null ? 'selected' : ''}>입력 안 함</option>${[3, 4, 5, 6, 7, 8, 9].map((n) => `<option value="${n}" ${s.childAge === n ? 'selected' : ''}>만 ${n}세</option>`).join('')}</select></label>
+      <p class="muted">'AI에게 물어보기'로 복사하는 글에만 들어갑니다. 생년월일·이름은 받지 않습니다.</p>
       <h3>도움</h3>
       <label>도움 정도<select id="se-help"><option value="auto" ${s.helpMode === 'auto' ? 'selected' : ''}>자동 (플레이에 맞춰)</option><option value="more" ${s.helpMode === 'more' ? 'selected' : ''}>많이 (늘 부분 안내)</option></select></label>
       ${chk('se-autohelp', s.autoHelp, '막히면 선택지 줄이기·다음 자모 안내')}
@@ -558,10 +562,13 @@ export class Screens {
     on('se-rec', (t) => (s.includeRecommended = t.checked));
     on('se-help', (t) => (s.helpMode = t.value === 'more' ? 'more' : 'auto'));
     on('se-autohelp', (t) => (s.autoHelp = t.checked));
+    on('se-age', (t) => (s.childAge = t.value ? Number(t.value) : null));
     on('se-wordrec', (t) => (s.useWordRecordings = t.checked));
     el.querySelector('#se-default')!.addEventListener('click', () => {
       const theme = saves.data.settings.characterTheme;
+      const age = saves.data.settings.childAge;
       saves.data.settings = defaultSettings();
+      saves.data.settings.childAge = age; // 아이 나이는 설정 초기화와 무관
       saves.save();
       applySettings();
       // 캐릭터 선택은 설정 초기화와 무관하게 유지한다

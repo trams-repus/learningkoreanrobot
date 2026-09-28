@@ -24,6 +24,8 @@ export interface Settings {
   /** 부모 화면 제안으로 켠 '더 자주 내기': 이 자모가 든 단어·이 단어를 전투 안에서 두 배로 자주 낸다 */
   focusJamo: string[];
   focusWords: string[];
+  /** 부모가 고른 아이 만 나이 (AI에게 물어보기 프롬프트에만 씀). 생년월일은 받지 않는다. 모르면 null */
+  childAge: number | null;
 }
 
 export interface WordStats {
@@ -87,6 +89,7 @@ export function defaultSettings(): Settings {
     characterTheme: null,
     focusJamo: [],
     focusWords: [],
+    childAge: null,
   };
 }
 
@@ -156,6 +159,7 @@ export function sanitizeSave(raw: unknown): SaveData {
       characterTheme: s.characterTheme === 'robot' || s.characterTheme === 'magicalGirl' ? s.characterTheme : null,
       focusJamo: strList(s.focusJamo, 8),
       focusWords: strList(s.focusWords, 8),
+      childAge: typeof s.childAge === 'number' && Number.isInteger(s.childAge) && s.childAge >= 2 && s.childAge <= 12 ? s.childAge : null,
     },
     stats: {
       battlesPlayed: countMap(st.battlesPlayed),

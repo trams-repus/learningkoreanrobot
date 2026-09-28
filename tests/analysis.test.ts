@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyze, claudePrompt, focusPool } from '../src/core/analysis';
+import { aiPrompt, analyze, focusPool } from '../src/core/analysis';
 import { LOG_CAP, PlayLog, sanitizeLog, type LogEvent, type LogStore } from '../src/core/playlog';
 
 const mem = (): LogStore & { saved: LogEvent[] } => {
@@ -161,16 +161,23 @@ describe('실수 종류', () => {
   });
 });
 
-describe('Claude에게 물어보기 요약', () => {
-  it('집계 숫자와 단어 예시만 넣고, 날짜·진단 요청은 넣지 않는다', () => {
+describe('AI에게 물어보기 프롬프트', () => {
+  it('게임 설명·나이·정의·집계·답변 형식을 담고, 날짜는 넣지 않는다', () => {
     const log = new PlayLog(mem());
     play(log, '거미', { miss: [['거', 'jung', 'ㅓ', 'ㅏ']] });
     play(log, '머리', { miss: [['머', 'jung', 'ㅓ', 'ㅏ']] });
     for (const w of ['나무', '나비', '바다']) play(log, w);
-    const text = claudePrompt(analyze(log.events), '4~6세');
+    const ctx = { age: 5, pack: '4-6' as const, helpMode: 'auto' as const, autoHelp: true, focus: [] };
+    const text = aiPrompt(analyze(log.events), ctx);
+    expect(text).toContain('만 5세 아이가 직접 플레이한 로그');
+    expect(text).toContain('## 게임 설명');
+    expect(text).not.toContain('인우');
+    expect(text).toContain('## 용어 정의');
     expect(text).toContain('ㅏ·ㅓ 2번');
     expect(text).toContain('완성한 단어 5개');
-    expect(text).toContain('진단이나 점수·등급은 매기지');
+    expect(text).toContain('게임 설정 조정 제안');
+    expect(text).toContain('발달 진단, 점수, 등급, 또래 비교는 하지 마세요');
+    expect(aiPrompt(analyze(log.events), { ...ctx, age: null })).toContain('나이는 부모가 입력하지 않음');
     expect(text).not.toMatch(/20\d\d|오전|오후/);
   });
 });
