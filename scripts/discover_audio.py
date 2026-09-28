@@ -64,6 +64,12 @@ def split_name(name: str) -> tuple[str, str] | None:
     return speaker.replace("_", " "), word.replace("_", " ")
 
 
+def speaker_name(artist: str) -> str:
+    """Lingua Libre의 Artist 값 'Speaker: X\nRecorder: Y'에서 녹음한 사람(X)만."""
+    m = re.search(r"Speaker:\s*([^\n]+)", artist)
+    return (m.group(1) if m else artist).strip()
+
+
 def file_info(names: list[str], ua: str, delay: float) -> dict[str, dict]:
     """파일 이름 → {license, artist}. 한 번에 50개씩."""
     out = {}
@@ -111,11 +117,27 @@ def discover(sources_path: pathlib.Path, vocab_ts: pathlib.Path, ua: str, delay:
     """목록에 녹음이 없는 어휘를 찾아 sources_path를 고쳐 쓴다. 바뀐 단어 목록을 돌려준다."""
     sources = json.loads(sources_path.read_text(encoding="utf-8"))
     by_word = {s["word"]: s for s in sources}
+    changed = []
+    # 라이선스를 '확인 전'으로 적어 둔 항목(같은 이름 규칙 후보로 받은 고양이·곰·당근)은 파일 정보로 확인해 채운다.
+    unchecked = [s for s in sources if s.get("license") == "확인 전" and s.get("commonsFile")]
+    if unchecked:
+        info = file_info([s["commonsFile"].replace("_", " ") for s in unchecked], ua, delay)
+        for s in unchecked:
+            meta = info.get(s["commonsFile"].replace("_", " "))
+            if meta and meta["license"]:
+                s["license"] = meta["license"]
+                s["speaker"] = speaker_name(meta["artist"]) or s["speaker"]
+                s["link"] = f"같은 이름 규칙 후보 → 파일·라이선스 확인 ({datetime.date.today().isoformat()}, GitHub Actions)"
+                changed.append(s["word"])
+        print(f"확인: 라이선스 확인 전 {len(unchecked)}개 중 {len(changed)}개 채움")
+    for s in sources:  # 이전 실행이 녹음자 칸에 'Speaker: X\nRecorder: Y'를 그대로 적은 것을 정리
+        s["speaker"] = speaker_name(s["speaker"])
     words = vocab_words(vocab_ts)
     wanted = [w for w in words if w not in by_word or _stale_missing(by_word[w]["link"])]
     if not wanted:
         print("찾기: 모든 어휘가 이미 녹음 목록에 있음")
-        return []
+        sources_path.write_text(json.dumps(sources, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        return changed
 
     names = list_korean_recordings(ua, delay)
     print(f"찾기: Commons 한국어 Lingua Libre 녹음 {len(names)}개, 목록에 없는 어휘 {len(wanted)}개")
@@ -136,7 +158,6 @@ def discover(sources_path: pathlib.Path, vocab_ts: pathlib.Path, ua: str, delay:
 
     used_files = {s["file"] for s in sources}
     today = datetime.date.today().isoformat()
-    changed = []
     for w in wanted:
         pick = next(((sp, n) for sp, n in ordered.get(w, []) if ALLOWED_LICENSES.match(info.get(n, {}).get("license", ""))), None)
         old = by_word.get(w)
@@ -171,7 +192,7 @@ def discover(sources_path: pathlib.Path, vocab_ts: pathlib.Path, ua: str, delay:
             "commonsFile": commons_file,
             "url": "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(commons_file, safe="()_-"),
             "link": f"Commons API로 찾음 ({today}, GitHub Actions)",
-            "speaker": info[name]["artist"] or speaker,
+            "speaker": speaker_name(info[name]["artist"]) or speaker,
             "license": info[name]["license"],
             "collection": "Lingua Libre (Wikimedia Commons)",
         }
