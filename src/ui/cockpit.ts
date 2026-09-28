@@ -82,7 +82,11 @@ export class Cockpit {
 
   // ───────────── 준비 ─────────────
 
+  /** 이번 단어에서 틀린 자모를 칸에 넣은 횟수 */
+  wrongPlaces = 0;
+
   setup(s: CockpitSetup): void {
+    this.wrongPlaces = 0;
     this.cancelDrag();
     this.stopLoop();
     this.hideHand();
@@ -387,6 +391,8 @@ export class Cockpit {
     c.placed = { frame: frameIndex, role };
     f.chips[role] = c;
     f.fill[role] = c.jamo;
+    // 콤보 정확성: 틀린 자모(함정)를 칸에 넣은 횟수 (정답 처리와는 무관)
+    if (c.jamo !== f.spec[role]) this.wrongPlaces++;
     c.el.style.transform = '';
     c.el.classList.add('in-cell');
     c.el.classList.remove('pulse');

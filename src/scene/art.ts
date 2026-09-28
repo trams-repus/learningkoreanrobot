@@ -404,6 +404,28 @@ export function makeCharger(scene: Phaser.Scene): FoeParts {
   return { root, body, head, jaw: null, aura, height: 116, mouth: { x: 0, y: -50 } };
 }
 
+/** 중간 보스: 대장 뿔공룡 (뿔공룡에 금관과 어깨 갑옷, 더 크게) */
+export function makeChief(scene: Phaser.Scene): FoeParts {
+  const p = makeCharger(scene);
+  const armor = scene.add.graphics();
+  // 어깨 갑옷
+  blob(armor, [[-56, -40], [-44, -58], [-24, -54], [-30, -34]], 0x8a94a8, 3);
+  blob(armor, [[56, -40], [44, -58], [24, -54], [30, -34]], 0x8a94a8, 3);
+  for (const x of [-42, 42]) circle(armor, x, -48, 3.5, 0xffd23f, 2);
+  p.body.addAt(armor, 2);
+  const crown = scene.add.graphics();
+  // 금관: 프릴 위에 얹는다
+  crown.fillStyle(0xffd23f, 1);
+  crown.lineStyle(3, PAL.outline, 1);
+  const pts = [V(-22, -52), V(-22, -66), V(-12, -58), V(0, -72), V(12, -58), V(22, -66), V(22, -52)];
+  crown.fillPoints(pts, true);
+  crown.strokePoints(pts, true);
+  circle(crown, 0, -60, 3.5, 0xff5a8a, 2);
+  p.head.add(crown);
+  p.aura.setScale(1.15);
+  return { ...p, height: 130 };
+}
+
 export function makeBoss(scene: Phaser.Scene): FoeParts {
   const root = scene.add.container(0, 0);
   const body = scene.add.container(0, 0);
@@ -451,16 +473,38 @@ export function makeBoss(scene: Phaser.Scene): FoeParts {
 
 // ───────────────────────── 효과 ─────────────────────────
 
-export function makeWarning(scene: Phaser.Scene): C {
+/** 공격 예고 표시. heavy = 강공격 직전 (붉은 두 겹 경고) */
+export function makeWarning(scene: Phaser.Scene, heavy = false): C {
   const c = scene.add.container(0, 0);
   const g = scene.add.graphics();
-  g.fillStyle(0xffd23f, 1);
-  g.lineStyle(3, PAL.outline, 1);
-  g.fillTriangle(0, -16, 16, 11, -16, 11);
-  g.strokeTriangle(0, -16, 16, 11, -16, 11);
-  g.fillStyle(PAL.outline, 1);
-  g.fillRoundedRect(-2.5, -8, 5, 11, 2);
-  g.fillCircle(0, 6.5, 2.6);
+  const tri3 = (dx: number) => {
+    g.fillStyle(heavy ? 0xff5a3d : 0xffd23f, 1);
+    g.lineStyle(3, PAL.outline, 1);
+    g.fillTriangle(dx, -16, dx + 16, 11, dx - 16, 11);
+    g.strokeTriangle(dx, -16, dx + 16, 11, dx - 16, 11);
+    g.fillStyle(heavy ? 0xffffff : PAL.outline, 1);
+    g.fillRoundedRect(dx - 2.5, -8, 5, 11, 2);
+    g.fillCircle(dx, 6.5, 2.6);
+  };
+  if (heavy) tri3(-12);
+  tri3(heavy ? 12 : 0);
+  c.add(g);
+  return c;
+}
+
+/** 적 방패: 몸 앞의 푸른 돌 방패 막 (피해를 먼저 막고 깨진다) */
+export function makeFoeShield(scene: Phaser.Scene, w: number, h: number): C {
+  const c = scene.add.container(0, 0);
+  const g = scene.add.graphics();
+  g.fillStyle(0x7fc8ff, 0.25);
+  g.fillEllipse(0, 0, w, h);
+  g.lineStyle(5, 0x3b8fd9, 0.95);
+  g.strokeEllipse(0, 0, w, h);
+  g.lineStyle(2, 0xffffff, 0.7);
+  g.strokeEllipse(0, 0, w * 0.82, h * 0.82);
+  // 반짝임
+  g.fillStyle(0xffffff, 0.8);
+  g.fillEllipse(-w * 0.22, -h * 0.28, w * 0.16, h * 0.08);
   c.add(g);
   return c;
 }

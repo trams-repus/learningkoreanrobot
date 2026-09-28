@@ -1,13 +1,13 @@
 // 게임 흐름: 적 등장 → (대사) → 암호 수신기가 단어를 말함 → 자모 조립 → 단어 완성 → 로봇 공격 → 적 차례 → 다음 단어.
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
-import { STAGES, drawWord, nextStageId, stageById, stageWords, type StageDef } from '../content/stages';
-import { CONFUSABLE, DISTRACTORS_PER_LEVEL } from '../content/distractors';
+import { STAGES, drawWord, nextStageId, regionEnd, stageById, stageWords, type StageDef } from '../content/stages';
+import { TRAP_TABLES } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
 import { pictureSvg } from '../content/pictures';
-import { confusableDistractors, jamoCount, requiredJamo, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
-import { createBattle, foeTurn, robotAttack, spawnFoe } from '../core/battle';
-import { bonusTimeMs, ComboClock, damageFor, nextCombo, tierFor, type HelpLevel } from '../core/combo';
+import { jamoCount, pickTraps, requiredJamo, wordFrames, cellsOf, type FrameSpec, type TrapGrade } from '../core/assembly';
+import { actorOf, createBattle, foeTurn, planTier, robotAttack, spawnWave, strongerTier, target, waveHp } from '../core/battle';
+import { bonusTimeMs, ComboClock, comboTimeMs, nextCombo, tierFor, type HelpLevel } from '../core/combo';
 import { helpLevelFor, recordSuccess, wordStats } from '../core/progress';
 import type { BattleState } from '../core/types';
 import type { BattleScene } from '../scene/BattleScene';
@@ -40,7 +40,11 @@ export class Game {
   private run = 0;
   private stage: StageDef | null = null;
   private state: BattleState = createBattle();
-  private foeIndex = 0;
+  private waveIndex = 0;
+  /** 이 전투에서 쓰러뜨린 적 수 (적 점 표시) */
+  private defeatedCount = 0;
+  /** 이 전투에서 한 공격 수 (첫 공격 = 새 공격 소개) */
+  private attacks = 0;
   private wordIndex = 0;
   private lastWord = '';
   /** 전투별 남은 단어 주머니 */
@@ -177,9 +181,12 @@ export class Game {
     this.setPausedState(false);
     this.screens.close();
     this.state = createBattle();
-    this.foeIndex = 0;
+    this.waveIndex = 0;
+    this.defeatedCount = 0;
+    this.attacks = 0;
     this.wordIndex = 0;
     this.combo = 0;
+    this.scene.fxScale = stage.fxScale ?? 1;
     this.showCombo(false);
     const st = saves.data.stats;
     st.battlesPlayed[id] = (st.battlesPlayed[id] ?? 0) + 1;
@@ -192,14 +199,13 @@ export class Game {
     audio.preload(stageWords(stage, set.pack, set.includeRecommended).map((w) => w.wordAudioId));
     this.cockpit.setup({ frames: [], ghost: [], sequential: true, supply: [[]], motion: false });
     this.cockpit.lock();
-    await this.nextFoe(my, true);
+    await this.nextWave(my, true);
   }
 
   /** 전투 시작 때 몇 단계인지 잠깐 보여 준다 (단계가 이어진다는 것을 보이게) */
   private showStageBanner(stage: StageDef): void {
     const el = document.getElementById('stage-banner')!;
-    const n = STAGES.findIndex((s) => s.id === stage.id) + 1;
-    el.querySelector('b')!.textContent = `${n}단계`;
+    el.querySelector('b')!.textContent = `${stage.num}단계`;
     el.querySelector('span')!.textContent = stage.name;
     el.hidden = false;
     el.classList.remove('show');
@@ -209,33 +215,51 @@ export class Game {
     this.bannerTimer = setTimeout(() => (el.hidden = true), 2400);
   }
 
+  /** 적 점: 이 전투의 적 한 마리마다 하나 (쓰러뜨림 / 지금 나옴 / 남음) */
   private renderFoeDots(): void {
     const dots = document.getElementById('foe-dots')!;
     dots.innerHTML = '';
-    this.stage!.foes.forEach((_, i) => {
+    const waves = this.stage!.waves;
+    const total = waves.reduce((n, w) => n + w.length, 0);
+    const shown = waves.slice(0, this.waveIndex + 1).reduce((n, w) => n + w.length, 0);
+    for (let i = 0; i < total; i++) {
       const d = document.createElement('i');
-      if (i < this.foeIndex) d.className = 'done';
-      else if (i === this.foeIndex) d.className = 'now';
+      if (i < this.defeatedCount) d.className = 'done';
+      else if (i < shown) d.className = 'now';
       dots.appendChild(d);
-    });
+    }
   }
 
-  private async nextFoe(my: number, first: boolean): Promise<void> {
-    const spawn = this.stage!.foes[this.foeIndex];
+  private async nextWave(my: number, first: boolean): Promise<void> {
+    const stage = this.stage!;
+    const foes = spawnWave(this.state, stage.waves[this.waveIndex]);
     this.phase = 'intro';
     this.renderFoeDots();
-    const foe = spawnFoe(this.state, spawn);
-    document.getElementById('foe-icon')!.innerHTML = ICONS[spawn.kind];
+    document.getElementById('foe-icon')!.innerHTML = ICONS[foes[0].kind];
     await this.whenResumed();
     if (my !== this.run) return;
-    const line = spawn.kind === 'boss' ? 'd_boss' : first ? 'd_enemy' : 'd_next';
+    const kinds = foes.map((f) => f.kind);
+    const line =
+      first && stage.intro ? stage.intro : kinds.includes('boss') ? 'd_boss' : kinds.includes('chief') ? 'd_chief' : foes.length > 1 ? 'd_pack' : first ? 'd_enemy' : 'd_next';
     const talk = audio.playDialogue(line, { force: true });
-    await this.scene.spawnFoe(foe.kind, foe.hp, foe.maxHp);
+    const hp = waveHp(this.state);
+    await this.scene.spawnWave(
+      foes.map((f) => ({ id: f.id, kind: f.kind, shield: f.shield })),
+      hp.hp,
+      hp.max,
+    );
     if (my !== this.run) return;
-    this.scene.setCharging(true);
-    await Promise.race([talk, this.scene.wait(2200)]);
+    this.showCharging();
+    await Promise.race([talk, this.scene.wait(2600)]);
     if (my !== this.run) return;
     await this.presentWord(my, true);
+  }
+
+  /** 다음에 움직일 적 하나에만 공격 준비 표시 (강공격 직전이면 붉은 경고) */
+  private showCharging(): void {
+    const a = actorOf(this.state);
+    if (!a || a.charge <= 0) return this.scene.setCharging(null);
+    this.scene.setCharging(a.id, a.chargeTurns > 1 && a.charge >= a.chargeTurns ? 2 : 1);
   }
 
   private pickWord(): VocabEntry {
@@ -263,13 +287,19 @@ export class Game {
     const ws = wordStats(saves.data.stats, entry.id);
     ws.attempts++;
     saves.save();
-    // 방해 자모: 첫 수박부터 헷갈리는 자모를 섞는다 (계속 틀리면 cockpit이 하나씩 치운다)
+    // 함정 자모: 첫 수박부터 전투가 정한 수·난이도로 섞는다 (계속 틀리면 cockpit이 하나씩 치운다, 최소 1개)
+    const stage = this.stage!;
     const all = requiredJamo(frames);
-    const extra = DISTRACTORS_PER_LEVEL[level];
+    const targetsOf = (f: FrameSpec) => cellsOf(f).map((role) => ({ jamo: f[role], role }));
     const supply = frames.map((f) => cellsOf(f).map((r) => f[r]));
-    if (sequential) supply.forEach((list) => list.push(...confusableDistractors([...list], all, extra.perSyllable, Math.random, CONFUSABLE)));
-    else supply[0].push(...confusableDistractors(all, all, extra.perWord, Math.random, CONFUSABLE));
-    const ghost = frames.map((_, i) => level === 'A' || (level === 'B' && i === 0));
+    if (sequential) frames.forEach((f, i) => supply[i].push(...pickTraps(targetsOf(f), all, stage.traps, Math.random, TRAP_TABLES, stage.advancedTraps)));
+    else {
+      // 한꺼번에 조립할 때는 정답 자모가 많이 보이므로 함정을 하나 더 (중간)
+      const grades: TrapGrade[] = [...stage.traps, 'medium'];
+      supply[0].push(...pickTraps(frames.flatMap(targetsOf), all, grades, Math.random, TRAP_TABLES, stage.advancedTraps));
+    }
+    // 칸 안내(흐린 정답 글자): 11단계부터는 처음 보는 단어에만
+    const ghost = frames.map((_, i) => level === 'A' || (stage.guide !== 'less' && level === 'B' && i === 0));
     const color = WORD_COLORS[this.wordIndex % WORD_COLORS.length];
     this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, guarded: false, color, syllableSaid: null };
     this.cockpit.setup({ frames, ghost, sequential, supply, motion: saves.data.settings.jamoMotion });
@@ -400,11 +430,12 @@ export class Game {
     const gauge = document.getElementById('combo-gauge')!;
     const fill = gauge.querySelector('.fill') as HTMLElement;
     const cur = this.current!;
-    const bonus = bonusTimeMs(cur.toPlace, cur.level);
+    const bonus = bonusTimeMs(cur.toPlace, cur.level, this.stage?.comboScale ?? 1);
     gauge.classList.toggle('live', this.combo > 0);
     const tick = () => {
       if (!this.clock.isRunning) return;
-      const left = Math.max(0, 1 - this.clock.elapsed() / bonus);
+      // 잘못 넣은 자모 벌점도 게이지에 바로 보인다
+      const left = Math.max(0, 1 - comboTimeMs(this.clock.elapsed(), this.cockpit.wrongPlaces) / bonus);
       fill.style.width = `${left * 100}%`;
       this.gaugeRaf = requestAnimationFrame(tick);
     };
@@ -437,15 +468,22 @@ export class Game {
     this.clearIdle();
     const elapsed = this.clock.stop();
     this.stopGauge();
-    const bonus = bonusTimeMs(cur.toPlace, cur.level, undefined);
+    const stage = this.stage!;
+    const bonus = bonusTimeMs(cur.toPlace, cur.level, stage.comboScale ?? 1);
     const prevCombo = this.combo;
-    this.combo = nextCombo(this.combo, elapsed, bonus, cur.speedEligible);
-    const tier = tierFor(this.combo);
-    const damage = damageFor(tier);
+    // 콤보 = 정확성 + 유효 조작 시간: 함정을 넣었다 뺀 만큼 시간 벌점 (정답 처리는 그대로)
+    this.combo = nextCombo(this.combo, comboTimeMs(elapsed, this.cockpit.wrongPlaces), bonus, cur.speedEligible);
+    let tier = tierFor(this.combo);
+    // 새 공격 소개: 이 전투의 첫 공격은 적어도 이 단계로 (예: 4단계 첫 공격 = 범위 공격)
+    const unlockNow = this.attacks === 0 && !!stage.unlock && strongerTier(tier, stage.unlock) !== tier;
+    if (unlockNow) tier = stage.unlock!;
+    // 보스를 쓰러뜨리는 일격은 필살기로 (10단계 최종 보스 = 최고 필살기)
+    tier = planTier(this.state, tier);
+    this.attacks++;
     const st = saves.data.stats;
     recordSuccess(st, cur.entry.id, cur.assisted, elapsed);
     st.bestCombo = Math.max(st.bestCombo, this.combo);
-    if (tier === 'finisher') st.finishers++;
+    if (tier === 'finisher' || tier === 'ultimate') st.finishers++;
     saves.save();
 
     // 완성 → 발음 → 에너지 전송 → 발사 → 명중
@@ -461,25 +499,49 @@ export class Game {
     this.showCombo(this.combo >= 2, this.combo > prevCombo);
     const L = this.theme.lines;
     // 대사는 단계가 바뀔 때만 (매 공격마다 말하지 않는다). 첫 공격에는 준비 완료 대사.
-    const firstHit = this.wordIndex === 1 && this.foeIndex === 0;
-    const line = tier === 'finisher' ? L.finish : tier === 'missiles' ? (this.combo === 4 ? L.power : null) : tier === 'rapid' ? (this.combo === 2 ? L.combo : null) : firstHit ? L.ready : null;
+    const firstHit = this.attacks === 1;
+    const line =
+      tier === 'ultimate'
+        ? L.ultimate
+        : unlockNow
+          ? L.unlock
+          : tier === 'finisher'
+            ? L.finish
+            : tier === 'missiles'
+              ? this.combo === 4
+                ? L.power
+                : null
+              : tier === 'rapid'
+                ? this.combo === 2
+                  ? L.combo
+                  : null
+                : firstHit
+                  ? L.ready
+                  : null;
     if (line) void audio.playDialogue(line, { force: true });
-    const hit = robotAttack(this.state, damage);
-    await this.scene.attack(tier, hit.type === 'hit' ? hit.hpAfter : 0, hit.type === 'hit' && hit.defeated);
+    const hits = robotAttack(this.state, tier);
+    const hp = waveHp(this.state);
+    await this.scene.attack(tier, hits, hp.hp, hp.max);
     if (my !== this.run) return;
+    this.defeatedCount += hits.filter((h) => h.defeated).length;
+    this.renderFoeDots();
 
-    if (hit.type === 'hit' && hit.defeated) {
-      this.foeIndex++;
-      if (this.foeIndex >= this.stage!.foes.length) return this.victory(my);
-      this.renderFoeDots();
+    if (!this.state.foes.length) {
+      this.waveIndex++;
+      if (this.waveIndex >= stage.waves.length) return this.victory(my);
       await this.scene.wait(300);
       if (my !== this.run) return;
-      return this.nextFoe(my, false);
+      return this.nextWave(my, false);
     }
+    const t = target(this.state);
+    if (t) this.scene.setTarget(t.id);
 
     for (const ev of foeTurn(this.state)) {
-      if (ev.type === 'foeCharge') this.scene.setCharging(true);
-      else if (ev.type === 'foeAttack') await this.scene.foeAttack(ev.damage, ev.hpAfter);
+      if (ev.type === 'foeCharge') {
+        this.showCharging();
+        // 강공격 직전 예고. 단어 음성과 겹치지 않게 끝날 때까지 기다린다.
+        if (ev.heavy && ev.level >= 2) await Promise.race([audio.playDialogue('d_heavy', { force: true }), this.scene.wait(2500)]);
+      } else if (ev.type === 'foeAttack') await this.scene.foeAttack(ev.id, ev.damage, ev.hpAfter, ev.heavy);
       else if (ev.type === 'reboot') {
         saves.data.stats.reboots++;
         saves.save();
@@ -488,6 +550,7 @@ export class Game {
       }
       if (my !== this.run) return;
     }
+    this.showCharging();
     await this.presentWord(my, false);
   }
 
@@ -501,9 +564,15 @@ export class Game {
     st.battlesWon[stage.id] = (st.battlesWon[stage.id] ?? 0) + 1;
     saves.save();
     void audio.playDialogue('d_win', { force: true });
-    await this.scene.celebrate();
+    await this.scene.celebrate(stage.boss === 'final');
     if (my !== this.run) return;
-    this.screens.victory(stage);
+    // 지역의 마지막 전투를 처음 깨면 새 지역 발견 장면 → 보호자 안내 → 승리 화면
+    const region = regionEnd(stage);
+    if (region && !saves.data.regionsSeen.includes(region.id)) {
+      saves.data.regionsSeen.push(region.id);
+      saves.save();
+      this.screens.regionFound(stage, region);
+    } else this.screens.victory(stage);
   }
 
   private showBar(id: string, hp: number, max: number): void {

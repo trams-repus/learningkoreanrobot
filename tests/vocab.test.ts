@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
-import { MIN_STAGE_WORDS, STAGES, drawWord, entryDifficulty, nextStageId, stageWords } from '../src/content/stages';
+import { MIN_STAGE_WORDS, STAGES, bandFor, drawWord, entryDifficulty, nextStageId, regionEnd, stageWords, trapMix } from '../src/content/stages';
 import { createRng } from '../src/core/rng';
 import { EASY_FIVE, EASY_MORE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
 import { isSupportedWord, wordDifficulty, wordFeatures, wordFrames, wordTier } from '../src/core/assembly';
@@ -130,9 +130,46 @@ describe('난이도 단계별 전투', () => {
     expect(wordTier('꼬리')).toBe('tense');
     expect(wordTier('개미')).toBe('tense');
     expect(wordTier('빵')).toBe('tense'); // 쌍자음 + 받침이면 마지막 단계
-    const tiers = STAGES.map((s) => (typeof s.pool === 'object' && !Array.isArray(s.pool) ? s.pool.tier : null)).filter(Boolean);
-    expect(tiers).toEqual(['plain', 'jong', 'tense']);
-    expect(STAGES[STAGES.length - 1].boss).toBe(true);
+  });
+  it('1~10단계: 함정 2·2·2 → 3·3·3 → 4·4·4·4, 쉬운 두 글자 단어부터, 중간 보스(5)와 최종 보스(10)', () => {
+    const r1 = STAGES.filter((s) => s.region === 'r1');
+    expect(r1.map((s) => s.num)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    expect(r1.map((s) => s.traps.length)).toEqual([2, 2, 2, 3, 3, 3, 4, 4, 4, 4]);
+    expect(r1[0].traps).toEqual(['easy', 'easy']);
+    // 1~10단계는 두 글자 이하 (세 글자부터는 11단계 이후)
+    for (const s of r1) for (const w of stageWords(s, '4-6', true)) expect(wordFeatures(w.word)!.syllables, `${s.id} ${w.word}`).toBeLessThanOrEqual(2);
+    expect(r1.find((s) => s.boss === 'mid')?.num).toBe(5);
+    expect(r1.find((s) => s.boss === 'final')?.num).toBe(10);
+    expect(r1[4].waves.flat().find((f) => f.kind === 'chief')?.finalBlow).toBe('finisher');
+    expect(r1[9].waves.flat().find((f) => f.kind === 'boss')?.finalBlow).toBe('ultimate');
+    expect(r1[3].unlock).toBe('missiles'); // 4단계: 범위 공격 소개
+    expect(Math.max(...r1[3].waves.map((w) => w.length))).toBe(2); // 두 마리 동시
+    expect(Math.max(...r1[7].waves.map((w) => w.length))).toBe(3); // 8단계: 세 마리
+    // 여러 종류의 적이 나온다
+    expect(new Set(r1.flatMap((s) => s.waves.flat().map((f) => f.kind)))).toEqual(new Set(['dino', 'imp', 'charger', 'chief', 'boss']));
+  });
+  it('11단계부터는 규칙표로 만든다: 함정 4개 이상·어려움 더 많이, 세 글자, 콤보 시간 빠듯, 방패', () => {
+    const r2 = STAGES.filter((s) => s.region === 'r2');
+    expect(r2.map((s) => s.num)).toEqual([11, 12, 13, 14, 15]);
+    for (const s of r2) {
+      expect(s.traps.length, s.id).toBeGreaterThanOrEqual(4);
+      expect(s.traps.filter((g) => g === 'hard').length, s.id).toBeGreaterThanOrEqual(2);
+      expect(s.comboScale, s.id).toBeLessThan(1);
+      expect(s.guide, s.id).toBe('less');
+      expect(bandFor(s.num)?.from).toBe(11);
+    }
+    expect(r2.some((s) => stageWords(s, '4-6', true).some((w) => wordFeatures(w.word)!.syllables === 3))).toBe(true);
+    expect(r2.some((s) => s.waves.flat().some((f) => (f.shield ?? 0) > 0))).toBe(true);
+    expect(r2[4].boss).toBeDefined();
+    expect(trapMix(4, 0.4)).toEqual(['hard', 'hard', 'medium', 'medium']);
+    expect(trapMix(5, 0.4)).toEqual(['hard', 'hard', 'medium', 'medium', 'easy']);
+    // 30단계 이후 규칙도 적어 둔다 (지금은 스테이지로 넣지 않음)
+    expect(bandFor(40)?.planned.length).toBeGreaterThan(0);
+    expect(bandFor(99)?.to).toBeNull();
+  });
+  it('지역의 끝(10단계)에서 새 지역(화산섬)을 알린다', () => {
+    expect(regionEnd(STAGES.find((s) => s.num === 10)!)?.id).toBe('r2');
+    expect(regionEnd(STAGES.find((s) => s.num === 9)!)).toBeNull();
   });
   it('어느 연령팩·권장 설정에서도 각 전투에 낼 단어가 충분하고, 단계 밖 단어가 섞이지 않는다', () => {
     for (const pack of ['4-6', '7-8'] as const) {
@@ -142,8 +179,11 @@ describe('난이도 단계별 전투', () => {
           expect(new Set(words.map((w) => w.id)).size, `${s.id} ${pack} ${rec}`).toBe(words.length);
           expect(words.length, `${s.id} ${pack} ${rec}`).toBeGreaterThanOrEqual(s.id === 's1' ? 5 : MIN_STAGE_WORDS);
           if (typeof s.pool === 'object' && !Array.isArray(s.pool)) {
-            const tier = s.pool.tier;
-            for (const w of words) expect(wordTier(w.word), `${s.id} ${w.word}`).toBe(tier);
+            const f = s.pool;
+            for (const w of words) {
+              expect(f.tiers, `${s.id} ${w.word}`).toContain(wordTier(w.word));
+              expect(f.syllables, `${s.id} ${w.word}`).toContain(wordFeatures(w.word)!.syllables);
+            }
           }
         }
       }
@@ -151,7 +191,7 @@ describe('난이도 단계별 전투', () => {
   });
   it('받침 없는 단계에는 쉬운 단어(난이도 1.5 미만)가 여럿 있어 첫 성공 전에도 막히지 않는다', () => {
     for (const pack of ['4-6', '7-8'] as const) {
-      const plain = stageWords(STAGES.find((s) => s.id === 's3')!, pack, true);
+      const plain = stageWords(STAGES.find((s) => s.id === 's2')!, pack, true);
       expect(plain.filter((w) => entryDifficulty(w) < 1.5).length, pack).toBeGreaterThanOrEqual(5);
     }
   });
@@ -200,7 +240,7 @@ describe('출격 순서', () => {
     expect(nextStageId(['s1', 's2', 's3'], 's3')).toBe('s4');
   });
   it('다 깼으면 보스에만 머물지 않고 마지막 전투 다음부터 순서대로 돈다', () => {
-    expect(nextStageId(ids, 's6')).toBe('s1');
+    expect(nextStageId(ids, ids[ids.length - 1])).toBe('s1');
     expect(nextStageId(ids, 's1')).toBe('s2');
     expect(nextStageId(ids, 's3')).toBe('s4');
     expect(nextStageId(ids, null)).toBe('s1');

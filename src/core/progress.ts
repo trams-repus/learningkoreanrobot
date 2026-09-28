@@ -55,8 +55,9 @@ export interface Stats {
  * 전투(스테이지) 구성 판. 전투 목록의 순서·뜻이 바뀌면 올린다: 옛 구성에서 깬 기록(s1~s4)이
  * 새 구성(s1~s6)에 그대로 붙어 출격이 엉뚱한 전투(보스)로 가는 것을 막는다.
  * 2 = 2026-09-28 받침·쌍자음 단계가 들어간 6단계 구성.
+ * 3 = 2026-09-28 공룡 들판 1~10단계 재구성 + 화산섬 11~15단계 (예전 s1~s6 기록은 뜻이 달라 다시 시작).
  */
-export const STAGE_SET = 2;
+export const STAGE_SET = 3;
 
 export interface SaveData {
   version: number;
@@ -65,6 +66,8 @@ export interface SaveData {
   cleared: string[];
   /** 마지막으로 시작한 전투 (다 깼을 때 다음 출격 순서를 잇는다) */
   lastStage: string | null;
+  /** '새 지역 발견' 장면을 이미 본 지역 */
+  regionsSeen: string[];
   settings: Settings;
   stats: Stats;
 }
@@ -90,7 +93,7 @@ export function emptyStats(): Stats {
 }
 
 export function defaultSave(): SaveData {
-  return { version: SAVE_VERSION, stageSet: STAGE_SET, cleared: [], lastStage: null, settings: defaultSettings(), stats: emptyStats() };
+  return { version: SAVE_VERSION, stageSet: STAGE_SET, cleared: [], lastStage: null, regionsSeen: [], settings: defaultSettings(), stats: emptyStats() };
 }
 
 export function emptyWordStats(): WordStats {
@@ -135,6 +138,7 @@ export function sanitizeSave(raw: unknown): SaveData {
     stageSet: STAGE_SET,
     cleared: sameStages && Array.isArray(r.cleared) ? r.cleared.filter((x): x is string => typeof x === 'string') : [],
     lastStage: sameStages && typeof r.lastStage === 'string' ? r.lastStage : null,
+    regionsSeen: sameStages && Array.isArray(r.regionsSeen) ? r.regionsSeen.filter((x): x is string => typeof x === 'string') : [],
     settings: {
       muted: bool(s.muted, d.settings.muted),
       voiceVolume: num(s.voiceVolume, d.settings.voiceVolume, 0, 1),

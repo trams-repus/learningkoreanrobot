@@ -106,39 +106,66 @@ export function distractorsFor(needed: string[], count: number, rng: () => numbe
   return out;
 }
 
+export type TrapGrade = 'easy' | 'medium' | 'hard';
+
+export interface TrapTables {
+  table: Record<string, Record<TrapGrade, string[]>>;
+  /** 받침 칸 전용 '어려움' 후보 */
+  jongHard: Record<string, string[]>;
+  /** 아직 배우지 않은 복잡한 자모 무리. 단어에 같은 무리가 있거나 allowAdvanced일 때만 함정으로 쓴다. */
+  advancedGroups: string[][];
+}
+
+const GRADE_FALLBACK: Record<TrapGrade, TrapGrade[]> = {
+  easy: ['easy', 'medium', 'hard'],
+  medium: ['medium', 'easy', 'hard'],
+  hard: ['hard', 'medium', 'easy'],
+};
+
 /**
- * 헷갈리는 방해 자모를 고른다 (예: 수박 → ㅈ·ㅗ·ㅁ·ㅓ·ㅋ 중에서).
- * target: 지금 보이는 정답 자모 (한 음절 또는 단어 전체), exclude: 단어 전체 자모 (정답과 같은 칩은 내지 않는다).
- * 자모마다 첫 번째 후보부터 쓰고, 자음·모음이 한쪽으로 몰리지 않게 번갈아 고른다. 모자라면 기본 자모에서 채운다.
+ * 난이도별 함정 고르기 (2026-09-28 사용자 지시 2절: 함정은 무작위가 아니라 단계적으로).
+ * grades 하나마다 함정 하나: 지금 보이는 정답 자모(targets) 중 하나를 골라 그 자모의 해당 난이도 후보에서 뽑는다.
+ * 자음·모음을 번갈아 겨냥해 한쪽 칸만 헷갈리게 되지 않게 한다. 그 난이도 후보가 없으면 가까운 난이도로, 그래도 없으면 기본 자모로 채운다.
+ * exclude: 단어 전체 자모 (정답과 같은 칩은 내지 않는다).
  */
-export function confusableDistractors(
-  target: string[],
+export function pickTraps(
+  targets: { jamo: string; role: CellRole }[],
   exclude: string[],
-  count: number,
+  grades: TrapGrade[],
   rng: () => number,
-  table: Record<string, string[]>,
+  tables: TrapTables,
+  allowAdvanced = false,
 ): string[] {
   const out: string[] = [];
-  const usable = (j: string) => !exclude.includes(j) && !out.includes(j);
-  const uniq = [...new Set(target)];
-  const depth = Math.max(0, ...uniq.map((j) => table[j]?.length ?? 0));
-  for (let k = 0; k < depth && out.length < count; k++) {
-    const round = [...new Set(uniq.map((j) => table[j]?.[k]).filter((c): c is string => !!c && usable(c)))];
-    for (let i = round.length - 1; i > 0; i--) {
+  const blocked = new Set(allowAdvanced ? [] : tables.advancedGroups.filter((g) => !g.some((j) => exclude.includes(j))).flat());
+  const usable = (j: string) => !exclude.includes(j) && !out.includes(j) && !blocked.has(j);
+  let lastVowel: boolean | null = null;
+  for (const g of grades) {
+    let picked: string | undefined;
+    const order = [...targets];
+    for (let i = order.length - 1; i > 0; i--) {
       const r = Math.floor(rng() * (i + 1));
-      [round[i], round[r]] = [round[r], round[i]];
+      [order[i], order[r]] = [order[r], order[i]];
     }
-    const cons = round.filter((c) => !isVowel(c));
-    const vows = round.filter((c) => isVowel(c));
-    let wantVowel = out.length > 0 ? !isVowel(out[out.length - 1]) : rng() < 0.5;
-    while (out.length < count && (cons.length || vows.length)) {
-      const from = (wantVowel ? vows : cons).length ? (wantVowel ? vows : cons) : wantVowel ? cons : vows;
-      const c = from.shift()!;
-      if (usable(c)) out.push(c);
-      wantVowel = !isVowel(c);
+    // 방금 고른 함정과 다른 종류(자음/모음)를 먼저 겨냥한다
+    if (lastVowel !== null) order.sort((a, b) => Number(isVowel(a.jamo) === lastVowel) - Number(isVowel(b.jamo) === lastVowel));
+    for (const gg of GRADE_FALLBACK[g]) {
+      for (const t of order) {
+        // 받침 칸의 어려움은 소리가 비슷한 받침을 먼저 쓴다
+        const jong = gg === 'hard' && t.role === 'jong' ? (tables.jongHard[t.jamo] ?? []).filter(usable) : [];
+        const list = jong.length ? jong : (tables.table[t.jamo]?.[gg] ?? []).filter(usable);
+        if (list.length) {
+          picked = list[Math.floor(rng() * list.length)];
+          break;
+        }
+      }
+      if (picked) break;
     }
+    picked ??= distractorsFor([...exclude, ...out, ...blocked], 1, rng)[0];
+    if (!picked) continue;
+    out.push(picked);
+    lastVowel = isVowel(picked);
   }
-  if (out.length < count) out.push(...distractorsFor([...exclude, ...out], count - out.length, rng));
   return out;
 }
 

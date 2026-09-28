@@ -37,6 +37,9 @@ export const ICONS = {
   charger: svg(
     '<path d="M44 30c0-8-6-14-16-14-6 0-10 2-12 5l-4-6-2 7-6-2 4 8c0 5 3 8 8 9v5h5v-4h10v4h5v-6c5-1 8-3 8-6z" fill="#f07a3a" stroke="#16203a" stroke-width="2.5"/><path d="M6 28l-4-2" stroke="#16203a" stroke-width="3"/><circle cx="12" cy="27" r="1.8" fill="#16203a"/>',
   ),
+  chief: svg(
+    '<path d="M44 30c0-8-6-14-16-14-6 0-10 2-12 5l-4-6-2 7-6-2 4 8c0 5 3 8 8 9v5h5v-4h10v4h5v-6c5-1 8-3 8-6z" fill="#f07a3a" stroke="#16203a" stroke-width="2.5"/><path d="M20 12V4l4 4 4-6 4 6 4-4v8z" fill="#ffd23f" stroke="#16203a" stroke-width="2"/><circle cx="12" cy="27" r="1.8" fill="#16203a"/>',
+  ),
   boss: svg(
     '<path d="M42 44H30l-2-10-6 1-2 9H10l3-14C8 27 6 21 8 15l-4-2 6-6 12 1c8 1 14 6 16 14l6 6z" fill="#2f8f7a" stroke="#16203a" stroke-width="2.5"/><path d="M26 10l3-6 3 7M34 15l5-4 0 7" fill="#7b4ad6" stroke="#16203a" stroke-width="2"/><circle cx="15" cy="14" r="2.4" fill="#fff06a" stroke="#16203a" stroke-width="1.5"/>',
   ),

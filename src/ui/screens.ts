@@ -2,13 +2,14 @@
 // 아이 화면은 글 대신 큰 그림 버튼. 부모 화면은 길게 눌러야 열린다.
 import { AUDIO_MANIFEST, DIALOGUE, WORD_AUDIO_SOURCES } from '../content/audio';
 import { THEMES, type CharacterTheme } from '../content/characters';
-import { STAGES, type StageDef } from '../content/stages';
+import { REGIONS, STAGES, type RegionDef, type StageDef } from '../content/stages';
 import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
 import { applySettings, audio, options, recordings, saves, sfx } from '../game/services';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
+import { regionArt } from './regionArt';
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!);
 
@@ -134,16 +135,25 @@ export class Screens {
     const unlocked = new Set(this.game.unlockedStages);
     const cleared = new Set(saves.data.cleared);
     const next = this.game.nextStageId();
-    const nodes = STAGES.map((s, i) => {
+    const node = (s: StageDef, first: boolean) => {
       const locked = !unlocked.has(s.id);
       const cls = ['node', s.boss ? 'boss' : '', locked ? 'locked' : '', s.id === next && !locked ? 'next' : ''].join(' ');
-      const link = i > 0 ? '<span class="path-link"></span>' : '';
-      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.name} (${s.focus})`)}" ${locked ? 'disabled' : ''}>
+      const link = first ? '' : '<span class="path-link"></span>';
+      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.num}단계 ${s.name} (${s.focus})`)}" ${locked ? 'disabled' : ''}>
         ${ICONS[s.icon]}${cleared.has(s.id) ? `<span class="badge">${ICONS.star}</span>` : ''}${locked ? `<span class="lockmark">${ICONS.lock}</span>` : ''}
-      </button><span class="node-cap" aria-hidden="true">${esc(s.focus)}</span></div>`;
+      </button><span class="node-cap" aria-hidden="true">${s.num}. ${esc(s.focus)}</span></div>`;
+    };
+    // 지역별로 묶는다: 공룡 들판(1~10) → 화산섬(11~). 지역 이름 옆 i는 보호자 안내.
+    const regions = REGIONS.map((r) => {
+      const list = STAGES.filter((s) => s.region === r.id);
+      if (!list.length) return '';
+      const open = list.some((s) => unlocked.has(s.id));
+      return `<section class="region ${open ? '' : 'locked'}" data-region="${r.id}">
+        <div class="region-head"><span>${esc(r.name)}</span>${r.id !== 'r1' ? `<button class="region-info-btn" data-info="${r.id}" aria-label="${esc(r.name)} 보호자 안내">i</button>` : ''}</div>
+        <div class="map">${list.map((s, i) => node(s, i === 0)).join('')}</div></section>`;
     }).join('');
     const el = this.open(
-      `<div class="panel"><div class="map">${nodes}</div>
+      `<div class="panel map-panel">${regions}
         <div class="row"><button class="big-btn secondary" id="m-home" aria-label="처음으로">${ICONS.home}</button></div></div>
        <div class="corner">${this.parentButton()}</div>`,
     );
@@ -153,11 +163,58 @@ export class Screens {
         void this.game.startStage(b.dataset.stage!);
       }),
     );
+    el.querySelectorAll<HTMLButtonElement>('[data-info]').forEach((b) =>
+      b.addEventListener('click', () => {
+        sfx.play('tap');
+        this.regionInfo(null, REGIONS.find((r) => r.id === b.dataset.info)!);
+      }),
+    );
     el.querySelector('#m-home')!.addEventListener('click', () => {
       sfx.play('tap');
       this.title();
     });
     this.bindParentButton(el);
+    el.querySelector('.node.next')?.scrollIntoView({ block: 'center' });
+  }
+
+  // ───────────── 새 지역 발견 ─────────────
+
+  /** 지역의 마지막 전투를 처음 깼을 때: 새 지역 발견 장면 → 보호자 안내 → 승리 화면 */
+  regionFound(stage: StageDef, region: RegionDef): void {
+    void audio.playDialogue('d_newregion', { force: true });
+    sfx.play('victory');
+    const el = this.open(
+      `<div class="region-found" role="dialog" aria-label="${esc(`새 지역 발견: ${region.name}`)}">
+        <div class="rf-art">${regionArt(region.id)}</div>
+        <div class="rf-title">새 지역 발견!</div>
+        <div class="rf-name">${esc(region.name)}</div>
+        <button class="big-btn" id="rf-next" aria-label="계속">${ICONS.next}</button>
+      </div>`,
+    );
+    el.querySelector('#rf-next')!.addEventListener('click', () => {
+      sfx.play('tap');
+      this.regionInfo(stage, region);
+    });
+  }
+
+  /**
+   * 보호자 안내: 사용자 지시("새 지역 발견 → 보호자 결제 화면")의 자리. 실제 결제는 넣지 않았다 (2026-09-28 결정).
+   * 지금은 시험판이라 다음 지역도 그대로 열려 있다고 알린다.
+   */
+  regionInfo(stage: StageDef | null, region: RegionDef): void {
+    const el = this.open(
+      `<div class="panel region-info">
+        <h2>보호자 안내</h2>
+        <p><b>${esc(region.name)}</b> · ${esc(region.blurb)}</p>
+        <p>여기부터는 보호자 결제 화면이 들어갈 자리입니다. 지금은 시험판이라 결제 기능이 없고, 다음 단계를 그대로 해 볼 수 있습니다.</p>
+        <div class="row"><button class="big-btn" id="ri-ok">계속하기</button></div>
+      </div>`,
+    );
+    el.querySelector('#ri-ok')!.addEventListener('click', () => {
+      sfx.play('tap');
+      if (stage) this.victory(stage);
+      else this.map();
+    });
   }
 
   // ───────────── 승리 ─────────────

@@ -71,6 +71,7 @@ async function cellCenter(page, i, role) {
   }, { i, role });
 }
 
+const isVictory = (page) => page.evaluate(() => window.__hd.game.phase === 'victory');
 const inCells = (page) => page.evaluate(() => document.querySelectorAll('#frames .jamo-chip.in-cell').length);
 const freeChips = (page) => page.evaluate(() => [...document.querySelectorAll('#zone .jamo-chip')].filter((c) => !c.classList.contains('in-cell') && !c.classList.contains('leaving')).map((c) => c.dataset.jamo));
 
@@ -114,11 +115,14 @@ async function fxGallery(page, vp, theme) {
     game.toMenu();
     document.getElementById('overlay').hidden = true;
     scene.setTheme(t);
-    await scene.spawnFoe('dino', 9, 9);
+    scene.fxScale = 1.3;
+    await scene.spawnWave([{ id: 1, kind: 'dino' }, { id: 2, kind: 'imp' }, { id: 3, kind: 'charger', shield: 1 }], 9, 10);
+    scene.setCharging(2, 2);
   }, theme);
-  for (const tier of ['basic', 'rapid', 'missiles', 'finisher']) {
-    const done = page.evaluate((tier) => window.__hd.scene.attack(tier, 8, false), tier);
-    await sleep(tier === 'basic' ? 250 : tier === 'rapid' ? 450 : 700);
+  await page.screenshot({ path: `${OUT}/${vp.name}-fx-${theme}-pack.png` });
+  for (const tier of ['basic', 'rapid', 'missiles', 'finisher', 'ultimate']) {
+    const done = page.evaluate((tier) => window.__hd.scene.attack(tier, [], 8, 10), tier);
+    await sleep(tier === 'basic' ? 250 : tier === 'rapid' ? 450 : tier === 'ultimate' ? 1900 : 700);
     await page.screenshot({ path: `${OUT}/${vp.name}-fx-${theme}-${tier}.png` });
     await done;
   }
@@ -251,13 +255,14 @@ async function run(vp) {
   await page.evaluate(() => (window.__said = []));
 
   const log = [];
-  for (let n = 0; n < 3; n++) {
+  for (let n = 0; n < 6 && !(await isVictory(page)); n++) {
     const w = await solveWord(page, vp, n === 0 ? `${vp.name}-02` : null);
     if (n === 0 || n === 2) {
       await sleep(n === 0 ? 350 : 700);
       await page.screenshot({ path: `${OUT}/${vp.name}-03-robot-attack${n}.png` });
     }
     log.push(w);
+    await waitFor(page, () => window.__hd.game.phase === 'compose' || window.__hd.game.phase === 'victory', null, 30000);
   }
   await waitFor(page, () => window.__hd.game.phase === 'victory' && !document.getElementById('overlay').hidden, null, 30000);
   const combo1 = await page.evaluate(() => window.__hd.saves.data.stats.bestCombo);
@@ -300,49 +305,107 @@ async function run(vp) {
   await page.click('#t-map', { force: true });
   await page.click('[data-stage="s1"]', { force: true });
   const log3 = [];
-  for (let n = 0; n < 3; n++) {
+  for (let n = 0; n < 6 && !(await isVictory(page)); n++) {
     const w = await solveWord(page, vp, n === 0 ? `${vp.name}-08-magic` : null);
     if (n === 0 || n === 2) {
       await sleep(n === 0 ? 350 : 700);
       await page.screenshot({ path: `${OUT}/${vp.name}-09-magic-attack${n}.png` });
     }
     log3.push(w);
+    await waitFor(page, () => window.__hd.game.phase === 'compose' || window.__hd.game.phase === 'victory', null, 30000);
   }
   await waitFor(page, () => window.__hd.game.phase === 'victory' && !document.getElementById('overlay').hidden, null, 30000);
   await page.screenshot({ path: `${OUT}/${vp.name}-10-magic-victory.png` });
   const theme = await page.evaluate(() => window.__hd.saves.data.settings.characterTheme);
 
-  // 4) 난이도 단계 전투: 지도(개발용 전부 열림) → 받침 없음 / 받침 / 쌍자음·ㅐ / 보스에서 단어가 단계에 맞게 나오는지
+  // 4) 전투 구성: 받침(3)·쌍자음/ㅐ(6)·세 글자(11) 단어, 단계별 함정 수, 4단계 첫 공격 = 범위 공격, 8단계 세 마리 동시
+  await page.evaluate(() => {
+    const sc = window.__hd.scene;
+    const atk = sc.attack.bind(sc);
+    window.__tiers = [];
+    sc.attack = (tier, ...rest) => (window.__tiers.push(`${window.__hd.game.stage?.id}:${tier}`), atk(tier, ...rest));
+  });
   await page.click('#v-home', { force: true });
   await page.waitForSelector('#t-map');
   await page.click('#t-map', { force: true });
-  await page.waitForSelector('[data-stage="s6"]');
+  await page.waitForSelector('[data-stage="s15"]');
   await sleep(300);
   await page.screenshot({ path: `${OUT}/${vp.name}-11-map.png` });
-  const tiers = {};
-  for (const [id, n] of [['s3', 2], ['s4', 2], ['s5', 2], ['s6', 1]]) {
-    if (id !== 's3') {
+  const openStage = async (id, first) => {
+    if (!first) {
       await page.click('#btn-pause', { force: true });
       await page.click('#p-home', { force: true });
       await page.waitForSelector('#t-map');
       await page.click('#t-map', { force: true });
     }
     await page.click(`[data-stage="${id}"]`, { force: true });
+    await waitFor(page, (id) => window.__hd.game.stage?.id === id && window.__hd.game.phase === 'compose', id);
+  };
+  // 첫 음절 화면의 함정 수 (정답 자모를 뺀 칩 수)
+  const trapCount = () => page.evaluate(() => {
+    const f = window.__hd.game.current.frames[0];
+    const need = [f.cho, f.jung, f.jong].filter(Boolean);
+    const free = [...document.querySelectorAll('#zone .jamo-chip')].filter((c) => !c.classList.contains('in-cell')).map((c) => c.dataset.jamo);
+    for (const j of need) free.splice(free.indexOf(j), 1);
+    return window.__hd.game.current.frames.length >= 1 ? free.length : -1;
+  });
+  const kindOf = () => page.evaluate(() => {
+    const fr = window.__hd.game.current.frames;
+    const dbl = /[ㄲㄸㅃㅆㅉ]/;
+    const tense = fr.some((f) => dbl.test(f.cho) || dbl.test(f.jong) || /[ㅐㅔㅒㅖ]/.test(f.jung));
+    return `${fr.length}:${tense ? 'tense' : fr.some((f) => f.hasJong) ? 'jong' : 'plain'}`;
+  });
+  const tiers = {};
+  const traps = {};
+  let first = true;
+  for (const [id, n] of [['s3', 2], ['s4', 1], ['s6', 1], ['s8', 1], ['s11', 1]]) {
+    await openStage(id, first);
+    first = false;
+    traps[id] = await trapCount();
+    if (id === 's8') traps.s8foes = await page.evaluate(() => window.__hd.scene.foes.size);
+    if (id === 's8') await page.screenshot({ path: `${OUT}/${vp.name}-12-s8-three.png` });
     tiers[id] = [];
     for (let k = 0; k < n; k++) {
       await waitFor(page, () => window.__hd.game.phase === 'compose');
-      const t = await page.evaluate(() => {
-        const fr = window.__hd.game.current.frames;
-        const dbl = /[ㄲㄸㅃㅆㅉ]/;
-        const tense = fr.some((f) => dbl.test(f.cho) || dbl.test(f.jong) || /[ㅐㅔㅒㅖ]/.test(f.jung));
-        return tense ? 'tense' : fr.some((f) => f.hasJong) ? 'jong' : 'plain';
-      });
-      const w = await solveWord(page, vp, k === 0 && id !== 's6' ? `${vp.name}-12-${id}` : null);
+      const t = await kindOf();
+      const w = await solveWord(page, vp, k === 0 ? `${vp.name}-12-${id}` : null);
       tiers[id].push(`${w}:${t}`);
     }
+    if (id === 's4') {
+      await sleep(900);
+      await page.screenshot({ path: `${OUT}/${vp.name}-12-s4-area.png` });
+    }
   }
+  const attackTiers = await page.evaluate(() => window.__tiers.slice());
   const tierOk =
-    tiers.s3.every((x) => x.endsWith(':plain')) && tiers.s4.every((x) => x.endsWith(':jong')) && tiers.s5.every((x) => x.endsWith(':tense'));
+    tiers.s3.every((x) => x.endsWith(':jong')) &&
+    tiers.s6.every((x) => x.endsWith(':tense')) &&
+    tiers.s11.every((x) => x.includes(':3:')) &&
+    attackTiers.includes('s4:missiles') &&
+    traps.s3 === 2 && traps.s4 === 3 && traps.s8 === 4 && traps.s11 === 4 && traps.s8foes === 3;
+
+  // 5) 10단계 최종 보스 끝까지 (한 화면 크기에서만): 마지막 일격 = 최고 필살기 → 새 지역 발견 → 보호자 안내 → 11단계
+  let finale = null;
+  if (vp.name.startsWith('phone-390')) {
+    await openStage('s10', false);
+    const words = [];
+    for (let n = 0; n < 16 && !(await isVictory(page)) && !(await page.$('#rf-next')); n++) {
+      words.push(await solveWord(page, vp, null));
+      await waitFor(page, () => ['compose', 'victory'].includes(window.__hd.game.phase), null, 40000);
+    }
+    await waitFor(page, () => !!document.getElementById('rf-next'), null, 40000);
+    await sleep(500);
+    await page.screenshot({ path: `${OUT}/${vp.name}-13-region-found.png` });
+    await page.click('#rf-next', { force: true });
+    await page.waitForSelector('#ri-ok');
+    await page.screenshot({ path: `${OUT}/${vp.name}-14-region-info.png` });
+    await page.click('#ri-ok', { force: true });
+    await page.waitForSelector('#v-next');
+    await page.click('#v-next', { force: true });
+    await waitFor(page, () => window.__hd.game.stage?.id === 's11');
+    const t = await page.evaluate(() => window.__tiers.filter((x) => x.startsWith('s10:')));
+    finale = { words: words.length, tiers: t.join(' '), ok: t[t.length - 1] === 's10:ultimate' };
+  }
 
   if (vp.name.startsWith('phone-390')) {
     await fxGallery(page, vp, 'robot');
@@ -378,7 +441,10 @@ async function run(vp) {
     magic: log3,
     savedTheme: theme,
     tiers,
+    traps,
+    attackTiers: attackTiers.join(' '),
     tierOk,
+    finale,
     words: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, `${v.independent}/${v.assisted}`])),
     errors,
   };
@@ -387,13 +453,14 @@ async function run(vp) {
 /** 출격이 어느 전투로 가는지: 새 기록 / 옛 구성 기록 / 이어하기 / 다 깬 기록 (2026-09-28 "큰 공룡 하나만" 제보) */
 async function stagePaths() {
   const KEY = 'inwoo-hangul-robot.save.v2';
-  const all = ['s1', 's2', 's3', 's4', 's5', 's6'];
+  const all = Array.from({ length: 15 }, (_, i) => `s${i + 1}`);
   const cases = [
     ['새로 시작', null, 's1'],
-    ['옛 구성(s1~s4)을 다 깬 기록', { version: 2, cleared: ['s1', 's2', 's3', 's4'], settings: { characterTheme: 'robot' } }, 's1'],
-    ['1단계를 깬 기록 이어하기', { version: 2, stageSet: 2, cleared: ['s1'], lastStage: 's1', settings: { characterTheme: 'robot' } }, 's2'],
-    ['3단계까지 깬 기록 이어하기', { version: 2, stageSet: 2, cleared: ['s1', 's2', 's3'], lastStage: 's3', settings: { characterTheme: 'robot' } }, 's4'],
-    ['다 깬 기록 (보스 뒤)', { version: 2, stageSet: 2, cleared: all, lastStage: 's6', settings: { characterTheme: 'robot' } }, 's1'],
+    ['옛 6단계 구성을 다 깬 기록', { version: 2, stageSet: 2, cleared: ['s1', 's2', 's3', 's4', 's5', 's6'], lastStage: 's6', settings: { characterTheme: 'robot' } }, 's1'],
+    ['1단계를 깬 기록 이어하기', { version: 2, stageSet: 3, cleared: ['s1'], lastStage: 's1', settings: { characterTheme: 'robot' } }, 's2'],
+    ['3단계까지 깬 기록 이어하기', { version: 2, stageSet: 3, cleared: ['s1', 's2', 's3'], lastStage: 's3', settings: { characterTheme: 'robot' } }, 's4'],
+    ['10단계까지 깬 기록 → 화산섬', { version: 2, stageSet: 3, cleared: all.slice(0, 10), lastStage: 's10', settings: { characterTheme: 'robot' } }, 's11'],
+    ['다 깬 기록 (15단계 뒤)', { version: 2, stageSet: 3, cleared: all, lastStage: 's15', settings: { characterTheme: 'robot' } }, 's1'],
   ];
   const browser = await chromium.launch();
   const out = {};
@@ -428,6 +495,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
     const r = await run(vp);
     console.log(JSON.stringify(r));
     if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
+    if (r.finale && !r.finale.ok) failed = true;
     if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording || !r.removeOk || !r.picShown) failed = true;
   } catch (e) {
     failed = true;
