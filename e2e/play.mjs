@@ -1,4 +1,4 @@
-// 브라우저 자동 플레이: 시작 → 수박 조립(탭/끌기) → 공격 → 승리 → 다음 전투 일부.
+// 브라우저 자동 플레이: 시작 → 수박 조립(탭/끌기) → 공격 → 승리 → 다음 전투 일부 → 난이도 단계 전투 몇 단어.
 // 사용: npm run build && npx vite preview --port 4173 & node e2e/play.mjs
 // 헤드리스 Chromium에는 한국어 음성이 없어 '재생 수단 없음' 경로(자막 후 진행)를 검사한다.
 import { chromium } from 'playwright';
@@ -174,6 +174,38 @@ async function run(vp) {
   await page.screenshot({ path: `${OUT}/${vp.name}-10-magic-victory.png` });
   const theme = await page.evaluate(() => window.__hd.saves.data.settings.characterTheme);
 
+  // 4) 난이도 단계 전투: 지도(개발용 전부 열림) → 받침 없음 / 받침 / 쌍자음·ㅐ / 보스에서 단어가 단계에 맞게 나오는지
+  await page.click('#v-home', { force: true });
+  await page.waitForSelector('#t-map');
+  await page.click('#t-map', { force: true });
+  await page.waitForSelector('[data-stage="s6"]');
+  await sleep(300);
+  await page.screenshot({ path: `${OUT}/${vp.name}-11-map.png` });
+  const tiers = {};
+  for (const [id, n] of [['s3', 2], ['s4', 2], ['s5', 2], ['s6', 1]]) {
+    if (id !== 's3') {
+      await page.click('#btn-pause', { force: true });
+      await page.click('#p-home', { force: true });
+      await page.waitForSelector('#t-map');
+      await page.click('#t-map', { force: true });
+    }
+    await page.click(`[data-stage="${id}"]`, { force: true });
+    tiers[id] = [];
+    for (let k = 0; k < n; k++) {
+      await waitFor(page, () => window.__hd.game.phase === 'compose');
+      const t = await page.evaluate(() => {
+        const fr = window.__hd.game.current.frames;
+        const dbl = /[ㄲㄸㅃㅆㅉ]/;
+        const tense = fr.some((f) => dbl.test(f.cho) || dbl.test(f.jong) || /[ㅐㅔㅒㅖ]/.test(f.jung));
+        return tense ? 'tense' : fr.some((f) => f.hasJong) ? 'jong' : 'plain';
+      });
+      const w = await solveWord(page, vp, 'tap', k === 0 && id !== 's6' ? `${vp.name}-12-${id}` : null);
+      tiers[id].push(`${w}:${t}`);
+    }
+  }
+  const tierOk =
+    tiers.s3.every((x) => x.endsWith(':plain')) && tiers.s4.every((x) => x.endsWith(':jong')) && tiers.s5.every((x) => x.endsWith(':tense'));
+
   if (vp.name.startsWith('phone-390')) {
     await fxGallery(page, vp, 'robot');
     await fxGallery(page, vp, 'magicalGirl');
@@ -192,6 +224,8 @@ async function run(vp) {
     keptOnSwitch: before === after,
     magic: log3,
     savedTheme: theme,
+    tiers,
+    tierOk,
     words: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, `${v.independent}/${v.assisted}`])),
     errors,
   };
@@ -203,7 +237,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
   try {
     const r = await run(vp);
     console.log(JSON.stringify(r));
-    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl') failed = true;
+    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk) failed = true;
   } catch (e) {
     failed = true;
     console.log(`${vp.name} FAILED: ${e.message}`);

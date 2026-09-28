@@ -142,3 +142,16 @@ export function wordDifficulty(word: string): number {
   if (!f) return 99;
   return Math.max(0, f.syllables - 2) + (f.hasJong ? 1 : 0) + (f.hasDoubleConsonant ? 1 : 0) + (f.hasComplexVowel ? 1 : 0) + (f.hasRepeatedJamo ? 0.5 : 0);
 }
+
+/**
+ * 출제 단계: 받침 없음 → 받침 → 쌍자음·ㅐ류 모음 (받침이 함께 있어도 마지막 단계).
+ * 한 단계에 새 요소를 하나씩만 더하려는 구분이다.
+ */
+export type WordTier = 'plain' | 'jong' | 'tense';
+
+export function wordTier(word: string): WordTier | null {
+  const f = wordFeatures(word);
+  if (!f) return null;
+  if (f.hasDoubleConsonant || f.hasComplexVowel) return 'tense';
+  return f.hasJong ? 'jong' : 'plain';
+}

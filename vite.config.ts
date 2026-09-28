@@ -5,8 +5,15 @@ import { defineConfig } from 'vite';
 function checkedWordAudio(): string[] {
   const dir = 'public/audio/words';
   if (!fs.existsSync(dir)) return [];
+  // scripts/verify_audio_browser.mjs가 브라우저 해독·재생에 실패했다고 기록한 파일은 빼고 그 단어만 TTS로 둔다
+  const checkFile = `${dir}/browser-check.json`;
+  const failed = new Set<string>(
+    fs.existsSync(checkFile)
+      ? (JSON.parse(fs.readFileSync(checkFile, 'utf8')).results as { file: string; ok: boolean }[]).filter((r) => !r.ok).map((r) => r.file)
+      : [],
+  );
   return fs.readdirSync(dir).filter((f) => {
-    if (!f.endsWith('.wav')) return false;
+    if (!f.endsWith('.wav') || failed.has(f)) return false;
     const buf = fs.readFileSync(`${dir}/${f}`);
     return buf.length > 44 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WAVE';
   });

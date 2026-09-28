@@ -6,3 +6,4 @@ dist-single/
 test-results/
 e2e/screens/
 public/audio/words/download-report.json
+public/audio/words/browser-check.json

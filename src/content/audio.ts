@@ -54,6 +54,10 @@ export interface WordAudioSource {
   word: string;
   file: string;
   commonsFile: string;
+  /** 내려받을 주소 (Special:FilePath, 사용자가 준 링크 그대로) */
+  url: string;
+  /** 링크 출처: 사용자 제공 / 같은 이름 규칙의 후보(존재 확인 전) */
+  link: string;
   speaker: string;
   license: string;
   collection: string;
@@ -83,9 +87,11 @@ function wordAsset(v: (typeof VOCAB)[number]): AudioAsset {
     assetId: v.wordAudioId,
     text: v.word,
     type: 'word',
-    source: src
-      ? `기기 TTS (임시). 녹음 ${src.commonsFile}은 목록에 있으나 아직 내려받지 못함`
-      : '기기 TTS (임시). 이 단어의 확인된 녹음 없음',
+    source: !src
+      ? '기기 TTS (임시). 이 단어의 확인된 녹음 없음'
+      : src.link.startsWith('없음')
+        ? `기기 TTS (임시). ${src.commonsFile}은 Commons에 없음 (404 확인)`
+        : `기기 TTS (임시). 녹음 ${src.commonsFile}은 목록에 있으나 아직 내려받지 못함`,
     localPath: null,
     playback: 'device-tts',
     internalTestStatus: '임시 사용 (폰에서 발음 확인 필요)',

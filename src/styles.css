@@ -723,6 +723,21 @@ svg {
   height: 8px;
   border-radius: 4px;
   background: #5b6f9e;
+  /* 아이콘 아래 설명 글씨 높이만큼 올려 아이콘 가운데와 맞춘다 */
+  margin-bottom: 22px;
+}
+.node-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+/* 부모가 읽는 단계 설명 (아이 화면의 점수표가 아니다) */
+.node-cap {
+  font-size: 13px;
+  line-height: 18px;
+  color: #b9c7e8;
+  white-space: nowrap;
 }
 
 .victory {

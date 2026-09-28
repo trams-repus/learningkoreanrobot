@@ -138,9 +138,9 @@ export class Screens {
       const locked = !unlocked.has(s.id);
       const cls = ['node', s.boss ? 'boss' : '', locked ? 'locked' : '', s.id === next && !locked ? 'next' : ''].join(' ');
       const link = i > 0 ? '<span class="path-link"></span>' : '';
-      return `${link}<button class="${cls}" data-stage="${s.id}" aria-label="${esc(s.name)}" ${locked ? 'disabled' : ''}>
+      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.name} (${s.focus})`)}" ${locked ? 'disabled' : ''}>
         ${ICONS[s.icon]}${cleared.has(s.id) ? `<span class="badge">${ICONS.star}</span>` : ''}${locked ? `<span class="lockmark">${ICONS.lock}</span>` : ''}
-      </button>`;
+      </button><span class="node-cap" aria-hidden="true">${esc(s.focus)}</span></div>`;
     }).join('');
     const el = this.open(
       `<div class="panel"><div class="map">${nodes}</div>
@@ -406,10 +406,10 @@ export class Screens {
         ${WORD_AUDIO_SOURCES.map((w) => {
           const id = `w_${w.word}`;
           const has = AUDIO_MANIFEST.find((a) => a.assetId === id)?.localPath;
-          return `<tr><td>${esc(w.word)}</td><td>${has ? '있음' : '아직 없음 (기기 음성으로 대신)'}</td><td>${esc(audio.fileStatus.get(id) ?? '-')}</td><td><button class="small-btn" data-word="${esc(id)}">듣기</button></td></tr>`;
+          return `<tr><td>${esc(w.word)}</td><td>${has ? '있음' : w.link.startsWith('없음') ? 'Commons에 녹음 없음 (기기 음성)' : '아직 없음 (기기 음성으로 대신)'}</td><td>${esc(audio.fileStatus.get(id) ?? '-')}</td><td><button class="small-btn" data-word="${esc(id)}">듣기</button></td></tr>`;
         }).join('')}
       </table>
-      <p class="muted">녹음: Lingua Libre (Wikimedia Commons), 녹음자 호로조, CC0-1.0. 로봇과 마법소녀가 같은 녹음을 씁니다.</p>
+      <p class="muted">녹음: Lingua Libre (Wikimedia Commons), 녹음자 호로조. 사용자가 준 10개는 CC0-1.0 표기, 고양이·곰·당근은 라이선스 확인 전. 로봇과 마법소녀가 같은 녹음을 씁니다.</p>
       <p class="muted">한국어 음성: ${audio.ttsVoice ? esc(`${audio.ttsVoice.name} (${audio.ttsVoice.lang})`) : '찾지 못함'} · 녹음 ${recordings.count}개${saves.data.settings.muted ? ' · <b>지금 소리 끄기가 켜져 있습니다</b>' : ''}</p>`;
   }
 

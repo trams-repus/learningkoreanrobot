@@ -9,6 +9,7 @@
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "node e2e/play.mjs",
+    "audio:check": "node scripts/verify_audio_browser.mjs",
     "build:single": "npm run build && node scripts/build-single.mjs"
   },
   "keywords": [],

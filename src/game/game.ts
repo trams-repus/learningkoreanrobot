@@ -1,9 +1,9 @@
 // 게임 흐름: 적 등장 → (대사) → 암호 수신기가 단어를 말함 → 자모 조립 → 단어 완성 → 로봇 공격 → 적 차례 → 다음 단어.
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
-import { STAGES, stageById, type StageDef } from '../content/stages';
-import { packWords, vocabById, type VocabEntry } from '../content/vocab';
-import { distractorsFor, jamoCount, requiredJamo, wordDifficulty, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
+import { STAGES, entryDifficulty, stageById, stageWords, type StageDef } from '../content/stages';
+import { vocabById, type VocabEntry } from '../content/vocab';
+import { distractorsFor, jamoCount, requiredJamo, wordFrames, cellsOf, type FrameSpec } from '../core/assembly';
 import { createBattle, foeTurn, robotAttack, spawnFoe } from '../core/battle';
 import { bonusTimeMs, ComboClock, damageFor, nextCombo, tierFor, type HelpLevel } from '../core/combo';
 import { helpLevelFor, recordSuccess, wordStats } from '../core/progress';
@@ -175,8 +175,7 @@ export class Game {
     this.scene.resetBattle(this.state.robotHp);
     this.showBattleUi(true);
     const set = saves.data.settings;
-    const ids = stage.pool === 'pack' ? packWords(set.pack, set.includeRecommended).map((w) => w.wordAudioId) : stage.pool.map((w) => `w_${w}`);
-    audio.preload(ids);
+    audio.preload(stageWords(stage, set.pack, set.includeRecommended).map((w) => w.wordAudioId));
     this.cockpit.setup({ frames: [], ghost: [], sequential: true, supply: [[]], motion: false });
     this.cockpit.lock();
     await this.nextFoe(my, true);
@@ -215,18 +214,18 @@ export class Game {
     const s = this.stage!;
     if (s.fixedWords && this.wordIndex < s.fixedWords.length) return vocabById(s.fixedWords[this.wordIndex])!;
     const set = saves.data.settings;
-    const pool = s.pool === 'pack' ? packWords(set.pack, set.includeRecommended) : s.pool.map((w) => vocabById(w)!).filter(Boolean);
+    const pool = stageWords(s, set.pack, set.includeRecommended);
     let candidates = pool.filter((w) => w.word !== this.lastWord);
-    // 혼자 성공이 아직 적으면 쌍자음·ㅐ·받침·세 글자 같은 어려운 단어는 뒤로 미룬다 (음원 유무와 무관)
+    // 혼자 성공이 아직 적으면 쌍자음·ㅐ·받침·세 글자·소리≠표기 같은 어려운 단어는 뒤로 미룬다 (음원 유무와 무관)
     const solo = Object.values(saves.data.stats.words).reduce((n, w) => n + w.independent, 0);
     if (solo < 3) {
-      const easy = candidates.filter((w) => wordDifficulty(w.word) < 1.5);
+      const easy = candidates.filter((w) => entryDifficulty(w) < 1.5);
       if (easy.length) candidates = easy;
     }
     // 아직 덜 익힌 단어를 조금 더 자주 (완전 무작위보다 연습이 고르게)
     const weight = (w: VocabEntry) => {
       const ws = saves.data.stats.words[w.id];
-      return 1 / (1 + (ws?.independent ?? 0)) / (1 + wordDifficulty(w.word) * 0.5);
+      return 1 / (1 + (ws?.independent ?? 0)) / (1 + entryDifficulty(w) * 0.5);
     };
     const total = candidates.reduce((n, w) => n + weight(w), 0);
     let r = Math.random() * total;

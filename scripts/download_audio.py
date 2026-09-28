@@ -6,7 +6,10 @@
     python3 scripts/download_audio.py --check     # 내려받지 않고 있는 파일만 검사
 
 목록: src/content/word-audio-sources.json  저장: public/audio/words/<file>
-원본 주소(Special:Redirect/file)를 먼저 쓰고, 실패하면 Special:FilePath로 한 번 더 시도한다.
+목록의 url(사용자가 준 Special:FilePath 링크)을 먼저 쓰고, 실패하면 Special:Redirect/file로 한 번 더 시도한다.
+link가 '후보'인 단어(고양이·곰·당근)는 파일이 실제로 있는지부터 이 요청으로 확인된다. 없으면 실패로 기록 → 게임은 TTS.
+link가 '없음'인 단어(공룡·가방: 404 확인)는 요청하지 않는다.
+upload.wikimedia.org가 429(요청 제한)를 돌려주면 우회하지 않고 실패로 기록한다. 나중에 다시 실행하면 이미 받은 파일은 건너뛴다.
 접근 제한·요청 제한은 우회하지 않는다: 실패하면 그 파일만 실패로 기록하고 다음으로 넘어간다.
 """
 import argparse
@@ -26,12 +29,11 @@ REPORT = OUT / "download-report.json"
 UA = "inwoo-hangul-robot/0.1 (children's Hangul game; https://github.com/trams-repus/learningkoreanrobot)"
 
 
-def urls_for(commons_file: str) -> list[str]:
-    enc = urllib.parse.quote(commons_file, safe="")
-    return [
-        f"https://commons.wikimedia.org/wiki/Special:Redirect/file/{enc}",
-        "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(commons_file, safe="()_-"),
-    ]
+def urls_for(s: dict) -> list[str]:
+    """목록의 url(사용자가 준 Special:FilePath 링크)을 그대로 먼저 쓰고, 실패하면 Special:Redirect로 한 번 더.
+    urllib은 HTTP 리다이렉트(upload.wikimedia.org 실제 파일)를 자동으로 따라간다 (curl -L과 같음)."""
+    enc = urllib.parse.quote(s["commonsFile"], safe="")
+    return [s["url"], f"https://commons.wikimedia.org/wiki/Special:Redirect/file/{enc}"]
 
 
 def page_url(commons_file: str) -> str:
@@ -65,6 +67,14 @@ def inspect_wav(data: bytes) -> dict:
     return fmt
 
 
+def _valid_wav(data: bytes) -> bool:
+    try:
+        inspect_wav(data)
+        return True
+    except ValueError:
+        return False
+
+
 def fetch(url: str) -> bytes:
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=30) as res:
@@ -85,16 +95,22 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     report, ok = [], 0
     for s in sources:
+        if s["link"].startswith("없음"):
+            print(f"SKIP {s['word']}: {s['link']}")
+            continue
         dest = OUT / s["file"]
-        entry = {"word": s["word"], "file": s["file"], "commonsFile": s["commonsFile"], "page": page_url(s["commonsFile"]), "license": s["license"]}
+        entry = {"word": s["word"], "file": s["file"], "commonsFile": s["commonsFile"], "link": s["link"], "page": page_url(s["commonsFile"]), "license": s["license"]}
         try:
             if args.check:
                 if not dest.exists():
                     raise ValueError("파일 없음")
                 data = dest.read_bytes()
+            elif dest.exists() and _valid_wav(dest.read_bytes()):
+                data = dest.read_bytes()  # 이미 받아 둔 정상 파일은 다시 요청하지 않는다
+                entry["url"] = "(이미 있음)"
             else:
                 data, errors = None, []
-                for url in urls_for(s["commonsFile"]):
+                for url in urls_for(s):
                     try:
                         data = fetch(url)
                         inspect_wav(data)
@@ -118,8 +134,8 @@ def main() -> int:
         report.append(entry)
         time.sleep(0.5)
     REPORT.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"{ok}/{len(sources)}개 성공. 보고: {REPORT.relative_to(ROOT)}")
-    return 0 if ok == len(sources) else 1
+    print(f"{ok}/{len(report)}개 성공. 보고: {REPORT.relative_to(ROOT)}")
+    return 0 if ok == len(report) else 1
 
 
 if __name__ == "__main__":
