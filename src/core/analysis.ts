@@ -1,11 +1,12 @@
 // 부모 화면 분석: 플레이 로그를 규칙대로 세어 약점과 제안을 만든다.
 // 점수나 등급은 만들지 않는다. 모든 문장에 근거가 된 횟수를 함께 붙인다.
 // 학습 효과가 검증된 진단이 아니라 '기록에서 보이는 것'과 '해 볼 만한 것'이다.
-import { cellsOf, wordFrames, type CellRole } from './assembly';
+import { canHold, cellsOf, wordFrames, type CellRole } from './assembly';
 import type { LogEvent } from './playlog';
 
 type WordEv = Extract<LogEvent, { k: 'word' }>;
 type MissEv = Extract<LogEvent, { k: 'miss' }>;
+type DropEv = Extract<LogEvent, { k: 'drop' }>;
 
 /** 분석을 보여 줄 최소 완성 단어 수 */
 export const MIN_WORDS_FOR_ANALYSIS = 5;
@@ -41,6 +42,27 @@ export interface Suggestion {
   focusWords?: string[];
 }
 
+/** 부모 화면 '오답 패턴'의 한 줄: 무엇을, 몇 번 */
+export interface PatternLine {
+  label: string;
+  count: number;
+  /** 예시 (단어·자모) */
+  example?: string;
+}
+
+export interface OrderMix {
+  total: number;
+  /** 칸 위에 놓으려 한 전체 횟수 중 (받아들여진 칸 수 + 거절된 놓기) */
+  attempts: number;
+  lines: PatternLine[];
+}
+
+export interface JamoTrouble {
+  jamo: string;
+  miss: number;
+  seen: number;
+}
+
 export interface RecentMiss {
   t: number;
   word: string;
@@ -68,6 +90,14 @@ export interface Analysis {
   trend: { before: number; after: number; window: number } | null;
   replaysRecent: { words: number; replays: number };
   recentMisses: RecentMiss[];
+  /** 자음·모음 순서 엇갈림 (칸이 받지 않은 끌어 놓기) */
+  orderMix: OrderMix;
+  /** 자주 틀리는 자모: 정답 자모 기준, 완성 단어에 나온 횟수 대비 */
+  jamoTrouble: JamoTrouble[];
+  /** 함정 자모 */
+  trap: { misses: number; drops: number; words: number; finished: number };
+  /** 받침 있는 음절 / 없는 음절에서 다른 글자가 된 횟수 */
+  jongSyl: { withJong: { miss: number; slots: number }; noJong: { miss: number; slots: number } };
   suggestions: Suggestion[];
 }
 
@@ -166,6 +196,56 @@ export function analyze(events: LogEvent[], now: number = Date.now()): Analysis 
     .reverse()
     .map((m) => ({ t: m.t, word: m.w, syl: m.syl, role: m.role, want: m.want, got: m.got }));
 
+  // 자음·모음 순서 엇갈림
+  const drops = events.filter((e): e is DropEv => e.k === 'drop');
+  const ROLE_SHORT: Record<CellRole, string> = { cho: '첫소리', jung: '모음', jong: '받침' };
+  const orderCount = new Map<string, { n: number; ex: string }>();
+  const addOrder = (label: string, ex: string) => {
+    const c = orderCount.get(label) ?? { n: 0, ex };
+    c.n++;
+    orderCount.set(label, c);
+  };
+  for (const d of drops) {
+    const ex = `${d.w}(${d.syl}): ${d.got}`;
+    if (!canHold(d.role, d.got)) {
+      if (d.role === 'jung') addOrder('모음 차례에 자음을 먼저 놓으려 함', ex);
+      else addOrder(`${ROLE_SHORT[d.role]} 차례에 모음을 놓으려 함`, ex);
+    } else if (d.over && d.over !== d.role) addOrder(`${ROLE_SHORT[d.role]} 차례에 ${ROLE_SHORT[d.over]} 칸에 먼저 놓으려 함`, ex);
+  }
+  const orderLines = [...orderCount.entries()].map(([label, c]) => ({ label, count: c.n, example: c.ex })).sort((x, y) => y.count - x.count);
+  const placedSlots = roleMiss.cho.slots + roleMiss.jung.slots + roleMiss.jong.slots;
+  const orderTotal = orderLines.reduce((s2, l) => s2 + l.count, 0);
+
+  // 자주 틀리는 자모 (정답 자모 기준)
+  const seenJamo = new Map<string, number>();
+  for (const w of done) for (const f of wordFrames(w.w) ?? []) for (const r of cellsOf(f)) seenJamo.set(f[r], (seenJamo.get(f[r]) ?? 0) + 1);
+  const missJamo = new Map<string, number>();
+  for (const m of misses) missJamo.set(m.want, (missJamo.get(m.want) ?? 0) + 1);
+  const jamoTrouble = [...missJamo.entries()]
+    .filter(([, n]) => n >= MIN_PAIR_COUNT)
+    .map(([jamo, miss]) => ({ jamo, miss, seen: seenJamo.get(jamo) ?? 0 }))
+    .sort((x, y) => y.miss - x.miss);
+
+  // 함정 자모
+  const trap = {
+    misses: misses.filter((m) => m.trap).length,
+    drops: drops.filter((d) => d.trap).length,
+    words: done.filter((w) => w.trap > 0).length,
+    finished: done.length,
+  };
+
+  // 받침 있는 음절 오류: 한 번 틀린 음절 = 같은 시각·단어·음절의 칸 실수 묶음
+  const jongSyl = { withJong: { miss: 0, slots: 0 }, noJong: { miss: 0, slots: 0 } };
+  for (const w of done) for (const f of wordFrames(w.w) ?? []) (f.hasJong ? jongSyl.withJong : jongSyl.noJong).slots++;
+  const wrongSyl = new Set<string>();
+  for (const m of misses) {
+    const key = `${m.t}|${m.w}|${m.syl}`;
+    if (wrongSyl.has(key)) continue;
+    wrongSyl.add(key);
+    const f = wordFrames(m.syl)?.[0];
+    if (f) (f.hasJong ? jongSyl.withJong : jongSyl.noJong).miss++;
+  }
+
   const a: Analysis = {
     enough: done.length >= MIN_WORDS_FOR_ANALYSIS,
     finished: done.length,
@@ -182,6 +262,10 @@ export function analyze(events: LogEvent[], now: number = Date.now()): Analysis 
     trend,
     replaysRecent,
     recentMisses,
+    orderMix: { total: orderTotal, attempts: placedSlots + orderTotal, lines: orderLines },
+    jamoTrouble,
+    trap,
+    jongSyl,
     suggestions: [],
   };
   a.suggestions = suggest(a);
@@ -192,6 +276,15 @@ function suggest(a: Analysis): Suggestion[] {
   const out: Suggestion[] = [];
   if (!a.enough) return out;
 
+  if (a.orderMix.total >= 3) {
+    out.push({
+      seen: '자음·모음을 놓는 순서를 자주 엇갈려요.',
+      evidence: a.orderMix.lines.slice(0, 3).map((l) => `${l.label} ${l.count}번`).join(', '),
+      tryThis:
+        "조립 전에 '첫소리 먼저, 그다음 모음, 받침은 맨 아래'를 같이 말하며 칸을 손가락으로 짚어 볼 수 있어요. 설정의 도움 정도를 '많이'로 두면 차례인 칸에 흐린 자모가 더 자주 보여요.",
+    });
+  }
+
   for (const c of a.confusions.slice(0, 3)) {
     const [x, y] = c.pair;
     const dir = [c.aForB ? `${x} 자리에 ${y} ${c.aForB}번` : '', c.bForA ? `${y} 자리에 ${x} ${c.bForA}번` : ''].filter(Boolean).join(', ');
@@ -200,6 +293,26 @@ function suggest(a: Analysis): Suggestion[] {
       evidence: `${dir} (단어: ${c.words.slice(0, 4).join(', ')})`,
       tryThis: tipFor(c),
       focusJamo: c.kind === 'aeE' ? undefined : [x, y],
+    });
+  }
+
+  // 자주 틀리는 자모: 쌍 제안에 이미 나온 자모는 빼고, 3번 이상·나온 횟수의 30% 이상
+  const inPairs = new Set(out.flatMap((g) => g.focusJamo ?? []));
+  const hard = a.jamoTrouble.filter((j) => !inPairs.has(j.jamo) && j.miss >= 3 && j.seen > 0 && j.miss / j.seen >= 0.3).slice(0, 2);
+  if (hard.length) {
+    out.push({
+      seen: `${hard.map((j) => j.jamo).join('·')} 자모에서 자주 틀려요.`,
+      evidence: hard.map((j) => `${j.jamo}: ${j.seen}번 나와서 ${j.miss}번 다른 자모를 넣음`).join(', '),
+      tryThis: `${hard.map((j) => j.jamo).join('·')} 자모가 든 단어를 더 자주 내 보세요. 그 자모 소리로 시작하는 말을 같이 찾아보는 놀이도 할 수 있어요.`,
+      focusJamo: hard.map((j) => j.jamo),
+    });
+  }
+
+  if (a.trap.misses >= 3 && a.trap.finished && a.trap.words / a.trap.finished >= 0.3) {
+    out.push({
+      seen: '단어에 없는 함정 자모를 자주 골라요.',
+      evidence: `완성한 단어 ${a.trap.finished}개 중 ${a.trap.words}개에서 함정 자모를 넣음 (함정 자모 ${a.trap.misses}번)`,
+      tryThis: "소리를 끝까지 듣고 고르도록 '다시 듣기'를 같이 눌러 보세요. 설정의 '막히면 선택지 줄이기'가 켜져 있으면 두 번 틀린 뒤 함정이 줄어요.",
     });
   }
 

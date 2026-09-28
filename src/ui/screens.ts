@@ -316,6 +316,18 @@ export class Screens {
           .map((c) => `<tr><td class="jamo">${c.pair[0]} · ${c.pair[1]}</td><td>${c.total}번</td><td>${esc(c.words.slice(0, 4).join(', '))}</td></tr>`)
           .join('')}</tbody></table>`
       : '<p class="muted">두 번 이상 바꿔 넣은 자모 쌍은 아직 없어요.</p>';
+    const order = a.orderMix.total
+      ? `<p>칸에 놓으려 한 ${a.orderMix.attempts}번 중 <b>${a.orderMix.total}번</b>은 차례나 칸 종류가 맞지 않아 돌아갔어요.</p>
+         <table><thead><tr><th>무엇을</th><th>횟수</th><th>예</th></tr></thead><tbody>${a.orderMix.lines
+           .map((l) => `<tr><td>${esc(l.label)}</td><td>${l.count}번</td><td>${esc(l.example ?? '')}</td></tr>`)
+           .join('')}</tbody></table>`
+      : '<p class="muted">순서가 엇갈린 기록이 아직 없어요.</p>';
+    const trouble = a.jamoTrouble.length
+      ? `<table><thead><tr><th>자모</th><th>나온 횟수</th><th>틀린 횟수</th></tr></thead><tbody>${a.jamoTrouble
+          .slice(0, 8)
+          .map((j) => `<tr><td class="jamo">${esc(j.jamo)}</td><td>${j.seen}번</td><td>${j.miss}번 (${pct(j.miss, j.seen)}%)</td></tr>`)
+          .join('')}</tbody></table>`
+      : '<p class="muted">두 번 이상 틀린 자모는 아직 없어요.</p>';
     const time = (t: number) => new Date(t).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
     const misses = a.recentMisses.length
       ? `<table><thead><tr><th>언제</th><th>단어</th><th>맞는 자모 → 넣은 자모</th></tr></thead><tbody>${a.recentMisses
@@ -327,12 +339,21 @@ export class Screens {
       <h3 class="sec">해 볼 만한 것</h3>
       ${sugg}
       ${good.length ? `<h3 class="sec">늘어난 점</h3><ul>${good.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
-      <h3 class="sec">오답 분석</h3>
-      <h4>자주 바꿔 넣은 자모</h4>
+      <h3 class="sec">오답 패턴</h3>
+      <h4>자음·모음 순서 엇갈림</h4>
+      ${order}
+      <h4>자주 틀리는 자모</h4>
+      ${trouble}
+      <h4>자주 헷갈리는 두 자모</h4>
       ${conf}
+      <h4>함정 자모</h4>
+      <p>완성한 단어 ${a.trap.finished}개 중 <b>${a.trap.words}개</b>에서 단어에 없는 함정 자모를 넣었어요 (${pct(a.trap.words, a.trap.finished)}%). 함정 자모를 칸에 넣은 횟수 ${a.trap.misses}번${a.trap.drops ? `, 칸이 받지 않은 함정 놓기 ${a.trap.drops}번` : ''}.</p>
+      <h4>받침 있는 음절</h4>
+      <p>받침 있는 음절 ${a.jongSyl.withJong.slots}개 중 <b>${a.jongSyl.withJong.miss}번</b> 다른 글자 (${pct(a.jongSyl.withJong.miss, a.jongSyl.withJong.slots)}%) · 받침 없는 음절 ${a.jongSyl.noJong.slots}개 중 <b>${a.jongSyl.noJong.miss}번</b> (${pct(a.jongSyl.noJong.miss, a.jongSyl.noJong.slots)}%)</p>
       <h4>칸 종류별로 틀린 횟수</h4>
       <table><thead><tr><th>칸</th><th>완성 단어의 칸 수</th><th>다른 글자</th></tr></thead><tbody>${roleRows}</tbody></table>
       <h4>최근 틀린 기록</h4>
+      <p class="muted">'다른 글자'는 칸을 다 채웠는데 들은 글자와 달라진 경우입니다.</p>
       ${misses}
       ${a.stopped ? `<p class="muted">끝내지 못하고 나간 문제 ${a.stopped}개는 완성 수에 넣지 않았습니다.</p>` : ''}`;
   }

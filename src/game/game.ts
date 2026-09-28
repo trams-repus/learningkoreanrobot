@@ -68,7 +68,11 @@ export class Game {
         if (!cur) return;
         if (r.kind === 'different') {
           const got = r.made ? decomposeSyllable(r.made) : null;
-          for (const role of r.wrongCells) playlog.miss(cur.frames[i].syllable, role, cur.frames[i][role], got ? got[role] || null : null);
+          const need = requiredJamo(cur.frames);
+          for (const role of r.wrongCells) {
+            const put = got ? got[role] || null : null;
+            playlog.miss(cur.frames[i].syllable, role, cur.frames[i][role], put, !!put && !need.includes(put));
+          }
           this.onWrongSyllable(cur, r.wrongCells.map((role) => cur.frames[i][role]), r.made);
         }
         // 한 음절이 맞으면 그 음절 소리로 읽는다 (사용자 지시). 한 글자 단어는 곧 단어로 읽으므로 건너뛴다.
@@ -77,6 +81,12 @@ export class Game {
       },
       onWordComplete: () => void this.finishWord(this.run),
       onInteract: () => this.resetIdle(),
+      onRejectedDrop: (jamo, exp, over) => {
+        const cur = this.current;
+        if (!cur || !exp) return;
+        const f = cur.frames[exp.frame];
+        playlog.drop(f.syllable, exp.role, f[exp.role], jamo, over && over.frame === exp.frame ? over.role : null, !requiredJamo(cur.frames).includes(jamo));
+      },
       onTapOnly: () => {
         this.resetIdle();
         sfx.play('tap');

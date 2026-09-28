@@ -26,6 +26,8 @@ export interface CockpitCallbacks {
   onInteract: () => void;
   /** 끌지 않고 탭만 했을 때 (넣지 않는다) */
   onTapOnly: () => void;
+  /** 칸 위에 놓았지만 받지 않았을 때 (자음·모음이 칸과 안 맞거나 차례가 아닌 칸). 부모 화면 분석용 기록. */
+  onRejectedDrop?: (jamo: string, expected: { frame: number; role: CellRole } | null, over: { frame: number; role: CellRole } | null) => void;
 }
 
 interface JamoChip {
@@ -735,6 +737,7 @@ export class Cockpit {
       }
       // 차례가 아닌 칸이나 맞지 않는 칸에 놓았으면: 돌려보내고 차례인 칸을 알려준다
       if (this.overFrames(e.clientX, e.clientY)) {
+        this.cb.onRejectedDrop?.(c.jamo, this.expected(), this.cellAt(e.clientX, e.clientY));
         sfx.play('reject');
         this.blinkExpected();
       }
@@ -780,6 +783,17 @@ export class Cockpit {
     const r = this.frames[e.frame].cells[e.role]!.getBoundingClientRect();
     const t = DROP_TOLERANCE;
     return x >= r.left - t && x <= r.right + t && y >= r.top - t && y <= r.bottom + t ? e : null;
+  }
+
+  private cellAt(x: number, y: number): { frame: number; role: CellRole } | null {
+    for (let i = 0; i < this.frames.length; i++) {
+      const f = this.frames[i];
+      for (const role of cellsOf(f.spec)) {
+        const r = f.cells[role]!.getBoundingClientRect();
+        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { frame: i, role };
+      }
+    }
+    return null;
   }
 
   private overFrames(x: number, y: number): boolean {
