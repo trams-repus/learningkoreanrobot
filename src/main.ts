@@ -5,7 +5,9 @@ import { Game } from './game/game';
 import { applySettings, audio, options, recordings, saves, sfx } from './game/services';
 import { BattleScene } from './scene/BattleScene';
 
-const dpr = () => Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+// 해상도 배율은 2까지만 쓴다. 390 휴대폰(배율 3)에서 캔버스가 1170x2532가 되어 그리기가 약 1.7배 느려졌다
+// (390 멈춤 조사, 2026-09-28). 배율 2와 3은 이 그림체에서 눈으로 거의 구분되지 않는다.
+const dpr = () => Math.min(2, Math.max(1, window.devicePixelRatio || 1));
 
 async function boot(): Promise<void> {
   applySettings();

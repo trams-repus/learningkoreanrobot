@@ -348,14 +348,27 @@ export class BattleScene extends Phaser.Scene {
     return this.spawnWave([{ id: 0, kind }], hp, max);
   }
 
+  /**
+   * 반복(repeat -1) 트윈이 걸린 객체는 트윈을 먼저 끊고 없앤다. 객체만 없애면 트윈이 남아 공격·준비 때마다 쌓인다
+   * (390 휴대폰 멈춤 조사 중 확인: 공격 한 바퀴마다 트윈이 하나씩 늘었다, 2026-09-28).
+   */
+  private drop(o: Phaser.GameObjects.GameObject | null | undefined): void {
+    if (!o) return;
+    this.tweens.killTweensOf(o);
+    o.destroy();
+  }
+
   private clearFoes(): void {
     for (const f of this.foes.values()) {
       f.idle.forEach((t) => t.remove());
+      this.drop(f.warn);
+      this.drop(f.shieldFx);
+      this.tweens.killTweensOf([f.parts.aura, f.parts.root, f.parts.body, f.parts.head]);
       f.parts.root.destroy();
     }
     this.foes.clear();
     this.targetId = -1;
-    this.reticle?.destroy();
+    this.drop(this.reticle);
     this.reticle = null;
   }
 
@@ -412,7 +425,7 @@ export class BattleScene extends Phaser.Scene {
     for (const f of this.foes.values()) {
       this.tweens.killTweensOf(f.parts.aura);
       f.parts.aura.setAlpha(0);
-      f.warn?.destroy();
+      this.drop(f.warn);
       f.warn = null;
       if (f.parts.jaw) f.parts.jaw.setScale(1, 0.4);
     }
@@ -837,8 +850,9 @@ export class BattleScene extends Phaser.Scene {
     const f = sf.parts;
     this.foes.delete(id);
     sf.idle.forEach((t) => t.remove());
-    sf.warn?.destroy();
+    this.drop(sf.warn);
     sf.warn = null;
+    this.tweens.killTweensOf(f.aura);
     if (id === this.targetId) this.targetId = this.foes.keys().next().value ?? -1;
     this.updateReticle();
     sfx.play('pop');
@@ -849,6 +863,7 @@ export class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: stars, angle: 360, duration: 600, repeat: -1 });
     await this.tween({ targets: f.body, angle: -14, duration: 160, yoyo: true, repeat: 2 });
     await this.tween({ targets: f.root, x: sf.x + 140, y: sf.y - 50, scale: f.root.scaleX * 0.4, alpha: 0, duration: 700, ease: 'Quad.in' });
+    this.tweens.killTweensOf(stars);
     f.root.destroy();
   }
 
@@ -1106,7 +1121,7 @@ export class BattleScene extends Phaser.Scene {
       await this.wandShot(0.8, i === order.length - 1, spots[ci], (ci - 1) * 12);
     });
     await Promise.all(shots);
-    circles.forEach((c) => this.tweens.add({ targets: c, scale: 0, alpha: 0, duration: 200, onComplete: () => c.destroy() }));
+    circles.forEach((c) => this.tweens.add({ targets: c, scale: 0, alpha: 0, duration: 200, onComplete: () => this.drop(c) }));
     await this.wait(120);
   }
 
@@ -1148,7 +1163,16 @@ export class BattleScene extends Phaser.Scene {
       this.hitReact(i === n - 1, id);
     });
     await Promise.all(falls);
-    this.tweens.add({ targets: sky, scaleX: 0, alpha: 0, duration: 220, onComplete: () => sky.destroy() });
+    this.tweens.add({
+      targets: sky,
+      scaleX: 0,
+      alpha: 0,
+      duration: 220,
+      onComplete: () => {
+        this.drop(skyRing);
+        sky.destroy();
+      },
+    });
   }
 
   /** 필살기: 큰 마법진에서 거대한 마법 광선 + 유성 + 연쇄 별빛 폭발 + 충격파 */
@@ -1201,7 +1225,7 @@ export class BattleScene extends Phaser.Scene {
     await this.tween({ targets: beam, scaleY: 0, alpha: 0, duration: 200 });
     beam.destroy();
     m.tipGlow.setAlpha(0);
-    this.tweens.add({ targets: circle, scale: 0, alpha: 0, duration: 200, onComplete: () => circle.destroy() });
+    this.tweens.add({ targets: circle, scale: 0, alpha: 0, duration: 200, onComplete: () => this.drop(circle) });
     // 마무리 충격파: 무지개빛 고리
     sfx.play('bigExplode');
     this.magicBlast(t.x, t.y, 2, MAG.glow);
