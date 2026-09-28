@@ -418,7 +418,7 @@ export interface PromptContext {
 }
 
 /**
- * 'AI에게 물어보기': 부모가 복사해 Claude·ChatGPT 같은 AI 채팅에 붙여 넣는 프롬프트 전문.
+ * 'AI에게 학습 전략 물어보기': 부모가 복사해 Claude·ChatGPT 같은 AI 채팅에 붙여 넣는 프롬프트 전문.
  * 게임은 아무것도 밖으로 보내지 않는다. 이름(게임 제목의 아이 이름 포함)·생년월일·날짜·기기 정보는 넣지 않고 집계 숫자와 단어 예시만 넣는다.
  */
 export function aiPrompt(a: Analysis, ctx: PromptContext): string {
