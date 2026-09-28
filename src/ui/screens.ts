@@ -6,7 +6,8 @@ import { STAGES, type StageDef } from '../content/stages';
 import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
-import { applySettings, audio, options, recordings, saves, sfx } from '../game/services';
+import { applySettings, audio, options, playlog, recordings, saves, sfx } from '../game/services';
+import { analyze, MIN_WORDS_FOR_ANALYSIS } from '../core/analysis';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
 
@@ -233,24 +234,28 @@ export class Screens {
 
   // ───────────── 부모 화면 ─────────────
 
-  parent(tab: 'record' | 'settings' | 'sound' | 'voice' = 'record'): void {
+  parent(tab: 'analysis' | 'record' | 'settings' | 'sound' | 'voice' = 'analysis'): void {
     const wasBattle = this.game.inBattle;
     if (wasBattle) this.game.pause(false);
     const tabs: [typeof tab, string][] = [
-      ['record', '기록'],
+      ['analysis', '분석'],
+      ['record', '단어 기록'],
       ['settings', '설정'],
       ['sound', '소리 확인'],
       ['voice', '목소리 녹음'],
     ];
-    const body = tab === 'record' ? this.recordHtml() : tab === 'settings' ? this.settingsHtml() : tab === 'sound' ? this.soundHtml() : this.voiceHtml();
+    const body = tab === 'analysis' ? this.analysisHtml() : tab === 'record' ? this.recordHtml() : tab === 'settings' ? this.settingsHtml() : tab === 'sound' ? this.soundHtml() : this.voiceHtml();
     const el = this.open(
-      `<div class="panel parent">
-        <h2>부모 화면</h2>
-        <div class="btns">${tabs.map(([k, n]) => `<button class="small-btn ${k === tab ? 'primary' : ''}" data-tab="${k}">${n}</button>`).join('')}</div>
-        ${body}
-        <div class="btns" style="margin-top:18px"><button class="small-btn primary" id="pa-close">닫기</button></div>
+      `<div class="parent">
+        <div class="parent-top">
+          <h2>부모 화면</h2>
+          <button class="small-btn primary" id="pa-close">닫기</button>
+        </div>
+        <nav class="parent-tabs">${tabs.map(([k, n]) => `<button class="small-btn ${k === tab ? 'primary' : ''}" data-tab="${k}" aria-pressed="${k === tab}">${n}</button>`).join('')}</nav>
+        <div class="parent-body">${body}</div>
       </div>`,
     );
+    this.overlay.classList.add('parent-open');
     el.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) => b.addEventListener('click', () => this.parent(b.dataset.tab as typeof tab)));
     el.querySelector('#pa-close')!.addEventListener('click', () => {
       audio.stop();
@@ -261,6 +266,96 @@ export class Screens {
     if (tab === 'sound') this.bindSound(el);
     if (tab === 'voice') this.bindVoice(el);
     if (tab === 'record') this.bindRecord(el);
+    if (tab === 'analysis') this.bindAnalysis(el);
+  }
+
+  private analysisHtml(): string {
+    const a = analyze(playlog.events);
+    const set = saves.data.settings;
+    const pct = (x: number, of: number) => (of ? Math.round((x / of) * 100) : 0);
+    const focusOn = set.focusJamo.length || set.focusWords.length;
+    const focus = focusOn
+      ? `<div class="focus-now"><p><b>지금 더 자주 내는 중:</b> ${esc([set.focusJamo.length ? `${set.focusJamo.join('·')} 자모가 든 단어` : '', ...set.focusWords].filter(Boolean).join(', '))}</p>
+          <button class="small-btn" id="an-focus-off">원래대로 섞기</button></div>`
+      : '';
+    const head = `
+      <p class="muted">이 기기 안의 플레이 기록만 세어서 보여 줍니다. 밖으로 보내지 않고, 점수나 등급을 매기지 않습니다. 아래 제안은 기록에서 보이는 것을 바탕으로 한 참고이며, 학습 효과가 검증된 진단이 아닙니다.</p>
+      ${focus}
+      <div class="stat-grid">
+        <div><b>${a.daysPlayed7}일</b><span>최근 7일 중 플레이한 날</span></div>
+        <div><b>${a.words7}개</b><span>최근 7일 완성한 단어</span></div>
+        <div><b>${a.alone}개</b><span>혼자 완성 (전체 ${a.finished}개 중 ${pct(a.alone, a.finished)}%)</span></div>
+        <div><b>${a.help}개</b><span>도움 받고 완성</span></div>
+      </div>`;
+    if (!a.enough) return `${head}<p class="big-note">기록이 조금 더 쌓이면(단어 ${MIN_WORDS_FOR_ANALYSIS}개 이상 완성) 약점과 제안을 보여 드려요. 지금 ${a.finished}개.</p>`;
+
+    const sugg = a.suggestions.length
+      ? a.suggestions
+          .map(
+            (g, i) => `<section class="sugg">
+              <h3>${esc(g.seen)}</h3>
+              <p class="evidence">근거: ${esc(g.evidence)}</p>
+              <p>${esc(g.tryThis)}</p>
+              ${g.focusJamo || g.focusWords ? `<button class="small-btn primary" data-focus="${i}">이 단어들 더 자주 내기</button>` : ''}
+            </section>`,
+          )
+          .join('')
+      : '<p class="big-note">지금 기록에서는 눈에 띄게 반복되는 실수가 없어요.</p>';
+
+    const good: string[] = [];
+    if (a.trend) good.push(`혼자 완성한 단어: 처음 ${a.trend.window}개 중 ${a.trend.before}개 → 최근 ${a.trend.window}개 중 ${a.trend.after}개`);
+    if (a.improved.length) good.push(`처음엔 도움을 받았지만 최근 두 번은 혼자 끝낸 단어: ${a.improved.slice(0, 6).join(', ')}`);
+
+    const roleName = { cho: '첫소리', jung: '모음', jong: '받침' } as const;
+    const roleRows = (['cho', 'jung', 'jong'] as const)
+      .map((r) => `<tr><td>${roleName[r]}</td><td>${a.roleMiss[r].slots}칸</td><td>${a.roleMiss[r].miss}번</td></tr>`)
+      .join('');
+    const conf = a.confusions.length
+      ? `<table><thead><tr><th>헷갈린 두 자모</th><th>횟수</th><th>나온 단어</th></tr></thead><tbody>${a.confusions
+          .slice(0, 8)
+          .map((c) => `<tr><td class="jamo">${c.pair[0]} · ${c.pair[1]}</td><td>${c.total}번</td><td>${esc(c.words.slice(0, 4).join(', '))}</td></tr>`)
+          .join('')}</tbody></table>`
+      : '<p class="muted">두 번 이상 바꿔 넣은 자모 쌍은 아직 없어요.</p>';
+    const time = (t: number) => new Date(t).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+    const misses = a.recentMisses.length
+      ? `<table><thead><tr><th>언제</th><th>단어</th><th>맞는 자모 → 넣은 자모</th></tr></thead><tbody>${a.recentMisses
+          .map((m) => `<tr><td>${time(m.t)}</td><td>${esc(m.word)} (${esc(m.syl)})</td><td class="jamo">${esc(m.want)} → ${esc(m.got ?? '?')}</td></tr>`)
+          .join('')}</tbody></table>`
+      : '<p class="muted">아직 틀린 기록이 없어요.</p>';
+
+    return `${head}
+      <h3 class="sec">해 볼 만한 것</h3>
+      ${sugg}
+      ${good.length ? `<h3 class="sec">늘어난 점</h3><ul>${good.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+      <h3 class="sec">오답 분석</h3>
+      <h4>자주 바꿔 넣은 자모</h4>
+      ${conf}
+      <h4>칸 종류별로 틀린 횟수</h4>
+      <table><thead><tr><th>칸</th><th>완성 단어의 칸 수</th><th>다른 글자</th></tr></thead><tbody>${roleRows}</tbody></table>
+      <h4>최근 틀린 기록</h4>
+      ${misses}
+      ${a.stopped ? `<p class="muted">끝내지 못하고 나간 문제 ${a.stopped}개는 완성 수에 넣지 않았습니다.</p>` : ''}`;
+  }
+
+  private bindAnalysis(el: HTMLElement): void {
+    const a = analyze(playlog.events);
+    const set = saves.data.settings;
+    el.querySelectorAll<HTMLButtonElement>('[data-focus]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const g = a.suggestions[Number(b.dataset.focus)];
+        if (!g) return;
+        set.focusJamo = [...new Set([...set.focusJamo, ...(g.focusJamo ?? [])])].slice(0, 8);
+        set.focusWords = [...new Set([...set.focusWords, ...(g.focusWords ?? [])])].slice(0, 8);
+        saves.save();
+        this.parent('analysis');
+      }),
+    );
+    el.querySelector('#an-focus-off')?.addEventListener('click', () => {
+      set.focusJamo = [];
+      set.focusWords = [];
+      saves.save();
+      this.parent('analysis');
+    });
   }
 
   private recordHtml(): string {
@@ -286,7 +381,7 @@ export class Screens {
       <h3>단어</h3>
       ${
         rows
-          ? `<table><thead><tr><th>단어</th><th>출제</th><th>혼자</th><th>도움</th><th>다시 듣기</th><th>정답 보기</th><th>다른 글자</th><th>혼자 최고</th></tr></thead><tbody>${rows}</tbody></table>
+          ? `<div class="table-wrap"><table><thead><tr><th>단어</th><th>출제</th><th>혼자</th><th>도움</th><th>다시 듣기</th><th>정답 보기</th><th>다른 글자</th><th>혼자 최고</th></tr></thead><tbody>${rows}</tbody></table></div>
              <p class="muted">'혼자'는 흐린 자모·손가락 안내·정답 보기 없이 완성한 횟수입니다. 다시 듣기는 도움으로 치지 않고 따로 셉니다.</p>`
           : '<p class="muted">아직 기록이 없습니다.</p>'
       }
@@ -310,6 +405,7 @@ export class Screens {
         return;
       }
       saves.reset();
+      playlog.clear();
       this.parent('record');
     });
   }

@@ -1,5 +1,6 @@
 // 저장 서비스. 앱 포장(Capacitor 등) 때 Preferences 저장소로 바꿀 수 있게 이 파일에만 저장 방식을 둔다.
 import { defaultSave, sanitizeSave, type SaveData } from '../core/progress';
+import { sanitizeLog, type LogStore } from '../core/playlog';
 
 export const SAVE_KEY = 'inwoo-hangul-robot.save.v2';
 const KEY = SAVE_KEY;
@@ -73,4 +74,28 @@ export class SaveService {
     this.data.settings = settings;
     this.save();
   }
+}
+
+export const LOG_KEY = 'inwoo-hangul-robot.log.v1';
+
+/** 플레이 로그 저장소. 진행 기록과 따로 두어, 로그가 깨지거나 가득 차도 진행 기록은 안전하다. */
+export function logStore(store: StorageLike | null = browserStorage()): LogStore {
+  return {
+    load() {
+      if (!store) return [];
+      try {
+        return sanitizeLog(JSON.parse(store.getItem(LOG_KEY) ?? '[]'));
+      } catch {
+        return [];
+      }
+    },
+    save(events) {
+      if (!store) return;
+      try {
+        store.setItem(LOG_KEY, JSON.stringify(events));
+      } catch {
+        /* 저장 공간 부족 등: 플레이는 계속 */
+      }
+    },
+  };
 }
