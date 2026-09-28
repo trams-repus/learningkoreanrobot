@@ -1,0 +1,236 @@
+[
+  {
+    "word": "수박",
+    "file": "subak.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-수박.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%88%98%EB%B0%95.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%88%98%EB%B0%95.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.81,
+      "bytes": 77356
+    },
+    "status": "ok"
+  },
+  {
+    "word": "나무",
+    "file": "namu.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-나무.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%82%98%EB%AC%B4.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%82%98%EB%AC%B4.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.86,
+      "bytes": 82476
+    },
+    "status": "ok"
+  },
+  {
+    "word": "나비",
+    "file": "nabi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-나비.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%82%98%EB%B9%84.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%82%98%EB%B9%84.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.95,
+      "bytes": 91692
+    },
+    "status": "ok"
+  },
+  {
+    "word": "개미",
+    "file": "gaemi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-개미.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B0%9C%EB%AF%B8.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B0%9C%EB%AF%B8.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.98,
+      "bytes": 94508
+    },
+    "status": "ok"
+  },
+  {
+    "word": "꼬리",
+    "file": "kkori.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-꼬리.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%BC%AC%EB%A6%AC.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%BC%AC%EB%A6%AC.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.8,
+      "bytes": 76588
+    },
+    "status": "ok"
+  },
+  {
+    "word": "다리",
+    "file": "dari.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-다리.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%8B%A4%EB%A6%AC.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%8B%A4%EB%A6%AC.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.78,
+      "bytes": 74540
+    },
+    "status": "ok"
+  },
+  {
+    "word": "사자",
+    "file": "saja.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-사자.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%82%AC%EC%9E%90.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EC%82%AC%EC%9E%90.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.9,
+      "bytes": 86060
+    },
+    "status": "ok"
+  },
+  {
+    "word": "고양이",
+    "file": "goyangi.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-고양이.wav",
+    "link": "후보: 사용자 링크와 같은 이름 규칙. 파일 존재·라이선스 확인 전",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%A0%EC%96%91%EC%9D%B4.wav",
+    "license": "확인 전",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%A0%EC%96%91%EC%9D%B4.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.94,
+      "bytes": 90668
+    },
+    "status": "ok"
+  },
+  {
+    "word": "곰",
+    "file": "gom.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-곰.wav",
+    "link": "후보: 사용자 링크와 같은 이름 규칙. 파일 존재·라이선스 확인 전",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%B0.wav",
+    "license": "확인 전",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EA%B3%B0.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.81,
+      "bytes": 78124
+    },
+    "status": "ok"
+  },
+  {
+    "word": "당근",
+    "file": "carrot.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-당근.wav",
+    "link": "후보: 사용자 링크와 같은 이름 규칙. 파일 존재·라이선스 확인 전",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%8B%B9%EA%B7%BC.wav",
+    "license": "확인 전",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%8B%B9%EA%B7%BC.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.97,
+      "bytes": 93484
+    },
+    "status": "ok"
+  },
+  {
+    "word": "바다",
+    "file": "bada.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-바다.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B0%94%EB%8B%A4.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B0%94%EB%8B%A4.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.89,
+      "bytes": 85292
+    },
+    "status": "ok"
+  },
+  {
+    "word": "바나나",
+    "file": "banana.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-바나나.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B0%94%EB%82%98%EB%82%98.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%B0%94%EB%82%98%EB%82%98.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 1.01,
+      "bytes": 97068
+    },
+    "status": "ok"
+  },
+  {
+    "word": "머리",
+    "file": "meori.wav",
+    "commonsFile": "LL-Q9176_(kor)-호로조-머리.wav",
+    "link": "사용자 제공 링크 (2026-09-28)",
+    "page": "https://commons.wikimedia.org/wiki/File:LL-Q9176_%28kor%29-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%A8%B8%EB%A6%AC.wav",
+    "license": "CC0-1.0",
+    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-%ED%98%B8%EB%A1%9C%EC%A1%B0-%EB%A8%B8%EB%A6%AC.wav",
+    "wav": {
+      "format": 1,
+      "channels": 1,
+      "sampleRate": 48000,
+      "bits": 16,
+      "seconds": 0.85,
+      "bytes": 81964
+    },
+    "status": "ok"
+  }
+]
