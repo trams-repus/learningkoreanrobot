@@ -5,10 +5,12 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc --noEmit && vite build",
+    "build:release": "tsc --noEmit && vite build --mode release && node scripts/check-release.mjs",
     "preview": "vite preview --host",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "e2e": "node e2e/play.mjs",
+    "e2e:release": "node e2e/release.mjs",
     "audio:check": "node scripts/verify_audio_browser.mjs",
     "deploy:pages": "bash scripts/deploy-pages.sh",
     "build:single": "npm run build && node scripts/build-single.mjs"

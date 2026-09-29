@@ -528,7 +528,9 @@ async function stagePaths() {
   const all = Array.from({ length: 15 }, (_, i) => `s${i + 1}`);
   const cases = [
     ['새로 시작', null, 's1'],
-    ['옛 6단계 구성을 다 깬 기록', { version: 2, stageSet: 2, cleared: ['s1', 's2', 's3', 's4', 's5', 's6'], lastStage: 's6', settings: { characterTheme: 'robot' } }, 's1'],
+    // 옛 구성 기록은 지우지 않고 옮긴다 (progress.ts STAGE_STEPS): 6단계 구성 전부 → 5단계까지, stageSet 없는 옛 저장 → 2단계까지
+    ['옛 6단계 구성을 다 깬 기록', { version: 2, stageSet: 2, cleared: ['s1', 's2', 's3', 's4', 's5', 's6'], lastStage: 's6', settings: { characterTheme: 'robot' } }, 's6'],
+    ['stageSet 없는 옛 기록', { version: 2, cleared: ['s1', 's2', 's3', 's4'], lastStage: 's4', settings: { characterTheme: 'robot' } }, 's3'],
     ['1단계를 깬 기록 이어하기', { version: 2, stageSet: 3, cleared: ['s1'], lastStage: 's1', settings: { characterTheme: 'robot' } }, 's2'],
     ['3단계까지 깬 기록 이어하기', { version: 2, stageSet: 3, cleared: ['s1', 's2', 's3'], lastStage: 's3', settings: { characterTheme: 'robot' } }, 's4'],
     ['10단계까지 깬 기록 → 화산섬', { version: 2, stageSet: 3, cleared: all.slice(0, 10), lastStage: 's10', settings: { characterTheme: 'robot' } }, 's11'],

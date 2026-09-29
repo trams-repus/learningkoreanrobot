@@ -527,7 +527,7 @@ export class Screens {
     const played = Object.values(st.battlesPlayed).reduce((a, b) => a + b, 0);
     const won = Object.values(st.battlesWon).reduce((a, b) => a + b, 0);
     return `
-      <p class="muted">이 기기 안에만 저장됩니다. 이름·생년월일은 저장하지 않습니다.${saves.available ? '' : ' <b>지금은 저장소를 쓸 수 없어 기록이 남지 않습니다.</b>'}${saves.recovered ? ' 이전 저장 데이터가 손상되어 새로 시작했습니다.' : ''}</p>
+      <p class="muted">이 기기 안에만 저장됩니다. 이름·생년월일은 저장하지 않습니다.${saves.available ? '' : ' <b>지금은 저장소를 쓸 수 없어 기록이 남지 않습니다.</b>'}${saves.recovered ? ' 이전 저장 데이터가 손상되어 새로 시작했습니다.' : ''}${saves.saveFailed ? ' <b>최근 기록을 저장하지 못했습니다 (기기 저장 공간을 확인해 주세요).</b>' : ''}${saves.migratedFrom !== null ? ' 전투 구성이 바뀌어 깬 전투 기록을 새 구성에 맞게 옮겼습니다 (단어 기록·설정은 그대로).' : ''}</p>
       <h3>전투</h3>
       <p>출동 ${played}회 · 승리 ${won}회 · 최고 콤보 ${st.bestCombo} · 마무리 일격 ${st.finishers}회 · 재가동 ${st.reboots}회</p>
       <h3>단어</h3>

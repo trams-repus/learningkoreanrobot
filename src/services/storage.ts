@@ -1,5 +1,5 @@
 // 저장 서비스. 앱 포장(Capacitor 등) 때 Preferences 저장소로 바꿀 수 있게 이 파일에만 저장 방식을 둔다.
-import { defaultSave, sanitizeSave, type SaveData } from '../core/progress';
+import { defaultSave, sanitizeSave, STAGE_SET, stageSetOf, type SaveData } from '../core/progress';
 import { sanitizeLog, type LogStore } from '../core/playlog';
 
 export const SAVE_KEY = 'inwoo-hangul-robot.save.v2';
@@ -28,12 +28,18 @@ export class SaveService {
   data: SaveData;
   /** 저장 데이터를 읽지 못해 새로 시작했는지 (부모 화면에 표시) */
   recovered = false;
+  /** 옛 전투 구성(이 번호)의 기록을 지금 구성으로 옮겨 읽었는가 */
+  migratedFrom: number | null = null;
+  /** 마지막 저장이 실패했는가 (저장 공간 부족 등). 플레이는 막지 않고 부모 화면에 알린다. */
+  saveFailed = false;
   available: boolean;
 
   constructor(store: StorageLike | null = browserStorage()) {
     this.store = store;
     this.available = store !== null;
     this.data = this.load();
+    // 옮긴 결과를 바로 써 두어 다음 실행부터는 옮기지 않는다
+    if (this.migratedFrom !== null) this.save();
   }
 
   private load(): SaveData {
@@ -45,8 +51,9 @@ export class SaveService {
       return defaultSave();
     }
     if (!raw) return defaultSave();
+    let parsed: unknown;
     try {
-      return sanitizeSave(JSON.parse(raw));
+      parsed = JSON.parse(raw);
     } catch {
       // 깨진 데이터는 따로 보관하고 새로 시작한다. 앱 실행 자체는 막지 않는다.
       this.recovered = true;
@@ -57,14 +64,27 @@ export class SaveService {
       }
       return defaultSave();
     }
+    const from = stageSetOf(parsed);
+    if (from !== STAGE_SET) {
+      // 옛 구성 기록을 옮기기 전 원본을 남긴다. 옮기는 표가 틀렸다고 밝혀져도 되살릴 수 있게, 처음 한 번만 쓴다.
+      this.migratedFrom = from;
+      const backup = `${KEY}.before-stageset${STAGE_SET}`;
+      try {
+        if (this.store.getItem(backup) === null) this.store.setItem(backup, raw);
+      } catch {
+        /* 무시: 옮긴 기록으로 계속 플레이 */
+      }
+    }
+    return sanitizeSave(parsed);
   }
 
   save(): void {
     if (!this.store) return;
     try {
       this.store.setItem(KEY, JSON.stringify(this.data));
+      this.saveFailed = false;
     } catch {
-      /* 저장 공간 부족 등: 플레이는 계속 */
+      this.saveFailed = true; // 저장 공간 부족 등: 플레이는 계속
     }
   }
 
