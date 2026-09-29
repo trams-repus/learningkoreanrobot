@@ -1,0 +1,1877 @@
+[
+ {
+  "word": "올챙이",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "꿀벌",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "매미",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "반딧불이",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "지렁이",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "애벌레",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "치타",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "북극곰",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "물개",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "가오리",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "복어",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "금붕어",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "박쥐",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "도마뱀",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "두꺼비",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "홍학",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "칠면조",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "공작",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "타조",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "제비",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "까마귀",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "갈매기",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "올빼미",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "비버",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "사슴벌레",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "풍뎅이",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "송아지",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "망아지",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "미어캣",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "알파카",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "카멜레온",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "펠리컨",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "나무늘보",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "해마",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "오렌지",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "파인애플",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "블루베리",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "대추",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "호두",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "땅콩",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "도토리",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "식빵",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "우동",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "짜장면",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "순대",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "어묵",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "주먹밥",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "초밥",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "핫도그",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "햄",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "버터",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "잼",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "시리얼",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "두유",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "초콜릿",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "껌",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "와플",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "푸딩",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "빙수",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "솜사탕",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "막대사탕",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "송편",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "양배추",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "브로콜리",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "시금치",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "콩나물",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "마늘",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "상추",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "생선",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "불고기",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "스파게티",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "샌드위치",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "토스트",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "미역국",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "국자",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "주전자",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "프라이팬",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "밥솥",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "쟁반",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "병",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "물병",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "빨대",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "휴지",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "봉투",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "쓰레기통",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "빗자루",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "양동이",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "바가지",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "샴푸",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "반창고",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "체온계",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "약",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "마스크",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "우비",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "지갑",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "돈",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "동전",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "달력",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "사진",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "편지",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "선물",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "초",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "전등",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "손전등",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "텔레비전",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "라디오",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "카메라",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "리모컨",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "선풍기",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "청소기",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "옷걸이",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "머리띠",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "슬리퍼",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "샌들",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "부츠",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "조끼",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "코트",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "셔츠",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "티셔츠",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "청바지",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "원피스",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "수영복",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "앞치마",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "기저귀",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "젖병",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "유모차",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "담요",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "커튼",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "쿠션",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "계단",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "사다리",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "망치",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "못",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "삽",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "밧줄",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "실",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "바늘",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "필통",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "스케치북",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "물감",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "붓",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "종이",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "종이비행기",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "연",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "팽이",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "구슬",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "블록",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "비눗방울",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "줄넘기",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "썰매",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "축구공",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "곰인형",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "호루라기",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "탬버린",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "실로폰",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "하모니카",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "바이올린",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "드럼",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "마이크",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "종",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "깃발",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "방울",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "우체통",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "신호등",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "벤치",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "장바구니",
+  "domain": "생활용품",
+  "tier": "core"
+ },
+ {
+  "word": "요트",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "트랙터",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "포클레인",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "불도저",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "크레인",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "덤프트럭",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "견인차",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "청소차",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "캠핑카",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "유람선",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "뗏목",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "열기구",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "케이블카",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "스쿠터",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "세발자전거",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "마차",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "스케이트보드",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "롤러스케이트",
+  "domain": "탈것",
+  "tier": "core"
+ },
+ {
+  "word": "부엌",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "화장실",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "거실",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "마당",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "정원",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "지붕",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "창고",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "마트",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "약국",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "은행",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "유치원",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "어린이집",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "놀이공원",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "박물관",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "영화관",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "공항",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "기차역",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "정류장",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "주차장",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "농장",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "밭",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "터널",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "동굴",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "사막",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "정글",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "수족관",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "꽃집",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "문구점",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "미용실",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "치과",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "궁전",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "오두막",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "이글루",
+  "domain": "장소",
+  "tier": "core"
+ },
+ {
+  "word": "좁다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "두껍다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "어둡다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "맵다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "짜다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "시다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "딱딱하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "말랑하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "부드럽다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "뾰족하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "둥글다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "젖다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "배부르다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "목마르다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "피곤하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "즐겁다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "신나다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "놀라다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "부끄럽다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "궁금하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "심심하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "행복하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "멀다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "시끄럽다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "따뜻하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "시원하다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "귀엽다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "깊다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "반짝이다",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "빨강",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "노랑",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "파랑",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "초록",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "하양",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "검정",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "보라",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "분홍",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "주황",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "동그라미",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "네모",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "세모",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "하트",
+  "domain": "상태",
+  "tier": "recommended"
+ },
+ {
+  "word": "손바닥",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "발바닥",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "팔꿈치",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "손목",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "발목",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "콧구멍",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "속눈썹",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "보조개",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "주먹",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "엄지",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "수염",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "뼈",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "종아리",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "허벅지",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "발톱",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "눈물",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "콧물",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "방귀",
+  "domain": "신체",
+  "tier": "core"
+ },
+ {
+  "word": "눕다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "뛰다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "날다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "기다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "구르다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "오르다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "받다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "주다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "안다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "업다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "당기다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "누르다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "자르다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "붙이다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "접다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "쌓다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "줍다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "숨다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "찾다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "세수하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "목욕하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "양치하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "요리하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "청소하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "듣다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "말하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "박수치다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "인사하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "뽀뽀하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "수영하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "넘어지다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "흔들다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "두드리다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "불다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "씹다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "일어나다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "색칠하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "심다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "따다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "낚시하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "운전하다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "꿈꾸다",
+  "domain": "행동",
+  "tier": "recommended"
+ },
+ {
+  "word": "안개",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "태풍",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "고드름",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "노을",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "별똥별",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "지구",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "잔디",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "나뭇잎",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "나뭇가지",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "뿌리",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "새싹",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "튤립",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "민들레",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "개나리",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "진달래",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "벚꽃",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "무궁화",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "연꽃",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "나팔꽃",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "클로버",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "대나무",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "소나무",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "야자수",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "단풍",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "낙엽",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "솔방울",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "웅덩이",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "조약돌",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "언덕",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "연기",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "그림자",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "열매",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "호수",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "연못",
+  "domain": "자연",
+  "tier": "core"
+ },
+ {
+  "word": "형",
+  "domain": "가족",
+  "tier": "core"
+ },
+ {
+  "word": "고모",
+  "domain": "가족",
+  "tier": "core"
+ },
+ {
+  "word": "아줌마",
+  "domain": "가족",
+  "tier": "core"
+ },
+ {
+  "word": "쌍둥이",
+  "domain": "가족",
+  "tier": "core"
+ },
+ {
+  "word": "가수",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "화가",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "어부",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "목수",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "우체부",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "제빵사",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "미용사",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "선장",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "조종사",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "발레리나",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "왕자",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "여왕",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "요정",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "인어",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "거인",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "도깨비",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "외계인",
+  "domain": "사람",
+  "tier": "recommended"
+ },
+ {
+  "word": "학생",
+  "domain": "사람",
+  "tier": "recommended"
+ }
+]

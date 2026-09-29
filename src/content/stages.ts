@@ -360,9 +360,9 @@ function mix(...xs: number[]): number {
 }
 
 // 권장 어휘를 끈 부모 설정에서도 모자라지 않게, 더 적은 쪽(권장 제외)으로 센다
-const ALL_WORDS = (): VocabEntry[] => [...packWords('4-6', false), ...packWords('7-8', false)];
+const ALL_WORDS = (): VocabEntry[] => [...packWords('4-6', false), ...packWords('7-8', false), ...packWords('9+', false)];
 
-/** 두 연령팩을 합쳐 이 조건의 단어가 충분한가 (stageWords는 한 팩에서 모자라면 다른 팩을 더한다) */
+/** 모든 연령팩을 합쳐 이 조건의 단어가 충분한가 (stageWords는 한 팩에서 모자라면 다른 팩을 더한다) */
 function enoughWords(f: WordFilter): boolean {
   return ALL_WORDS().filter((w) => matches(f, w)).length >= MIN_STAGE_WORDS;
 }
@@ -491,6 +491,8 @@ function matches(f: WordFilter, w: VocabEntry): boolean {
   return !!feat && !!tier && f.syllables.includes(feat.syllables) && f.tiers.includes(tier);
 }
 
+const PACK_NEIGHBOURS: Record<PackId, PackId[]> = { '4-6': ['7-8', '9+'], '7-8': ['4-6', '9+'], '9+': ['7-8', '4-6'] };
+
 /** 이 전투에서 낼 수 있는 단어 (부모 설정의 연령팩·권장 어휘 포함 여부를 따른다) */
 export function stageWords(stage: StageDef, pack: PackId, includeRecommended: boolean): VocabEntry[] {
   if (Array.isArray(stage.pool)) return stage.pool.map((w) => vocabById(w)).filter((x): x is VocabEntry => !!x);
@@ -499,7 +501,13 @@ export function stageWords(stage: StageDef, pack: PackId, includeRecommended: bo
   const f = stage.pool;
   const chosen = mine.filter((w) => matches(f, w));
   if (chosen.length >= MIN_STAGE_WORDS) return chosen;
-  return [...chosen, ...packWords(pack === '4-6' ? '7-8' : '4-6', includeRecommended).filter((w) => matches(f, w))];
+  // 모자라면 가까운 레벨부터 같은 조건의 단어를 더한다 (4~6 → 7~8 → 9+, 9+ → 7~8 → 4~6)
+  const out = [...chosen];
+  for (const other of PACK_NEIGHBOURS[pack]) {
+    if (out.length >= MIN_STAGE_WORDS) break;
+    out.push(...packWords(other, includeRecommended).filter((w) => matches(f, w)));
+  }
+  return out;
 }
 
 /** 출제 순서용 난이도: 조립 난이도 + 소리와 표기가 다른 단어(공룡→[공뇽])는 1 더 */

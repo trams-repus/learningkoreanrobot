@@ -2,8 +2,16 @@
 // 공식 어휘 등급(국립국어원 기초 어휘 목록, 한국어기초사전 등급)은 officialGrade에 따로 두고,
 // 아직 대조하지 못했으므로 모두 null + sourceStatus '임시 선정'이다.
 // 음절·자모 분해는 직접 적지 않고 hangul.ts가 계산한다 (tests/vocab.test.ts가 분해→재조합을 검사).
+// 2026-09-29부터 새 단어는 src/content/wordlists/<레벨>.json에 둔다 (scripts/register-words.mjs가 검수한 그림과 함께 옮긴다).
+import { soundDiffers } from '../hangul/pronunciation';
+import L1_LIST from './wordlists/l1.json';
+import L2_LIST from './wordlists/l2.json';
+import L3_LIST from './wordlists/l3.json';
 
-export type PackId = '4-6' | '7-8';
+/** 어휘팩 = 레벨 (L1 4~6세, L2 7~8세, L3 9세~). docs/vocab-plan.md */
+export type PackId = '4-6' | '7-8' | '9+';
+
+export const PACK_NAME: Record<PackId, string> = { '4-6': '4~6세', '7-8': '7~8세', '9+': '9세 이상' };
 export type Tier = 'core' | 'recommended';
 export type Domain = '가족' | '신체' | '음식' | '동물' | '생활용품' | '장소' | '자연' | '행동' | '상태' | '탈것' | '사람';
 
@@ -44,7 +52,18 @@ function v(word: string, pack: PackId, tier: Tier, domain: Domain, soundMatchesS
   };
 }
 
-export const VOCAB: VocabEntry[] = [
+interface ListedWord {
+  word: string;
+  domain: string;
+  tier: string;
+}
+
+/** 목록 파일의 단어. 소리와 표기가 다른지는 발음 판정(규칙 + 예외 목록)으로 정한다. */
+function fromList(list: ListedWord[], pack: PackId): VocabEntry[] {
+  return list.map((x) => v(x.word, pack, x.tier === 'recommended' ? 'recommended' : 'core', x.domain as Domain, !soundDiffers(x.word)));
+}
+
+const HAND_WRITTEN: VocabEntry[] = [
   // 4~6세 팩 — 처음 20개
   v('수박', '4-6', 'core', '음식'),
   v('나무', '4-6', 'core', '자연'),
@@ -462,6 +481,8 @@ export const VOCAB: VocabEntry[] = [
   v('깨끗하다', '4-6', 'recommended', '상태', false),
   v('더럽다', '4-6', 'recommended', '상태', false),
 ];
+
+export const VOCAB: VocabEntry[] = [...HAND_WRITTEN, ...fromList(L1_LIST, '4-6'), ...fromList(L2_LIST, '7-8'), ...fromList(L3_LIST, '9+')];
 
 /**
  * 2단계 쉬운 단어 5개 (+수박): 받침·쌍자음·ㅐ 없는 두 글자이고 실제 녹음 음원 목록에 있는 단어.

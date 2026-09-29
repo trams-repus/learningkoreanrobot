@@ -715,7 +715,7 @@ export class Screens {
       ${chk('se-motion', s.jamoMotion, '자모가 천천히 떠다니기')}
       ${chk('se-reduce', s.reduceEffects, '폭발·흔들림 효과 줄이기')}
       <h3>단어</h3>
-      <label>어휘팩<select id="se-pack"><option value="4-6" ${s.pack === '4-6' ? 'selected' : ''}>4~6세 팩</option><option value="7-8" ${s.pack === '7-8' ? 'selected' : ''}>7~8세 팩</option></select></label>
+      <label>어휘팩<select id="se-pack"><option value="4-6" ${s.pack === '4-6' ? 'selected' : ''}>4~6세 팩</option><option value="7-8" ${s.pack === '7-8' ? 'selected' : ''}>7~8세 팩</option><option value="9+" ${s.pack === '9+' ? 'selected' : ''}>9세 이상 팩</option></select></label>
       ${chk('se-rec', s.includeRecommended, '권장 단어도 섞기 (끄면 핵심 단어만)')}
       <p class="muted">어휘팩은 게임 내부의 임시 선정입니다. 공식 어휘 등급과 대조하기 전이며, 아이 나이에 따른 공식 기준이 아닙니다.</p>
       <h3>아이</h3>
@@ -756,7 +756,7 @@ export class Screens {
       document.body.classList.toggle('reduce-motion', t.checked);
       this.game.setReduceEffects(t.checked);
     });
-    on('se-pack', (t) => (s.pack = t.value === '7-8' ? '7-8' : '4-6'));
+    on('se-pack', (t) => (s.pack = t.value === '7-8' || t.value === '9+' ? t.value : '4-6'));
     on('se-rec', (t) => (s.includeRecommended = t.checked));
     on('se-help', (t) => (s.helpMode = t.value === 'more' ? 'more' : 'auto'));
     on('se-autohelp', (t) => (s.autoHelp = t.checked));

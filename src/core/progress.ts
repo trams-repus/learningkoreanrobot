@@ -193,7 +193,7 @@ export function sanitizeSave(raw: unknown): SaveData {
       sfxVolume: num(s.sfxVolume, d.settings.sfxVolume, 0, 1),
       reduceEffects: bool(s.reduceEffects, d.settings.reduceEffects),
       jamoMotion: bool(s.jamoMotion, d.settings.jamoMotion),
-      pack: s.pack === '7-8' ? '7-8' : '4-6',
+      pack: s.pack === '7-8' || s.pack === '9+' ? s.pack : '4-6',
       includeRecommended: bool(s.includeRecommended, d.settings.includeRecommended),
       helpMode: s.helpMode === 'more' ? 'more' : 'auto',
       autoHelp: bool(s.autoHelp, d.settings.autoHelp),

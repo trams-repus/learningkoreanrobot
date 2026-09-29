@@ -13,6 +13,7 @@ import { PICS as L1_THINGS } from './pictures/l1-things.ts';
 import { PICS as L1_PLACES } from './pictures/l1-places.ts';
 import { PICS as L1_NATURE } from './pictures/l1-nature.ts';
 import { PICS as L1_ACTIONS } from './pictures/l1-actions.ts';
+import { REGISTERED_PICS } from './pictureIndex.ts';
 
 const PICTURES: Record<string, string> = {
   수박:
@@ -1004,6 +1005,8 @@ const PICTURES: Record<string, string> = {
 
 // L1 묶음 (docs/vocab-plan.md 작업 순서 2~4: 묶음별로 그리고 검수한 뒤 여기 등록)
 Object.assign(PICTURES, L1_ANIMALS, L1_FOOD, L1_THINGS, L1_PLACES, L1_NATURE, L1_ACTIONS);
+// 그 뒤 묶음은 scripts/register-words.mjs가 등록한다 (pictureIndex.ts 자동 생성)
+Object.assign(PICTURES, REGISTERED_PICS);
 
 /** 그림이 있는 단어 목록 (그린 순서) */
 export const PICTURED_WORDS = Object.keys(PICTURES);
