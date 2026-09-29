@@ -19,5 +19,12 @@ import { PICS as L2_THINGS2 } from './pictures/l2-things2.ts';
 import { PICS as L2_THINGS3 } from './pictures/l2-things3.ts';
 import { PICS as L2_THINGS4 } from './pictures/l2-things4.ts';
 import { PICS as L2_VEHICLES1 } from './pictures/l2-vehicles1.ts';
+import { PICS as L2_NATURE1 } from './pictures/l2-nature1.ts';
+import { PICS as L2_NATURE2 } from './pictures/l2-nature2.ts';
+import { PICS as L2_BODY1 } from './pictures/l2-body1.ts';
+import { PICS as L2_ACTIONS1 } from './pictures/l2-actions1.ts';
+import { PICS as L2_ACTIONS2 } from './pictures/l2-actions2.ts';
+import { PICS as L2_PEOPLE1 } from './pictures/l2-people1.ts';
+import { PICS as L2_STATES1 } from './pictures/l2-states1.ts';
 
-export const REGISTERED_PICS: Record<string, string> = Object.assign({}, L1B_ANIMALS, L1B_FOOD, L1B_THINGS1, L1B_THINGS2, L1B_VEHICLES_PLACES, L1B_STATES, L1B_BODY_ACTIONS, L1B_NATURE_PEOPLE, L2_ANIMALS1, L2_FOOD1, L2_FOOD2, L2_MUSIC1, L2_PLACES1, L2_PLACES2, L2_PLAY1, L2_THINGS1, L2_THINGS2, L2_THINGS3, L2_THINGS4, L2_VEHICLES1);
+export const REGISTERED_PICS: Record<string, string> = Object.assign({}, L1B_ANIMALS, L1B_FOOD, L1B_THINGS1, L1B_THINGS2, L1B_VEHICLES_PLACES, L1B_STATES, L1B_BODY_ACTIONS, L1B_NATURE_PEOPLE, L2_ANIMALS1, L2_FOOD1, L2_FOOD2, L2_MUSIC1, L2_PLACES1, L2_PLACES2, L2_PLAY1, L2_THINGS1, L2_THINGS2, L2_THINGS3, L2_THINGS4, L2_VEHICLES1, L2_NATURE1, L2_NATURE2, L2_BODY1, L2_ACTIONS1, L2_ACTIONS2, L2_PEOPLE1, L2_STATES1);
