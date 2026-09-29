@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
-import { GEN, MIN_STAGE_WORDS, bandFor, drawWord, entryDifficulty, frontier, generateStage, nextStageId, regionAt, regionEnd, stageAt, stageById, stagesUpTo, stageWords, trapMix } from '../src/content/stages';
+import { GEN, MIN_STAGE_WORDS, bandFor, drawWord, hearablePool, entryDifficulty, frontier, generateStage, nextStageId, regionAt, regionEnd, stageAt, stageById, stagesUpTo, stageWords, trapMix } from '../src/content/stages';
 
 /** 끝없는 단계 중 검사할 표본: 1~20단계 + 먼 단계 */
 const STAGES = [...stagesUpTo(20), ...[61, 99, 100, 1000, 1001, 9999, 10000].map((n) => stageAt(n))];
@@ -246,6 +246,16 @@ describe('무작위 출제 (단어 주머니)', () => {
     const r = drawWord(['수박', '나무'], ['나무', '바다'], '', createRng(2));
     expect(r.word).toBe('나무');
     expect(drawWord([], ['수박'], '수박', createRng(3)).word).toBe('수박');
+  });
+});
+
+describe('들을 수 있는 단어 우선 (음성 없는 기기)', () => {
+  it('들을 수 있는 단어가 충분하면 그것만, 모자라면 전체', () => {
+    const words = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차'];
+    const some = new Set(['가', '나', '다', '라', '마', '바', '사', '아']);
+    expect(hearablePool(words, (w) => some.has(w))).toEqual([...some]);
+    expect(hearablePool(words, (w) => w === '가')).toEqual(words);
+    expect(hearablePool(['가', '나'], () => true)).toEqual(['가', '나']);
   });
 });
 

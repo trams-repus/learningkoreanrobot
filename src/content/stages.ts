@@ -506,6 +506,15 @@ export function entryDifficulty(entry: VocabEntry): number {
 }
 
 /**
+ * 소리를 낼 수 없는 단어(기기 음성 없음 + 녹음 파일 없음)는 되도록 내지 않는다: 들을 수 있는 단어가 min개 이상이면 그것만,
+ * 모자라면 전체를 그대로 쓴다 (자막과 그림으로 부모와 함께 진행).
+ */
+export function hearablePool(words: string[], canHear: (w: string) => boolean, min = MIN_STAGE_WORDS): string[] {
+  const ok = words.filter(canHear);
+  return ok.length >= Math.min(min, words.length) ? ok : words;
+}
+
+/**
  * 단어 주머니: 전투 후보를 무작위로 섞어 하나씩 뽑는다 (2026-09-28 사용자 지시 "문제 랜덤으로").
  * 주머니를 다 비우기 전에는 같은 단어를 다시 내지 않고, 새로 섞을 때도 방금 낸 단어가 바로 나오지 않게 한다.
  */

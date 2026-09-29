@@ -338,9 +338,12 @@ async function run(vp) {
   const said = await page.evaluate(() => window.__said.slice());
   const i1 = said.indexOf('음절:수');
   const i2 = said.indexOf('음절:박', i1 + 1);
-  // 단어는 기본으로 기기 음성(녹음 파일 아님). 설정에서 녹음을 켜면 수박 녹음 파일이 끝까지 재생되어야 한다
+  // 단어는 기본으로 기기 음성(녹음 파일 아님). 설정에서 녹음을 켜면 수박 녹음 파일이 끝까지 재생되어야 한다.
+  // 한국어 기기 음성이 없으면(헤드리스) 녹음 파일로 대신 읽어야 한다 (M5 대체 순서)
   const wordPlays = await page.evaluate(() => window.__wordPlays.slice());
-  const wordNotFileByDefault = wordPlays.length > 0 && wordPlays.every((x) => !x.includes(':file:'));
+  const hasKoVoice = await page.evaluate(() => !!window.__hd.audio.ttsVoice);
+  const wordNotFileByDefault =
+    wordPlays.length > 0 && (hasKoVoice ? wordPlays.every((x) => !x.includes(':file:')) : wordPlays.some((x) => x.includes(':file:ok')));
   const recordingOption = await page.evaluate(async () => {
     const a = window.__hd.audio;
     const r = await a.previewWordFile('w_수박');
@@ -412,12 +415,16 @@ async function run(vp) {
     await waitFor(page, (id) => window.__hd.game.stage?.id === id && window.__hd.game.phase === 'compose', id);
   };
   // 첫 음절 화면의 함정 수 (정답 자모를 뺀 칩 수)
+  // 판에 떠 있는 칩에서 정답 자모를 빼고 남은 수 = 함정 수. 익숙한 단어는 한꺼번에 조립(모든 음절 칩)이라 모든 음절의 정답을 뺀다.
+  // (예전에는 첫 음절만 빼고, 없는 자모를 splice(-1)로 빼서 마지막 칩이 지워졌다)
   const trapCount = () => page.evaluate(() => {
-    const f = window.__hd.game.current.frames[0];
-    const need = [f.cho, f.jung, f.jong].filter(Boolean);
+    const need = window.__hd.game.current.frames.flatMap((f) => [f.cho, f.jung, f.jong].filter(Boolean));
     const free = [...document.querySelectorAll('#zone .jamo-chip')].filter((c) => !c.classList.contains('in-cell')).map((c) => c.dataset.jamo);
-    for (const j of need) free.splice(free.indexOf(j), 1);
-    return window.__hd.game.current.frames.length >= 1 ? free.length : -1;
+    for (const j of need) {
+      const i = free.indexOf(j);
+      if (i >= 0) free.splice(i, 1);
+    }
+    return free.length;
   });
   const kindOf = () => page.evaluate(() => {
     const fr = window.__hd.game.current.frames;
@@ -452,7 +459,8 @@ async function run(vp) {
     tiers.s6.every((x) => x.endsWith(':tense')) &&
     tiers.s11.every((x) => x.includes(':3:')) &&
     attackTiers.includes('s4:missiles') &&
-    traps.s3 === 2 && traps.s4 === 3 && traps.s8 === 4 && traps.s11 === 4 && traps.s8foes === 3;
+    // 함정은 음절마다 단계 값 이상 (한꺼번에 조립하는 익숙한 단어는 하나 더)
+    traps.s3 >= 2 && traps.s3 <= 3 && traps.s4 >= 3 && traps.s8 >= 4 && traps.s11 >= 4 && traps.s8foes === 3;
 
   // 5) 10단계 최종 보스 끝까지 (한 화면 크기에서만): 마지막 일격 = 최고 필살기 → 새 지역 발견 → 보호자 안내 → 11단계
   let finale = null;

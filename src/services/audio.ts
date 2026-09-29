@@ -1,6 +1,8 @@
 // 최소한의 음성 재생 관리자. 채널: 단어(최우선) / 대사 / 효과음(sfx.ts).
-// - 단어 음성은 대사를 끊고, 재생 중에는 효과음을 줄인다.
-// - 단어가 나오는 중에는 대사를 건너뛴다 (대기열을 만들지 않아 뒤늦은 재생이 없다).
+// - 단어 음성은 대사를 끊고, 재생 중에는 효과음을 크게 줄인다 (대사 중에는 조금).
+// - 단어가 나오는 중에는 대사를 건너뛴다. 꼭 해야 하는 대사(force)는 단어가 끝난 뒤 이어서 한 번만 한다 (단어를 끊지 않는다).
+// - 새 단어·새 소리를 틀면 이전 소리는 취소된다 (다음 문제로 가면 이전 음성이 남지 않는다).
+// - 대체 순서: 부모 녹음 → (설정 시) 단어 파일 → 기기 음성 → 단어 파일. 기기 음성이 오류를 내거나 1.5초 안에 시작하지 않으면 파일로.
 // - 재생 완료 이벤트가 오지 않아도 제한 시간 뒤 반드시 끝난다.
 // - 단어 녹음 파일(WAV)은 첫 터치에서 열린 Web Audio 장치로 해독·재생한다 (모바일 자동 재생 제한 대응).
 // 앱 포장 때는 이 파일만 네이티브 음성 경로로 바꾸면 된다.
@@ -15,6 +17,9 @@ export interface PlayResult {
   ok: boolean;
   method: Method;
 }
+
+/** 기기 음성이 이 안에 말을 시작하지 않으면 실패로 보고 대체 소리를 쓴다 */
+export const TTS_START_MS = 1500;
 
 export class AudioManager {
   muted = false;
@@ -32,6 +37,8 @@ export class AudioManager {
   private audioEl: HTMLAudioElement | null = null;
   private lastDialogueAt = new Map<string, number>();
   private webSource: AudioBufferSourceNode | null = null;
+  /** 단어가 끝나면 이어서 할 대사 (인자가 있으면 하지 않고 그 결과로 끝낸다) */
+  private afterWord: ((skip?: PlayResult) => void) | null = null;
   private buffers = new Map<string, Promise<AudioBuffer>>();
   /** 캐릭터별 대사 목소리 (단어 발음에는 쓰지 않는다) */
   dialogueVoice = { rate: 1.1, pitch: 1.0 };
@@ -87,9 +94,15 @@ export class AudioManager {
 
   methodFor(id: string): Method {
     if (this.recordings.has(id)) return 'recording';
-    if (this.useWordFiles && assetById(id)?.localPath) return 'file';
+    if (this.useWordFiles && this.hasFile(id)) return 'file';
     if (this.synth && this.ttsVoice) return 'tts';
+    // 기기 음성이 없으면 받아 둔 단어 파일이라도 튼다 (설정과 무관)
+    if (this.hasFile(id)) return 'file';
     return 'none';
+  }
+
+  private hasFile(id: string): boolean {
+    return !!assetById(id)?.localPath;
   }
 
   get busyWith(): Channel | null {
@@ -124,7 +137,18 @@ export class AudioManager {
    * 전투 대사. 단어 음성 중이면 건너뛴다. 같은 대사는 cooldown 안에 반복하지 않는다.
    */
   playDialogue(id: string, opts: { cooldownMs?: number; force?: boolean } = {}): Promise<PlayResult> {
-    if (this.current?.ch === 'word' && !opts.force) return Promise.resolve({ ok: false, method: 'none' });
+    if (this.current?.ch === 'word') {
+      if (!opts.force) return Promise.resolve({ ok: false, method: 'none' });
+      // 단어를 끊지 않고, 단어가 끝나면 이어서 한다. 기다리는 대사는 하나뿐 (새 대사가 오면 앞의 것은 버린다).
+      this.afterWord?.({ ok: false, method: 'none' });
+      return new Promise<PlayResult>((resolve) => {
+        this.afterWord = (skip) => {
+          this.afterWord = null;
+          if (skip) resolve(skip);
+          else void this.playDialogue(id, { ...opts, force: true }).then(resolve);
+        };
+      });
+    }
     const now = performance.now();
     const last = this.lastDialogueAt.get(id) ?? -Infinity;
     if (!opts.force && now - last < (opts.cooldownMs ?? 12000)) return Promise.resolve({ ok: false, method: 'none' });
@@ -135,6 +159,10 @@ export class AudioManager {
 
   stop(): void {
     this.token++;
+    // 기다리던 대사도 버린다 (다음 문제·일시정지·메뉴)
+    const pending = this.afterWord;
+    this.afterWord = null;
+    pending?.({ ok: false, method: 'none' });
     try {
       this.synth?.cancel();
     } catch {
@@ -166,12 +194,13 @@ export class AudioManager {
     const text = spoken ?? textFor(id);
     const method: Method = spoken === undefined ? this.methodFor(id) : this.synth && this.ttsVoice ? 'tts' : 'none';
     this.onPlaying(ch, text);
-    if (ch === 'word') this.sfx.setDuck(true);
+    this.sfx.setDuck(ch === 'word' ? true : 'soft');
     const limit = 1200 + Array.from(text).length * 260;
 
     return new Promise<PlayResult>((resolve) => {
       let settled = false;
       let ok = false;
+      let used: Method = method;
       const finish = () => {
         if (settled) return;
         settled = true;
@@ -180,8 +209,13 @@ export class AudioManager {
           this.current = null;
           this.sfx.setDuck(false);
           this.onPlaying(null, '');
+          // 단어가 끝나면 기다리던 대사를 한다
+          if (ch === 'word' && this.afterWord) {
+            const next = this.afterWord;
+            setTimeout(() => next(), 0);
+          }
         }
-        resolve({ ok, method });
+        resolve({ ok, method: used });
       };
       const success = () => {
         ok = true;
@@ -213,7 +247,15 @@ export class AudioManager {
         }
         return;
       }
-      this.speakTts(ch, text, my, success, finish);
+      // 기기 음성이 실패하면 단어 파일로 대신한다 (단어만: 대사·음절은 파일이 없다)
+      const ttsFail = () => {
+        if (this.token !== my) return;
+        if (ch === 'word' && spoken === undefined && this.hasFile(id)) {
+          used = 'file';
+          this.playFile(id, my, success, finish);
+        } else finish();
+      };
+      this.speakTts(ch, text, my, success, ttsFail);
     });
   }
 
@@ -310,16 +352,37 @@ export class AudioManager {
       u.rate = ch === 'word' ? 0.8 : this.dialogueVoice.rate;
       u.pitch = ch === 'word' ? 1.0 : this.dialogueVoice.pitch;
       u.volume = this.volume;
-      u.onend = success;
-      u.onerror = fail;
+      let started = false;
+      let failed = false;
+      const failOnce = () => {
+        if (failed) return;
+        failed = true;
+        try {
+          this.synth?.cancel();
+        } catch {
+          /* 무시 */
+        }
+        fail();
+      };
+      u.onstart = () => (started = true);
+      u.onend = () => {
+        started = true;
+        success();
+      };
+      u.onerror = failOnce;
       // cancel 직후 곧바로 speak하면 무시하는 브라우저가 있어 한 박자 뒤에 말한다
       setTimeout(() => {
         if (this.token !== my) return;
         try {
           this.synth!.speak(u);
         } catch {
-          fail();
+          failOnce();
+          return;
         }
+        // 말을 시작하지도 않고 조용히 멈춘 음성 엔진: 기다리지 않고 대체 소리로
+        setTimeout(() => {
+          if (this.token === my && !started) failOnce();
+        }, TTS_START_MS);
       }, 60);
     } catch {
       fail();
