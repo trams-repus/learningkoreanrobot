@@ -164,9 +164,10 @@ const REGION1: StageDef[] = [
     num: 8,
     region: 'r1',
     name: '세 마리 협공',
-    focus: '적 세 마리',
-    icon: 'charger',
-    waves: [[{ kind: 'imp' }, { kind: 'dino' }, { kind: 'charger', hp: 3 }]],
+    focus: '적 세 마리 · 갑옷',
+    icon: 'armor',
+    // 갑옷 공룡 첫 등장: 방패 하나를 먼저 깨야 한다 (무료 구간에서 적 다섯 종류를 모두 본다)
+    waves: [[{ kind: 'imp' }, { kind: 'dino' }, { kind: 'armor', shield: 1 }]],
     pool: { syllables: [1, 2], tiers: ['plain', 'jong', 'tense'] },
     traps: [E, M, M, H],
     intro: 'd_s8',
@@ -297,7 +298,7 @@ const WAVE_ROTATION: FoeKind[][] = [
 
 /**
  * 규칙으로 한 단계를 만든다. 5의 배수 단계는 보스(대장 → 거대 공룡 번갈아), 그 밖은 적 무리 두 번.
- * 방패는 규칙에 shield가 있을 때 뿔공룡·보스에 붙는다. 이름·설명은 overrides로 준다.
+ * 규칙에 shield가 있으면 뿔공룡 자리에 방패를 두른 갑옷 공룡이 나오고, 보스도 방패를 두른다. 이름·설명은 overrides로 준다.
  */
 export function stageFromRules(num: number, region: RegionId, overrides: Partial<StageDef> & Pick<StageDef, 'name' | 'focus'>): StageDef {
   const band = bandFor(num)!;
@@ -308,7 +309,7 @@ export function stageFromRules(num: number, region: RegionId, overrides: Partial
   const k = num - band.from;
   const size = Math.min(band.maxFoes, 2 + (k % 2));
   const pack = (i: number): FoeSpawn[] =>
-    WAVE_ROTATION[(k + i) % WAVE_ROTATION.length].slice(0, size).map((kind) => ({ kind, ...(shield && kind === 'charger' ? { shield: 1 } : {}) }));
+    WAVE_ROTATION[(k + i) % WAVE_ROTATION.length].slice(0, size).map((kind): FoeSpawn => (shield && kind === 'charger' ? { kind: 'armor', shield: 1 } : { kind }));
   const bossKind: FoeKind = (num / 5) % 2 === 0 ? 'boss' : 'chief';
   const waves: FoeSpawn[][] = bossStage
     ? [pack(0).slice(0, 2), [{ kind: bossKind, hp: bossKind === 'boss' ? 9 : 7, finalBlow: 'finisher', ...(shield ? { shield: 2 } : {}), ...(bossKind === 'boss' ? { writeFinish: 4 } : {}) }]]

@@ -28,6 +28,14 @@
   --chip-size: clamp(60px, 18vw, 86px);
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
+  /* 디자인 체계: 타이틀부터 부모 화면까지 같은 테두리·모서리·그림자·버튼 색을 쓴다 */
+  --line: #34467a;
+  --btn: #d9e4ff;
+  --stroke: 3px solid var(--ink);
+  --r-lg: 24px;
+  --r-md: 14px;
+  --drop: 0 6px 0 var(--ink);
+  --drop-sm: 0 4px 0 var(--ink);
 }
 
 * {
@@ -859,8 +867,20 @@ svg {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  width: 100%;
+  gap: 10px;
+  width: calc(100% + 32px);
+  /* 겹 화면(#overlay)의 안쪽 여백만큼 밀어 화면 아래·양옆 끝까지 붙인다 */
+  margin: 0 -16px calc(-16px - var(--safe-b));
+  /* 출격 버튼을 캐릭터 그림 위에 띄우지 않고, 다른 화면과 같은 판 위에 둔다 */
+  background: var(--panel);
+  border-top: 4px solid var(--ink);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  box-shadow: 0 -6px 0 rgba(22, 32, 58, 0.35);
+  padding: 16px 16px calc(16px + var(--safe-b));
+}
+.title-bottom .note {
+  background: transparent;
+  padding: 0 4px;
 }
 .start-btn {
   font-size: 34px;
@@ -1023,7 +1043,7 @@ svg {
   gap: 8px;
   flex-wrap: wrap;
   padding: 4px 16px 12px;
-  border-bottom: 3px solid #34467a;
+  border-bottom: 3px solid var(--line);
   flex-shrink: 0;
 }
 .parent-tabs .small-btn {
@@ -1092,18 +1112,94 @@ svg {
   min-height: 56px;
 }
 .parent input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
   width: 45%;
-  min-height: 36px;
-}
-.parent input[type='checkbox'] {
-  width: 32px;
-  height: 32px;
+  height: 36px;
+  background: transparent;
   flex-shrink: 0;
 }
+.parent input[type='range']::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--line);
+  border: var(--stroke);
+}
+.parent input[type='range']::-moz-range-track {
+  height: 14px;
+  border-radius: 999px;
+  background: var(--line);
+  border: var(--stroke);
+}
+.parent input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 32px;
+  height: 32px;
+  margin-top: -12px;
+  border-radius: 50%;
+  background: var(--trim);
+  border: var(--stroke);
+  box-shadow: 0 3px 0 var(--ink);
+}
+.parent input[type='range']::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--trim);
+  border: var(--stroke);
+}
+/* 켜고 끄는 설정은 스위치로 (체크 상자보다 누르기 쉽고 상태가 잘 보인다) */
+.parent input[type='checkbox'] {
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  width: 64px;
+  height: 36px;
+  flex-shrink: 0;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--line);
+  border: var(--stroke);
+  box-shadow: var(--drop-sm);
+  transition: background 0.15s;
+}
+.parent input[type='checkbox']::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--btn);
+  border: 2px solid var(--ink);
+  transition: transform 0.15s;
+}
+.parent input[type='checkbox']:checked {
+  background: var(--trim);
+}
+.parent input[type='checkbox']:checked::before {
+  transform: translateX(28px);
+  background: #fff;
+}
+.parent input[type='checkbox']:focus-visible,
+.parent input[type='range']:focus-visible,
+.parent select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
 .parent select {
+  -webkit-appearance: none;
+  appearance: none;
   font: inherit;
+  font-weight: 800;
   min-height: 48px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
+  border: var(--stroke);
+  background: var(--btn) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%2316203a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center / 20px;
+  color: var(--ink);
+  padding: 4px 38px 4px 14px;
+  box-shadow: var(--drop-sm);
 }
 .stat-grid {
   display: grid;
@@ -1128,8 +1224,8 @@ svg {
   color: var(--muted);
 }
 .sugg {
-  border: 3px solid #34467a;
-  border-radius: 16px;
+  border: 3px solid var(--line);
+  border-radius: var(--r-md);
   padding: 12px 14px;
   margin: 12px 0;
 }
@@ -1157,13 +1253,18 @@ svg {
 }
 .small-btn {
   min-height: 48px;
-  border-radius: 12px;
-  border: 3px solid var(--ink);
-  background: #d9e4ff;
+  border-radius: var(--r-md);
+  border: var(--stroke);
+  background: var(--btn);
   color: var(--ink);
   font-weight: 800;
   font-size: 15px;
   padding: 6px 14px;
+  box-shadow: var(--drop-sm);
+}
+.small-btn:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--ink);
 }
 .small-btn.danger {
   background: #ffb3a8;
@@ -1254,7 +1355,9 @@ svg {
   transform: translateY(3px);
 }
 .start-btn:disabled {
-  opacity: 0.45;
+  /* 반투명이면 뒤 그림이 비쳐 지저분하다: 흐린 단색으로 */
+  background: #5b6a92;
+  color: #c5cde3;
   animation: none;
 }
 .hero-art .flash,

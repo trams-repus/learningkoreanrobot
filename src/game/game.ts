@@ -699,7 +699,7 @@ export class Game {
     if (line) void audio.playDialogue(line, { force: true });
     const hits = robotAttack(this.state, tier);
     const hp = waveHp(this.state);
-    await this.scene.attack(tier, hits, hp.hp, hp.max);
+    await this.scene.attack(tier, hits, hp.hp, hp.max, this.combo);
     if (my !== this.run) return;
     this.gainEnergy(tier);
     await this.afterAttack(my, hits);

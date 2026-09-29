@@ -104,16 +104,31 @@ export function drawBackground(scene: Phaser.Scene, enemyPad: { x: number; y: nu
 
 // ───────────────────────── 로봇 (뒷모습) ─────────────────────────
 
+/**
+ * 관절 단위로 나눈 로봇. 팔은 어깨(gun/leftArm) → 팔꿈치(forearm/leftFore) 두 마디라서
+ * 충전(몸 낮춤) → 무장 전개(팔 들고 팔꿈치 폄) → 발사 반동(아래팔이 튐) → 피격(몸 비틀림)·방어(왼팔 올림)를 따로 움직인다.
+ */
 export interface RobotParts {
   root: C;
   body: C;
+  /** 다리: 발바닥 기준으로 세로를 줄이면 무릎을 굽힌다 */
+  legs: G;
   head: C;
   visor: G;
+  /** 대포 팔 윗마디 (어깨 축) */
   gun: C;
   gunShoulder: { x: number; y: number };
+  /** 대포 팔 아랫마디 (팔꿈치 축). 발사 반동이 여기서 튄다 */
+  forearm: C;
+  /** 아래팔 양옆 냉각 날개: 무장 전개 때 펼친다 */
+  fins: G;
   barrel: C;
   muzzleGlow: G;
+  /** 왼팔 윗마디 (어깨 축) */
   leftArm: C;
+  /** 왼팔 아랫마디 (팔꿈치 축). 손목 광선총이 달려 있다 */
+  leftFore: C;
+  wristGlow: G;
   pod: C;
   hatch: G;
   podMouths: { x: number; y: number }[];
@@ -136,13 +151,25 @@ export function makeRobot(scene: Phaser.Scene): RobotParts {
   legs.fillRect(18, -46, 30, 6);
   rrect(legs, -30, -96, 60, 26, 8, PAL.joint);
 
-  // 왼팔 (화면 왼쪽, 늘어뜨림)
+  // 왼팔 (화면 왼쪽, 늘어뜨림): 어깨 → 팔꿈치 → 손목 광선총
   const leftArm = scene.add.container(-66, -150);
   const la = scene.add.graphics();
   rrect(la, -12, 4, 24, 36, 9, PAL.armorDark);
-  rrect(la, -13, 36, 26, 36, 10, PAL.armor);
-  circle(la, 0, 78, 11, PAL.white);
-  leftArm.add(la);
+  circle(la, 0, 38, 8, PAL.joint, 2.5);
+  const leftFore = scene.add.container(0, 38);
+  const lf = scene.add.graphics();
+  rrect(lf, -13, -2, 26, 36, 10, PAL.armor);
+  lf.fillStyle(PAL.trim, 1);
+  lf.fillRect(-13, 8, 26, 4);
+  // 손목 광선총 (작은 총구)
+  rrect(lf, -6, 30, 12, 10, 3, PAL.joint, 2.5);
+  circle(lf, 0, 44, 10, PAL.white);
+  const wristGlow = scene.add.graphics();
+  wristGlow.fillStyle(0xfff3a0, 1);
+  wristGlow.fillCircle(0, 0, 9);
+  wristGlow.setPosition(0, 50).setAlpha(0);
+  leftFore.add([lf, wristGlow]);
+  leftArm.add([la, leftFore]);
 
   // 몸통 뒷면 + 등 추진기
   const torso = scene.add.graphics();
@@ -209,15 +236,30 @@ export function makeRobot(scene: Phaser.Scene): RobotParts {
   visor.fillRoundedRect(22, -30, 7, 16, 3);
   head.add([hg, visor]);
 
-  // 대포 팔 (어깨를 축으로 적을 향해 든다)
+  // 대포 팔: 어깨(윗마디)를 축으로 적을 향해 들고, 팔꿈치(아랫마디)에서 포신이 나온다
   const gunShoulder = { x: 62, y: -154 };
   const gun = scene.add.container(gunShoulder.x, gunShoulder.y);
   const ga = scene.add.graphics();
   rrect(ga, -12, 0, 24, 40, 9, PAL.armorDark);
-  rrect(ga, -15, 34, 30, 40, 11, PAL.armor);
-  ga.fillStyle(PAL.trim, 1);
-  ga.fillRect(-15, 48, 30, 5);
-  const barrel = scene.add.container(0, 60);
+  circle(ga, 0, 38, 9, PAL.joint, 2.5);
+  const forearm = scene.add.container(0, 38);
+  const fins = scene.add.graphics();
+  fins.fillStyle(PAL.armorDeep, 1);
+  fins.lineStyle(2.5, PAL.outline, 1);
+  for (const s of [-1, 1]) {
+    const pts = [V(s * 14, 2), V(s * 30, 10), V(s * 30, 24), V(s * 14, 30)];
+    fins.fillPoints(pts, true);
+    fins.strokePoints(pts, true);
+    fins.fillStyle(PAL.visor, 1);
+    fins.fillRect(s > 0 ? 18 : -26, 14, 8, 3);
+    fins.fillStyle(PAL.armorDeep, 1);
+  }
+  fins.setScale(0.2, 1);
+  const fa = scene.add.graphics();
+  rrect(fa, -15, -4, 30, 40, 11, PAL.armor);
+  fa.fillStyle(PAL.trim, 1);
+  fa.fillRect(-15, 10, 30, 5);
+  const barrel = scene.add.container(0, 22);
   const bg = scene.add.graphics();
   rrect(bg, -10, 0, 20, 58, 5, PAL.joint);
   bg.fillStyle(PAL.trim, 1);
@@ -229,9 +271,11 @@ export function makeRobot(scene: Phaser.Scene): RobotParts {
   const muzzleGlow = scene.add.graphics();
   muzzleGlow.fillStyle(0xfff3a0, 1);
   muzzleGlow.fillCircle(0, 0, 12);
-  muzzleGlow.setPosition(0, 126);
+  // 포신을 다 폈을 때의 포구 (포신이 접히면 muzzle()이 비율로 당긴다)
+  muzzleGlow.setPosition(0, 88);
   muzzleGlow.setAlpha(0);
-  gun.add([barrel, ga, muzzleGlow]);
+  forearm.add([fins, barrel, fa, muzzleGlow]);
+  gun.add([ga, forearm]);
 
   body.add([legs, leftArm, torso, thrustL, thrustR, gaugeBg, gauge, pod, head, gun, shoulderR]);
   root.add(body);
@@ -239,13 +283,18 @@ export function makeRobot(scene: Phaser.Scene): RobotParts {
   return {
     root,
     body,
+    legs,
     head,
     visor,
     gun,
     gunShoulder,
+    forearm,
+    fins,
     barrel,
     muzzleGlow,
     leftArm,
+    leftFore,
+    wristGlow,
     pod,
     hatch,
     podMouths,
@@ -277,6 +326,8 @@ export interface FoeParts {
   aura: G;
   height: number;
   mouth: { x: number; y: number };
+  /** 꼬리 곤봉 (갑옷 공룡만) */
+  tail?: C;
 }
 
 function eye(g: G, x: number, y: number, r: number, look = -0.35) {
@@ -402,6 +453,77 @@ export function makeCharger(scene: Phaser.Scene): FoeParts {
   body.add([aura, g, head]);
   root.add(body);
   return { root, body, head, jaw: null, aura, height: 116, mouth: { x: 0, y: -50 } };
+}
+
+/**
+ * 갑옷 공룡: 낮고 넓은 몸, 등딱지 판과 곤봉 꼬리. 다른 적보다 옆으로 넓고 키가 낮아 실루엣만으로 구별된다.
+ * tail은 꼬리 곤봉 휘두르기 공격에 쓴다.
+ */
+export function makeArmor(scene: Phaser.Scene): FoeParts {
+  const root = scene.add.container(0, 0);
+  const body = scene.add.container(0, 0);
+  const olive = 0x7c8f4a;
+  const dark = 0x56663a;
+  const plate = 0xb7a98a;
+  const aura = makeAura(scene, 74, -40);
+  // 곤봉 꼬리: 몸 뒤 오른쪽에서 흔든다 (축 = 꼬리 뿌리)
+  const tail = scene.add.container(40, -30);
+  const tg = scene.add.graphics();
+  blob(tg, [[-4, -8], [26, -18], [44, -30], [48, -22], [28, -6], [0, 6]], dark);
+  circle(tg, 50, -30, 12, plate);
+  for (const a of [0, 1.6, 3.2, 4.8]) tri(tg, [50 + Math.cos(a) * 10, -30 + Math.sin(a) * 10, 50 + Math.cos(a + 0.4) * 19, -30 + Math.sin(a + 0.4) * 19, 50 + Math.cos(a + 0.8) * 10, -30 + Math.sin(a + 0.8) * 10], 0xfff4d6, 2);
+  tail.add(tg);
+  const g = scene.add.graphics();
+  // 짧고 굵은 네 다리
+  for (const x of [-48, -24, 6, 30]) rrect(g, x, -16, 20, 18, 7, dark);
+  blob(g, [[-58, -12], [-60, -34], [0, -46], [60, -34], [58, -12], [0, -4]], olive);
+  // 등딱지 판 (육각 무늬 + 가시)
+  const shell = scene.add.graphics();
+  blob(shell, [[-54, -30], [-44, -62], [0, -74], [44, -62], [54, -30], [0, -24]], plate, 3);
+  shell.lineStyle(2.5, 0x8a7c5e, 1);
+  for (const [x, y] of [[-30, -46], [0, -54], [30, -46], [-14, -36], [14, -36]] as const) {
+    const pts: Phaser.Math.Vector2[] = [];
+    for (let k = 0; k < 6; k++) pts.push(V(x + Math.cos((k * Math.PI) / 3) * 10, y + Math.sin((k * Math.PI) / 3) * 7));
+    shell.strokePoints(pts, true);
+  }
+  for (const x of [-40, -20, 0, 20, 40]) tri(shell, [x - 6, -62 + Math.abs(x) * 0.28, x, -80 + Math.abs(x) * 0.34, x + 6, -62 + Math.abs(x) * 0.28], 0xfff4d6, 2);
+  // 머리: 낮고 넓게, 투구 같은 이마 판
+  const head = scene.add.container(0, -28);
+  const hg = scene.add.graphics();
+  blob(hg, [[-26, 6], [-28, -12], [0, -22], [28, -12], [26, 6], [0, 14]], olive);
+  blob(hg, [[-24, -10], [-18, -22], [18, -22], [24, -10], [0, -14]], plate, 2.5);
+  eye(hg, -11, -4, 6);
+  eye(hg, 11, -4, 6);
+  hg.lineStyle(4, PAL.outline, 1);
+  hg.lineBetween(-18, -13, -5, -9);
+  hg.lineBetween(18, -13, 5, -9);
+  hg.fillStyle(PAL.outline, 1);
+  hg.fillCircle(-4, 8, 2);
+  hg.fillCircle(4, 8, 2);
+  head.add(hg);
+  body.add([aura, tail, g, shell, head]);
+  root.add(body);
+  return { root, body, head, jaw: null, aura, height: 84, mouth: { x: 0, y: -24 }, tail };
+}
+
+/** 만화풍 명중 별: 뾰족한 흰 별 + 색 테두리. 명중 순간 한 박자만 보인다. */
+export function makeImpactStar(scene: Phaser.Scene, color = 0xffd23f, spikes = 8): G {
+  const g = scene.add.graphics();
+  const outer: Phaser.Math.Vector2[] = [];
+  const inner: Phaser.Math.Vector2[] = [];
+  for (let i = 0; i < spikes * 2; i++) {
+    const a = (i * Math.PI) / spikes + 0.2;
+    const r = i % 2 === 0 ? (i % 4 === 0 ? 34 : 26) : 13;
+    outer.push(V(Math.cos(a) * r, Math.sin(a) * r * 0.85));
+    inner.push(V(Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62 * 0.85));
+  }
+  g.fillStyle(color, 1);
+  g.fillPoints(outer, true);
+  g.lineStyle(3, PAL.outline, 1);
+  g.strokePoints(outer, true);
+  g.fillStyle(0xffffff, 1);
+  g.fillPoints(inner, true);
+  return g;
 }
 
 /** 중간 보스: 대장 뿔공룡 (뿔공룡에 금관과 어깨 갑옷, 더 크게) */

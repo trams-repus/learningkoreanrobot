@@ -157,7 +157,7 @@ describe('난이도 단계별 전투', () => {
     expect(Math.max(...r1[3].waves.map((w) => w.length))).toBe(2); // 두 마리 동시
     expect(Math.max(...r1[7].waves.map((w) => w.length))).toBe(3); // 8단계: 세 마리
     // 여러 종류의 적이 나온다
-    expect(new Set(r1.flatMap((s) => s.waves.flat().map((f) => f.kind)))).toEqual(new Set(['dino', 'imp', 'charger', 'chief', 'boss']));
+    expect(new Set(r1.flatMap((s) => s.waves.flat().map((f) => f.kind)))).toEqual(new Set(['dino', 'imp', 'charger', 'armor', 'chief', 'boss'])); // 일반·무리·돌진·갑옷·보스 모두
   });
   it('11단계부터는 규칙표로 만든다: 함정 4개 이상·어려움 더 많이, 세 글자, 콤보 시간 빠듯, 방패', () => {
     const r2 = STAGES.filter((s) => s.region === 'r2');

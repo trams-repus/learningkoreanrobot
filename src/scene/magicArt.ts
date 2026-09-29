@@ -82,6 +82,8 @@ export interface MagicParts {
   head: C;
   ponytail: C;
   cape: G;
+  /** 치마: 마법을 쓸 때·맞을 때 펄럭인다 (허리 쪽이 고정되게 원점을 허리에 둔다) */
+  skirt: G;
   /** 마법봉 팔: 어깨 축으로 회전. 0이면 아래(+y)를 향한다 (로봇 대포 팔과 같은 약속) */
   arm: C;
   armShoulder: { x: number; y: number };
@@ -121,13 +123,17 @@ export function makeMagicGirl(scene: Phaser.Scene): MagicParts {
   leftArm.setAngle(14);
 
   // 치마 (두 겹, 뒤에서 본 모습)
+  // 원점을 허리(y -124)에 두어, 가로로 늘여도 허리선은 제자리에 있다
   const skirt = scene.add.graphics();
-  blob(skirt, [[-34, -124], [34, -124], [62, -74], [34, -60], [0, -66], [-34, -60], [-62, -74]], MAG.dressLight, 3);
-  blob(skirt, [[-30, -126], [30, -126], [54, -82], [26, -72], [0, -78], [-26, -72], [-54, -82]], MAG.dress, 3);
+  const W0 = -124;
+  const sk = (pts: [number, number][]): [number, number][] => pts.map(([x, y]) => [x, y - W0]);
+  blob(skirt, sk([[-34, -124], [34, -124], [62, -74], [34, -60], [0, -66], [-34, -60], [-62, -74]]), MAG.dressLight, 3);
+  blob(skirt, sk([[-30, -126], [30, -126], [54, -82], [26, -72], [0, -78], [-26, -72], [-54, -82]]), MAG.dress, 3);
   skirt.lineStyle(2.5, MAG.dressDeep, 0.9);
-  skirt.lineBetween(-18, -118, -30, -80);
-  skirt.lineBetween(0, -120, 0, -80);
-  skirt.lineBetween(18, -118, 30, -80);
+  skirt.lineBetween(-18, -118 - W0, -30, -80 - W0);
+  skirt.lineBetween(0, -120 - W0, 0, -80 - W0);
+  skirt.lineBetween(18, -118 - W0, 30, -80 - W0);
+  skirt.setPosition(0, W0);
 
   // 몸통 뒤 (재킷)
   const torso = scene.add.graphics();
@@ -212,7 +218,7 @@ export function makeMagicGirl(scene: Phaser.Scene): MagicParts {
   root.add([gauge, body]);
   root.setScale(1.08);
 
-  return { root, body, head, ponytail, cape, arm, armShoulder, tipLocal, tipGlow, leftArm, gauge, gemCenter, gem };
+  return { root, body, head, ponytail, cape, skirt, arm, armShoulder, tipLocal, tipGlow, leftArm, gauge, gemCenter, gem };
 }
 
 /** 발밑 마법진: 자모를 넣을수록 조각이 켜진다 (로봇 등 게이지와 같은 역할) */
