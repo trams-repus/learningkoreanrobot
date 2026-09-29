@@ -20,6 +20,8 @@ concurrency:
 jobs:
   apk:
     runs-on: ubuntu-latest
+    env:
+      HAS_UPLOAD_KEY: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 != '' }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
@@ -43,6 +45,23 @@ jobs:
         working-directory: android
         run: ./gradlew assembleDebug --no-daemon
       - run: cp android/app/build/outputs/apk/debug/app-debug.apk inwoo-hangul-robot.apk
+      # Play 스토어용 AAB: 저장소 Secrets에 업로드 키가 있을 때만 (없으면 건너뜀)
+      - name: Play 업로드용 AAB 빌드
+        if: env.HAS_UPLOAD_KEY == 'true'
+        env:
+          KS: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+        run: |
+          echo "$KS" | base64 -d > upload.keystore
+          npx cap build android --androidreleasetype AAB --keystorepath "$PWD/upload.keystore" \
+            --keystorepass "$KS_PASS" --keystorealias upload --keystorealiaspass "$KS_PASS"
+          cp "$(find android/app/build/outputs/bundle/release -name '*.aab' | head -1)" inwoo-hangul-robot.aab
+          rm upload.keystore
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_UPLOAD_KEY == 'true'
+        with:
+          name: inwoo-hangul-robot-aab
+          path: inwoo-hangul-robot.aab
       - uses: actions/upload-artifact@v4
         with:
           name: inwoo-hangul-robot-apk
