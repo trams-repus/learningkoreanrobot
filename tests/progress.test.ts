@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { defaultSave, helpLevelFor, migrateStageIds, recordSuccess, sanitizeSave, STAGE_SET, STAGE_STEPS, wordStats } from '../src/core/progress';
-import { STAGES } from '../src/content/stages';
+import { stagesUpTo } from '../src/content/stages';
+
+const STAGES = stagesUpTo(20);
 import { SAVE_KEY, SaveService, type StorageLike } from '../src/services/storage';
 
 class Mem implements StorageLike {
@@ -167,6 +169,11 @@ describe('저장과 복구', () => {
     expect(c.data.cleared).toEqual(['s1']);
     expect(c.data.stats.words['수박']?.independent).toBe(1);
     expect(sanitizeSave({ settings: { characterTheme: 'princess' } }).settings.characterTheme).toBeNull();
+  });
+  it('깬 기록이 1000개를 넘어도 잘리지 않는다 (단계가 끝없이 이어진다)', () => {
+    const cleared = Array.from({ length: 2500 }, (_, i) => `s${i + 1}`);
+    const d = sanitizeSave({ stageSet: STAGE_SET, cleared });
+    expect(d.cleared.length).toBe(2500);
   });
   it('진행 초기화는 설정을 유지', () => {
     const s = new SaveService(new Mem());

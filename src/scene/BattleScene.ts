@@ -5,7 +5,7 @@
 import Phaser from 'phaser';
 import type { FoeKind } from '../core/types';
 import type { AttackTier, Hit } from '../core/types';
-import { drawBackground, drawGauge, makeArmor, makeBoss, makeCharger, makeChief, makeDino, makeFoeShield, makeGuard, makeImp, makeImpactStar, makeMissile, makeRobot, makeTextures, makeWarning, PAL, type FoeParts, type RobotParts } from './art';
+import { BG_LOOKS, drawBackground, drawGauge, paintBackground, makeArmor, makeBoss, makeCharger, makeChief, makeDino, makeFoeShield, makeGuard, makeImp, makeImpactStar, makeMissile, makeRobot, makeTextures, makeWarning, PAL, type FoeParts, type RobotParts } from './art';
 import { sfx, options } from '../game/services';
 import type { CharacterTheme } from '../content/characters';
 import { drawMagicGauge, makeHealSigil, makeMagicCircle, makeMagicGirl, makeMagicShield, makeMeteor, makeStarBullet, MAG, type MagicParts } from './magicArt';
@@ -77,6 +77,8 @@ export class BattleScene extends Phaser.Scene {
   private loopNow = 0;
   /** 필살기 조명 막 (중간에 끊겨도 resetBattle이 치운다) */
   private dimRect: Phaser.GameObjects.Rectangle | null = null;
+  private bg!: Phaser.GameObjects.Graphics;
+  private look = 0;
   /** 명중 말풍선(쾅!·펑!)을 차례로 고른다: 무작위 없이 같은 상황에 같은 결과 */
   private words = 0;
   ready: Promise<void>;
@@ -97,7 +99,8 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.ignore(this.fx);
     this.fxCam.ignore(this.world);
 
-    this.world.add(drawBackground(this, { x: FOE.x, y: FOE.y + 4 }, { x: ROBOT.x, y: ROBOT.y - 14 }));
+    this.bg = drawBackground(this, { x: FOE.x, y: FOE.y + 4 }, { x: ROBOT.x, y: ROBOT.y - 14 });
+    this.world.add(this.bg);
     this.foeLayer = this.add.container(0, 0);
     this.world.add(this.foeLayer);
     this.robot = makeRobot(this);
@@ -290,6 +293,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   // ───────────── 로봇 ─────────────
+
+  /** 지역 배경 (regionLook 번호). 모양은 같고 색만 바뀐다. */
+  setLook(i: number): void {
+    const n = ((i % BG_LOOKS.length) + BG_LOOKS.length) % BG_LOOKS.length;
+    if (!this.bg || n === this.look) return;
+    this.look = n;
+    paintBackground(this.bg, { x: FOE.x, y: FOE.y + 4 }, { x: ROBOT.x, y: ROBOT.y - 14 }, BG_LOOKS[n]);
+  }
 
   /** 선택한 캐릭터만 보이게 한다. 기록·규칙과는 무관한 그림 전환. */
   setTheme(t: CharacterTheme): void {
@@ -1675,9 +1686,13 @@ export class BattleScene extends Phaser.Scene {
     const m = this.magic;
     // 두 팔을 들어 올리는 필살 자세 (왼손도 하늘로)
     this.tweens.add({ targets: m.leftArm, angle: 160, duration: 260, ease: 'Back.out' });
-    const tip = this.wandTip();
     const circle = makeMagicCircle(this, 44, MAG.magic, MAG.magic2);
-    circle.setPosition(tip.x + 10, tip.y - 8).setScale(0).setAlpha(0.95);
+    // 마법봉 끝은 적과 거의 붙어 있어 거기서 광선을 쏘면 방향이 엉뚱해진다 (아래로 꺾여 소녀를 지나갔다).
+    // 어깨와 적 사이, 조금 위에 마법진을 띄워 그곳에서 적을 향해 쏜다.
+    const k = this.magic.root.scaleX;
+    const sh = { x: ROBOT.x + this.magic.armShoulder.x * k, y: ROBOT.y + this.magic.armShoulder.y * k };
+    const tc = this.foeCenter();
+    circle.setPosition(sh.x + (tc.x - sh.x) * 0.4, sh.y + (tc.y - sh.y) * 0.4 - 24).setScale(0).setAlpha(0.95);
     this.world.add(circle);
     sfx.play('magicCircle');
     this.tweens.add({ targets: circle, angle: 360, duration: 1200, repeat: -1 });

@@ -62,44 +62,80 @@ function tri(g: G, pts: number[], fill: number, lw = 2.5) {
 
 // ───────────────────────── 배경 ─────────────────────────
 
+/** 지역별 전투 배경 색 (regionLook 순서: 들판·화산섬·얼음·구름 성·바다·모래·우주·버섯 숲·번개 산). 모양은 같고 색만 바꾼다. */
+export interface BgLook {
+  sky: [number, number];
+  far: number;
+  /** 먼 산 가운데 봉우리 (없으면 그리지 않음) */
+  peak: number | null;
+  ground: [number, number];
+  patch: number;
+  pad: [number, number, number];
+  grass: number;
+  stars?: boolean;
+}
+
+export const BG_LOOKS: BgLook[] = [
+  { sky: [0x5ab8ff, 0xcdeeff], far: 0x9cc3e8, peak: 0x8a7a8f, ground: [0x9fd67a, 0x6fb24c], patch: 0x8cc86a, pad: [0x5a9a3c, 0xc9b27a, 0xdac48c], grass: 0x4c8a36 },
+  { sky: [0xff9d6b, 0xffd9b0], far: 0x9a7070, peak: 0x5a4040, ground: [0x8a6a4a, 0x5e4632], patch: 0x9c7a56, pad: [0x4a3626, 0x7a5a3e, 0x8c6c4c], grass: 0xff8c42 },
+  { sky: [0x9fd8ff, 0xeaf7ff], far: 0xd8ecff, peak: 0xb0c8e8, ground: [0xeef8ff, 0xc8e2f4], patch: 0xdcefff, pad: [0x9cc4e0, 0xd8ecfa, 0xeaf6ff], grass: 0x7fc0ee },
+  { sky: [0xffb8e6, 0xfff0fa], far: 0xffffff, peak: null, ground: [0xfdf8ff, 0xe8dcff], patch: 0xfff6ff, pad: [0xc8b8ee, 0xefe8ff, 0xffffff], grass: 0xc9b6ff },
+  { sky: [0x2f7fd0, 0x7fc8ff], far: 0x3a6aa8, peak: null, ground: [0xe8c77a, 0xc9a45c], patch: 0xf2d898, pad: [0x9c7c44, 0xdcbc7c, 0xecd09c], grass: 0xff7a8a },
+  { sky: [0xffc070, 0xfff0c8], far: 0xe8b060, peak: 0xd09048, ground: [0xf0cc80, 0xd8a858], patch: 0xf6d898, pad: [0xb08040, 0xe0b870, 0xecca88], grass: 0x7c9a44 },
+  { sky: [0x1a1440, 0x4a3a8a], far: 0x6a5fa0, peak: null, ground: [0x8a7fc0, 0x5e5496], patch: 0x9c92d0, pad: [0x4a4280, 0x7c72b4, 0x9c92d0], grass: 0xfff06a, stars: true },
+  { sky: [0x8fe0b0, 0xd8fbe4], far: 0x7cc49a, peak: null, ground: [0x6fbf5a, 0x4c9a3c], patch: 0x86cc70, pad: [0x3e7a30, 0xb89a70, 0xcab080], grass: 0xff5a5a },
+  { sky: [0x5a6490, 0xa8b2d8], far: 0x6b6f86, peak: 0x4f5570, ground: [0x7c8a7c, 0x5a665a], patch: 0x8a988a, pad: [0x44504a, 0x9a9a8a, 0xaaaa9a], grass: 0x3e4a44 },
+];
+
 export function drawBackground(scene: Phaser.Scene, enemyPad: { x: number; y: number }, robotPad: { x: number; y: number }): G {
   const g = scene.add.graphics();
-  g.fillGradientStyle(0x5ab8ff, 0x5ab8ff, 0xcdeeff, 0xcdeeff, 1);
+  paintBackground(g, enemyPad, robotPad, BG_LOOKS[0]);
+  return g;
+}
+
+export function paintBackground(g: G, enemyPad: { x: number; y: number }, robotPad: { x: number; y: number }, L: BgLook): void {
+  g.clear();
+  g.fillGradientStyle(L.sky[0], L.sky[0], L.sky[1], L.sky[1], 1);
   g.fillRect(-1500, -1200, 3400, 1330);
+  if (L.stars) {
+    g.fillStyle(0xffffff, 0.9);
+    for (let i = 0; i < 24; i++) g.fillCircle(((i * 97) % 480) - 40, ((i * 53) % 110) - 10, i % 3 ? 1.5 : 2.5);
+  }
   // 먼 산
-  g.fillStyle(0x9cc3e8, 1);
+  g.fillStyle(L.far, 1);
   g.fillPoints([V(-400, 130), V(-20, 70), V(60, 95), V(150, 50), V(240, 90), V(330, 40), V(460, 95), V(900, 70), V(900, 140), V(-400, 140)], true);
-  g.fillStyle(0x8a7a8f, 1);
-  g.fillPoints([V(120, 120), V(160, 58), V(176, 58), V(220, 120)], true);
-  g.fillStyle(0xff8c42, 1);
-  g.fillRect(160, 55, 16, 5);
+  if (L.peak !== null) {
+    g.fillStyle(L.peak, 1);
+    g.fillPoints([V(120, 120), V(160, 58), V(176, 58), V(220, 120)], true);
+    g.fillStyle(0xff8c42, 1);
+    g.fillRect(160, 55, 16, 5);
+  }
   // 들판 (위쪽은 멀리, 아래쪽은 가까이)
-  g.fillGradientStyle(0x9fd67a, 0x9fd67a, 0x6fb24c, 0x6fb24c, 1);
+  g.fillGradientStyle(L.ground[0], L.ground[0], L.ground[1], L.ground[1], 1);
   g.fillRect(-1500, 118, 3400, 1200);
-  g.fillStyle(0x8cc86a, 1);
+  g.fillStyle(L.patch, 1);
   for (const [x, y, w] of [[40, 160, 60], [210, 190, 80], [350, 230, 50], [20, 240, 70], [260, 270, 90]] as const) g.fillEllipse(x, y, w, w * 0.2);
   // 적 발판
-  g.fillStyle(0x5a9a3c, 1);
+  g.fillStyle(L.pad[0], 1);
   g.fillEllipse(enemyPad.x, enemyPad.y + 6, 190, 44);
-  g.fillStyle(0xc9b27a, 1);
+  g.fillStyle(L.pad[1], 1);
   g.fillEllipse(enemyPad.x, enemyPad.y, 176, 36);
-  g.fillStyle(0xdac48c, 1);
+  g.fillStyle(L.pad[2], 1);
   g.fillEllipse(enemyPad.x - 10, enemyPad.y - 3, 130, 20);
   // 로봇 발판
-  g.fillStyle(0x4f8a34, 1);
+  g.fillStyle(L.pad[0], 1);
   g.fillEllipse(robotPad.x, robotPad.y + 8, 280, 70);
-  g.fillStyle(0xb9a06a, 1);
+  g.fillStyle(L.pad[1], 1);
   g.fillEllipse(robotPad.x, robotPad.y, 262, 58);
-  g.fillStyle(0xcab27a, 1);
+  g.fillStyle(L.pad[2], 1);
   g.fillEllipse(robotPad.x - 16, robotPad.y - 6, 190, 30);
-  // 풀
-  g.fillStyle(0x4c8a36, 1);
+  // 풀 (지역마다 색: 바위·산호·버섯 점처럼 보인다)
+  g.fillStyle(L.grass, 1);
   for (const x of [10, 70, 190, 240, 370, 390]) {
     const y = x < 200 ? 200 + (x % 30) : 170 + (x % 20);
     g.fillTriangle(x, y, x + 4, y - 12, x + 8, y);
     g.fillTriangle(x + 6, y, x + 11, y - 9, x + 15, y);
   }
-  return g;
 }
 
 // ───────────────────────── 로봇 (뒷모습) ─────────────────────────

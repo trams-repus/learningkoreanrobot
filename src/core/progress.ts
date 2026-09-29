@@ -175,10 +175,11 @@ export function sanitizeSave(raw: unknown): SaveData {
   // 다른 전투 구성에서 깬 기록은 STAGE_STEPS로 지금 구성에 옮긴다. 옮길 수 없으면(더 새 구성) 전투 진행만 처음부터.
   // 어느 쪽이든 단어 기록·설정은 그대로이고, 옮기기 전 원본은 저장 서비스가 따로 보관한다.
   const fromSet = stageSetOf(raw);
-  const cleared = migrateStageIds(strList(r.cleared, 1000), fromSet) ?? [];
+  // 단계가 끝없이 이어지므로 깬 기록 수에 작은 상한을 두지 않는다 (생성기의 최대 단계 수까지)
+  const cleared = migrateStageIds(strList(r.cleared, 100000), fromSet) ?? [];
   const last = typeof r.lastStage === 'string' ? migrateStageIds([r.lastStage], fromSet)?.[0] ?? null : null;
   // 지역은 구성 3에서 생겼다. 옛 구성의 '새 지역 발견' 기록은 없다.
-  const regionsSeen = fromSet === STAGE_SET ? strList(r.regionsSeen, 100) : [];
+  const regionsSeen = fromSet === STAGE_SET ? strList(r.regionsSeen, 10000) : [];
   return {
     version: SAVE_VERSION,
     stageSet: STAGE_SET,

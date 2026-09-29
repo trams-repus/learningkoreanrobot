@@ -534,7 +534,9 @@ async function stagePaths() {
     ['1단계를 깬 기록 이어하기', { version: 2, stageSet: 3, cleared: ['s1'], lastStage: 's1', settings: { characterTheme: 'robot' } }, 's2'],
     ['3단계까지 깬 기록 이어하기', { version: 2, stageSet: 3, cleared: ['s1', 's2', 's3'], lastStage: 's3', settings: { characterTheme: 'robot' } }, 's4'],
     ['10단계까지 깬 기록 → 화산섬', { version: 2, stageSet: 3, cleared: all.slice(0, 10), lastStage: 's10', settings: { characterTheme: 'robot' } }, 's11'],
-    ['다 깬 기록 (15단계 뒤)', { version: 2, stageSet: 3, cleared: all, lastStage: 's15', settings: { characterTheme: 'robot' } }, 's1'],
+    // 단계가 끝없이 이어진다 (M3): 1~15를 깨면 16단계로, 1단계로 돌아가지 않는다
+    ['15단계까지 깬 기록 → 16단계', { version: 2, stageSet: 3, cleared: all, lastStage: 's15', settings: { characterTheme: 'robot' } }, 's16'],
+    ['99단계까지 깬 기록 → 100단계 대형 보스', { version: 2, stageSet: 3, cleared: Array.from({ length: 99 }, (_, i) => `s${i + 1}`), lastStage: 's99', settings: { characterTheme: 'robot' } }, 's100'],
   ];
   const browser = await chromium.launch();
   const out = {};

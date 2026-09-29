@@ -1,25 +1,52 @@
 // 전투(스테이지) 목록. 2026-09-28 사용자 지시("Stage 1~10은 쉬운 난이도의 완성된 게임")에 따라 다시 짰다.
 // 1~10단계: 첫 지역(공룡 들판). 처음부터 함정·콤보·공격 연출·적 피격·대사가 모두 나오고,
 // 단계마다 새 요소를 하나씩 더한다 (2연타 → 받침 → 두 마리 동시 + 범위 공격 → 중간 보스 → … → 최종 보스와 최고 필살기).
-// 11단계부터: 두 번째 지역(화산섬). 난이도 규칙(DIFFICULTY_BANDS)으로 만든다. 지금은 11~15단계만 넣어 검증한다.
-// 적 체력·함정 수·콤보 여유는 플레이테스트용 임시값이다.
+// 11단계부터: 끝없이 이어진다. 단계 번호와 시드로 만드는 생성기(generateStage)가 난이도 규칙(DIFFICULTY_BANDS)을 따라
+// 같은 번호면 늘 같은 전투를 만든다. 난이도는 GEN.capAt 단계에서 멈추고(상한), 5의 배수는 중간 보스, 10의 배수는 대형 보스.
+// 10단계마다 새 지역. 적 체력·함정 수·콤보 여유는 플레이테스트용 임시값이다.
 import { wordDifficulty, wordFeatures, wordTier, type TrapGrade, type WordTier } from '../core/assembly';
+import { createRng } from '../core/rng';
 import type { AttackTier, FoeKind, FoeSpawn } from '../core/types';
 import { EASY_FIVE, packWords, vocabById, type PackId, type VocabEntry } from './vocab';
 
-export type RegionId = 'r1' | 'r2';
+/** r1 = 1~10단계, r2 = 11~20단계, … (10단계마다 하나) */
+export type RegionId = `r${number}`;
 
 export interface RegionDef {
   id: RegionId;
+  /** 몇 번째 지역인가 (1부터) */
+  index: number;
   name: string;
   /** 부모에게 보이는 한 줄 설명 */
   blurb: string;
 }
 
-export const REGIONS: RegionDef[] = [
-  { id: 'r1', name: '공룡 들판', blurb: '1~10단계: 쉬운 두 글자 단어, 받침, 여러 적, 중간 보스와 거대 공룡' },
-  { id: 'r2', name: '화산섬', blurb: '11단계부터: 세 글자 단어, 더 헷갈리는 함정, 방패 공룡과 무리 공격' },
-];
+/** 11단계부터의 지역 이름. 다 쓰면 같은 이름에 번호를 붙여 다시 돈다 (화산섬 2 …). */
+const REGION_NAMES = ['화산섬', '얼음 골짜기', '구름 성', '깊은 바다', '모래 유적', '별빛 우주', '버섯 숲', '번개 산'];
+
+/** 지역 그림·배경 종류: 0 = 공룡 들판, 1 = 화산섬, 2 = 얼음 골짜기 … (REGION_NAMES 순서, 돌아가며 반복) */
+export function regionLook(index: number): number {
+  return index <= 1 ? 0 : 1 + ((index - 2) % REGION_NAMES.length);
+}
+
+export function regionIndexOf(num: number): number {
+  return Math.max(1, Math.ceil(num / 10));
+}
+
+export function regionAt(index: number): RegionDef {
+  if (index <= 1) return { id: 'r1', index: 1, name: '공룡 들판', blurb: '1~10단계: 쉬운 두 글자 단어, 받침, 여러 적, 중간 보스와 거대 공룡' };
+  const k = index - 2;
+  const base = REGION_NAMES[k % REGION_NAMES.length];
+  const round = Math.floor(k / REGION_NAMES.length);
+  const from = (index - 1) * 10 + 1;
+  const band = bandFor(Math.min(from, GEN.capAt))!;
+  return { id: `r${index}`, index, name: round ? `${base} ${round + 1}` : base, blurb: `${from}~${from + 9}단계: ${band.blurb}` };
+}
+
+export function regionById(id: string): RegionDef | undefined {
+  const m = /^r(\d+)$/.exec(id);
+  return m ? regionAt(Number(m[1])) : undefined;
+}
 
 /** 연령팩 안에서 단어 고르기: 음절 수와 조립 단계(받침 없음·받침·쌍자음/ㅐ류) */
 export interface WordFilter {
@@ -231,6 +258,8 @@ export interface DifficultyBand {
   fxScale: number;
   /** 아직 게임에 넣지 않은 규칙 */
   planned: string[];
+  /** 부모 안내에 쓰는 한 줄 설명 */
+  blurb: string;
 }
 
 export const DIFFICULTY_BANDS: DifficultyBand[] = [
@@ -247,6 +276,7 @@ export const DIFFICULTY_BANDS: DifficultyBand[] = [
     behaviours: ['pack', 'heavy', 'shield'],
     fxScale: 1.5,
     planned: ['피하기(dodge)', '차례 강화(buff)', '환경 연출'],
+    blurb: '세 글자 단어, 더 헷갈리는 함정, 갑옷 공룡과 무리 공격',
   },
   {
     from: 31,
@@ -260,7 +290,8 @@ export const DIFFICULTY_BANDS: DifficultyBand[] = [
     maxFoes: 3,
     behaviours: ['pack', 'heavy', 'shield', 'dodge'],
     fxScale: 1.6,
-    planned: ['겹모음 ㅘ·ㅝ·ㅚ·ㅟ 조립틀', '갑옷 적', '보스 패턴', '필살기 변형'],
+    planned: ['겹모음 ㅘ·ㅝ·ㅚ·ㅟ 조립틀', '보스 패턴', '필살기 변형'],
+    blurb: '네 글자까지, 받침·쌍자음 위주, 방패 두른 보스',
   },
   {
     from: 61,
@@ -275,6 +306,7 @@ export const DIFFICULTY_BANDS: DifficultyBand[] = [
     behaviours: ['pack', 'heavy', 'shield', 'dodge', 'buff'],
     fxScale: 1.7,
     planned: ['새 콤보', '새 배경', '특수 보스'],
+    blurb: '가장 어려운 함정과 긴 단어 (난이도는 여기서 더 오르지 않는다)',
   },
 ];
 
@@ -289,86 +321,163 @@ export function trapMix(count: number, hardShare: number): TrapGrade[] {
   return [...Array<TrapGrade>(hard).fill(H), ...Array<TrapGrade>(count - hard - easy).fill(M), ...Array<TrapGrade>(easy).fill(E)];
 }
 
-const WAVE_ROTATION: FoeKind[][] = [
+// ───────────── 11단계 이후 생성기 ─────────────
+
+/**
+ * 생성기 설정. version을 올리면 같은 번호의 전투 내용이 바뀐다 (깬 기록은 번호로 남으므로 그대로).
+ * capAt: 이 단계부터 난이도(함정·단어 길이·콤보 여유·적 수·보스 체력)가 더 오르지 않는다.
+ */
+export const GEN = { seed: 0x5eed, version: 1, capAt: 61 };
+/** 번호로 만들 수 있는 가장 큰 단계 (저장 데이터의 이상한 번호를 막는 안전장치) */
+export const MAX_STAGE = 99999;
+
+/** 무리 구성 후보. 갑옷 공룡은 늘 방패를 두르고 나온다. */
+const PACKS: FoeKind[][] = [
   ['imp', 'dino', 'imp'],
   ['dino', 'charger'],
   ['charger', 'imp', 'dino'],
   ['imp', 'imp', 'charger'],
+  ['dino', 'armor'],
+  ['imp', 'charger', 'armor'],
 ];
 
+/** 11~15단계는 이름을 손으로 붙였다 (예전 목록과 같은 이름) */
+const NAMED: Record<number, Partial<StageDef>> = {
+  11: { name: '화산섬 상륙', intro: 'd_region2' },
+  12: { name: '방패 공룡' },
+  13: { name: '용암 늪 괴물' },
+  14: { name: '화산 협곡' },
+  15: { name: '용암 대장', intro: 'd_s5' },
+};
+
+function mix(...xs: number[]): number {
+  let h = 2166136261;
+  for (const x of xs) {
+    h ^= x >>> 0;
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+// 권장 어휘를 끈 부모 설정에서도 모자라지 않게, 더 적은 쪽(권장 제외)으로 센다
+const ALL_WORDS = (): VocabEntry[] => [...packWords('4-6', false), ...packWords('7-8', false)];
+
+/** 두 연령팩을 합쳐 이 조건의 단어가 충분한가 (stageWords는 한 팩에서 모자라면 다른 팩을 더한다) */
+function enoughWords(f: WordFilter): boolean {
+  return ALL_WORDS().filter((w) => matches(f, w)).length >= MIN_STAGE_WORDS;
+}
+
+const cache = new Map<string, StageDef>();
+
 /**
- * 규칙으로 한 단계를 만든다. 5의 배수 단계는 보스(대장 → 거대 공룡 번갈아), 그 밖은 적 무리 두 번.
- * 규칙에 shield가 있으면 뿔공룡 자리에 방패를 두른 갑옷 공룡이 나오고, 보스도 방패를 두른다. 이름·설명은 overrides로 준다.
+ * num단계(11 이상)를 만든다. 같은 num·seed면 늘 같은 결과 (무작위는 번호에서 나온 시드로만).
+ * 난이도는 min(num, GEN.capAt)으로 계산해 상한을 둔다. 5의 배수 = 중간 보스, 10의 배수 = 대형 보스.
  */
-export function stageFromRules(num: number, region: RegionId, overrides: Partial<StageDef> & Pick<StageDef, 'name' | 'focus'>): StageDef {
-  const band = bandFor(num)!;
-  const t = band.to === null ? 1 : (num - band.from) / Math.max(1, band.to - band.from);
+export function generateStage(num: number, seed = GEN.seed): StageDef {
+  const key = `${seed}:${num}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const rng = createRng(mix(seed, GEN.version, num));
+  const level = Math.min(num, GEN.capAt);
+  const band = bandFor(level)!;
+  const t = band.to === null ? 1 : (level - band.from) / Math.max(1, band.to - band.from);
   const count = Math.round(band.traps.count[0] + (band.traps.count[1] - band.traps.count[0]) * t);
   const shield = band.behaviours.includes('shield');
-  const bossStage = num % 5 === 0;
-  const k = num - band.from;
-  const size = Math.min(band.maxFoes, 2 + (k % 2));
-  const pack = (i: number): FoeSpawn[] =>
-    WAVE_ROTATION[(k + i) % WAVE_ROTATION.length].slice(0, size).map((kind): FoeSpawn => (shield && kind === 'charger' ? { kind: 'armor', shield: 1 } : { kind }));
-  const bossKind: FoeKind = (num / 5) % 2 === 0 ? 'boss' : 'chief';
-  const waves: FoeSpawn[][] = bossStage
-    ? [pack(0).slice(0, 2), [{ kind: bossKind, hp: bossKind === 'boss' ? 9 : 7, finalBlow: 'finisher', ...(shield ? { shield: 2 } : {}), ...(bossKind === 'boss' ? { writeFinish: 4 } : {}) }]]
-    : [pack(0), pack(1)];
-  // 단어: 단계마다 초점을 바꾼다 (긴 단어 → 받침 → 쌍자음·ㅐ류)
+  const bigBoss = num % 10 === 0;
+  const midBoss = !bigBoss && num % 5 === 0;
+  const size = Math.min(band.maxFoes, 2 + Math.floor(rng() * 2));
+  const pack = (): FoeSpawn[] =>
+    PACKS[Math.floor(rng() * PACKS.length)].slice(0, size).map((kind): FoeSpawn => (kind === 'armor' ? { kind, ...(shield ? { shield: 1 } : {}) } : { kind }));
+  // 보스 체력도 상한이 있다: 대형 12, 중간 9
+  const bossHp = bigBoss ? Math.min(12, 9 + Math.floor((level - 10) / 25)) : Math.min(9, 7 + Math.floor((level - 15) / 25));
+  const boss: FoeSpawn | null = bigBoss
+    ? { kind: 'boss', hp: bossHp, finalBlow: 'finisher', writeFinish: 4, ...(shield ? { shield: 2 } : {}) }
+    : midBoss
+      ? { kind: 'chief', hp: bossHp, finalBlow: 'finisher', ...(shield ? { shield: 2 } : {}) }
+      : null;
+  const waves: FoeSpawn[][] = boss ? [pack().slice(0, 2), [boss]] : [pack(), pack()];
+
+  // 단어: 긴 단어 / 받침 / 쌍자음·ㅐ류 중 하나에 초점. 단어가 모자라면 넓힌다 (빈 전투가 나오지 않게).
   const longest = Math.max(...band.syllables);
-  const focus: WordFilter[] = [
-    { syllables: [longest], tiers: band.tiers },
-    { syllables: band.syllables, tiers: ['jong'] },
-    { syllables: band.syllables, tiers: ['tense'] },
+  const focusList: { f: WordFilter; label: string }[] = [
+    { f: { syllables: [longest], tiers: band.tiers }, label: `${longest}글자` },
+    { f: { syllables: band.syllables, tiers: ['jong'] }, label: '받침' },
+    { f: { syllables: band.syllables, tiers: ['tense'] }, label: '쌍자음 · ㅐ' },
   ];
-  return {
+  // 초점은 번호로 돌린다 (무작위로 고르면 같은 초점이 몇 번 이어져 지루했다)
+  // 11단계(화산섬 첫 전투)가 긴 단어로 시작한다: 11 긴 단어 → 12 받침 → 13 쌍자음·ㅐ → …
+  let focus = focusList[(num - 11) % focusList.length];
+  if (!enoughWords(focus.f)) focus = focusList.find((x) => enoughWords(x.f)) ?? { f: { syllables: band.syllables, tiers: band.tiers }, label: '여러 단어' };
+  if (!enoughWords(focus.f)) focus = { f: { syllables: [1, 2, 3], tiers: ['plain', 'jong', 'tense'] }, label: '여러 단어' };
+
+  const region = regionAt(regionIndexOf(num));
+  const armored = waves.flat().some((f) => f.kind === 'armor');
+  const plainNames = focus.label === '받침' ? ['받침 공룡 떼', '받침 괴물 습격'] : focus.label.startsWith('쌍') ? ['쌍자음 괴물', '된소리 습격'] : [`${focus.label} 습격`, '긴 단어 공룡 떼'];
+  const name = bigBoss ? `대형 보스: ${region.name}의 거대 공룡` : midBoss ? `중간 보스: ${region.name} 대장` : armored && rng() < 0.5 ? '갑옷 공룡 행진' : plainNames[Math.floor(rng() * plainNames.length)];
+  const def: StageDef = {
     id: `s${num}`,
     num,
-    region,
-    icon: bossStage ? bossKind : waves[0][0].kind,
+    region: region.id,
+    name,
+    focus: bigBoss ? '대형 보스' : midBoss ? '중간 보스' : armored ? `${focus.label} · 갑옷` : focus.label,
+    icon: boss ? boss.kind : waves[0][0].kind,
     waves,
-    pool: focus[k % focus.length],
+    pool: focus.f,
     traps: trapMix(count, band.traps.hardShare),
     advancedTraps: band.traps.advanced,
     comboScale: band.comboScale,
     fxScale: band.fxScale,
     guide: band.guide,
-    ...(bossStage ? { boss: bossKind === 'boss' ? ('final' as const) : ('mid' as const) } : {}),
-    ...overrides,
+    ...(bigBoss ? { boss: 'final' as const } : midBoss ? { boss: 'mid' as const } : {}),
+    ...(num % 10 === 1 && num > 11 ? { intro: 'd_regionnew' } : {}),
+    ...NAMED[num],
   };
+  if (cache.size > 500) cache.clear();
+  cache.set(key, def);
+  return def;
 }
 
-/** 11~15단계만 실제로 넣어 규칙을 검증한다 (2026-09-28 지시). 더 늘릴 때는 이름만 더하면 된다. */
-const REGION2: StageDef[] = [
-  stageFromRules(11, 'r2', { name: '화산섬 상륙', focus: '세 글자', intro: 'd_region2' }),
-  stageFromRules(12, 'r2', { name: '방패 뿔공룡', focus: '받침 · 방패' }),
-  stageFromRules(13, 'r2', { name: '용암 늪 괴물', focus: '쌍자음 · ㅐ' }),
-  stageFromRules(14, 'r2', { name: '화산 협곡', focus: '세 글자 · 무리' }),
-  stageFromRules(15, 'r2', { name: '용암 대장', focus: '방패 보스', intro: 'd_s5' }),
-];
-
-export const STAGES: StageDef[] = [...REGION1, ...REGION2];
-
-/** 이 지역의 마지막 단계를 깨면 다음 지역 발견 장면을 보여 준다 */
-export function regionEnd(stage: StageDef): RegionDef | null {
-  const next = STAGES.find((s) => s.num === stage.num + 1);
-  return next && next.region !== stage.region ? (REGIONS.find((r) => r.id === next.region) ?? null) : null;
+/** num단계 (1~10은 손으로 만든 공룡 들판, 11부터 생성기) */
+export function stageAt(num: number): StageDef {
+  const n = Math.max(1, Math.min(MAX_STAGE, Math.floor(num)));
+  return n <= REGION1.length ? REGION1[n - 1] : generateStage(n);
 }
 
-/**
- * 출격할 전투: 아직 안 깬 첫 전투. 다 깼으면 마지막으로 한 전투의 다음 전투(마지막 뒤에는 1단계)로 돌아가며
- * 이어서 한다. 예전에는 다 깨면 늘 마지막 보스로만 가서 "스테이지 대신 큰 공룡 하나"가 됐다 (2026-09-28 제보).
- */
-export function nextStageId(cleared: readonly string[], lastStage: string | null): string {
-  const done = new Set(cleared);
-  const first = STAGES.find((s) => !done.has(s.id));
-  if (first) return first.id;
-  const i = STAGES.findIndex((s) => s.id === lastStage);
-  return STAGES[(i + 1) % STAGES.length].id;
+/** 1~n단계 목록 (지도·테스트용) */
+export function stagesUpTo(n: number): StageDef[] {
+  return Array.from({ length: n }, (_, i) => stageAt(i + 1));
+}
+
+/** 무료 구간 (손으로 만든 1~10단계) */
+export const FREE_STAGES: readonly StageDef[] = REGION1;
+
+export function stageNum(id: string): number | null {
+  const m = /^s(\d+)$/.exec(id);
+  const n = m ? Number(m[1]) : NaN;
+  return Number.isInteger(n) && n >= 1 && n <= MAX_STAGE ? n : null;
 }
 
 export function stageById(id: string): StageDef | undefined {
-  return STAGES.find((s) => s.id === id);
+  const n = stageNum(id);
+  return n === null ? undefined : stageAt(n);
+}
+
+/** 아직 안 깬 가장 앞 단계 번호 (앞에서부터 이어서 깬 만큼 + 1) */
+export function frontier(cleared: readonly string[]): number {
+  const done = new Set(cleared);
+  let n = 1;
+  while (n < MAX_STAGE && done.has(`s${n}`)) n++;
+  return n;
+}
+
+/** 출격할 전투: 아직 안 깬 가장 앞 단계. 단계가 끝없이 이어지므로 1단계로 돌아가지 않는다. */
+export function nextStageId(cleared: readonly string[]): string {
+  return `s${frontier(cleared)}`;
+}
+
+/** 지역의 마지막 전투(10의 배수)를 깨면 다음 지역 발견 장면을 보여 준다 */
+export function regionEnd(stage: StageDef): RegionDef | null {
+  return stage.num % 10 === 0 ? regionAt(stage.num / 10 + 1) : null;
 }
 
 /** 한 단계의 후보가 이보다 적으면 다른 연령팩의 같은 조건 단어를 더한다 */

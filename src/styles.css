@@ -1747,6 +1747,14 @@ body.theme-magic .frames.connected .frame::before {
   gap: 8px 6px;
   margin: 8px 0 10px;
 }
+/* 지도: 지역 두 개씩 넘겨 보기 (◀ 처음으로 ▶) */
+.map-nav .big-btn {
+  font-size: 28px;
+}
+.map-nav .big-btn:disabled {
+  opacity: 0.3;
+  box-shadow: none;
+}
 .map-panel .node {
   width: 66px;
   height: 66px;

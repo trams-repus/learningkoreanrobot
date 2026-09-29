@@ -1,6 +1,6 @@
 // 전투 연출 모음 촬영: 공격 단계·콤보별 공격, 적 종류별 공격, 방어·피격을 일정 간격으로 찍는다 (dev 빌드 전용 훅 사용).
 // 사용: npm run build && npx vite preview --port 4173 & node e2e/showcase.mjs [출력 폴더] [필터]
-// 필터 예: robot / magicalGirl / foes. 출력은 이름-순번.png (장면 시간 STEP ms 간격)
+// 필터 예: robot / magicalGirl / foes / ui. TIER=finisher 처럼 공격 단계만 고를 수 있다. 출력은 이름-순번.png (장면 시간 STEP ms 간격)
 import { chromium } from 'playwright';
 import fs from 'node:fs';
 
@@ -62,6 +62,21 @@ page.on('pageerror', (e) => errors.push(e.message));
 await page.goto(`${BASE}?dev=1&speed=1`);
 await page.waitForSelector('#t-start');
 
+// 지역 모음: 각 지역 첫 전투와 대형 보스 전투를 열어 배경·적을 찍는다 (무한 진행 확인용)
+if (only === 'regions') {
+  await page.click('.hero-card[data-theme="robot"]', { force: true });
+  await sleep(500);
+  for (const n of [1, 11, 21, 31, 41, 51, 61, 71, 81, 100, 1000]) {
+    await page.evaluate((id) => window.__hd.game.startStage(id), `s${n}`);
+    await page.waitForFunction(() => ['compose', 'write'].includes(window.__hd.game.phase), null, { timeout: 30000 });
+    await sleep(700);
+    await page.screenshot({ path: `${OUT}/region-s${n}.png` });
+  }
+  console.log(JSON.stringify({ out: OUT, errors }));
+  await browser.close();
+  process.exit(errors.length ? 1 : 0);
+}
+
 // 화면 모음: 타이틀 → 전투 고르기 → 부모 화면 각 탭 (디자인 체계 확인용, 360·390 두 크기)
 if (only === 'ui') {
   for (const vp of [{ w: 360, h: 640 }, { w: 390, h: 844 }]) {
@@ -108,6 +123,7 @@ for (const theme of ['robot', 'magicalGirl']) {
   if (only && only !== theme) continue;
   await page.evaluate((t) => window.__hd.scene.setTheme(t), theme);
   for (const [tier, combo, ms] of [['basic', 1, 1300], ['rapid', 2, 1700], ['rapid', 3, 2100], ['missiles', 4, 2300], ['missiles', 5, 2600], ['finisher', 6, 3000], ['ultimate', 7, 4200]]) {
+    if (process.env.TIER && process.env.TIER !== tier) continue;
     await page.evaluate(wave([{ id: 1, kind: 'dino' }, { id: 2, kind: 'imp' }]).fn, wave([{ id: 1, kind: 'dino' }, { id: 2, kind: 'imp' }]).arg);
     await film(page, `${theme}-${tier}-c${combo}`, { fn: ([t, c]) => window.__hd.scene.attack(t, [], 8, 10, c), arg: [tier, combo] }, ms);
   }

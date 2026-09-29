@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { jamoStrokes } from '../src/content/strokes';
-import { STAGES, stageWords } from '../src/content/stages';
+import { stageAt, stagesUpTo, stageWords } from '../src/content/stages';
+
+const STAGES = [...stagesUpTo(20), stageAt(100), stageAt(1000), stageAt(10000)];
 import { VOCAB } from '../src/content/vocab';
 import { ENERGY_CONFIG } from '../src/core/combo';
 import { judgeStroke, pickWriteWord, resample, syllableStrokes, wordStrokeCount, type Pt } from '../src/core/writing';

@@ -2,7 +2,7 @@
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 // 단어마다 필살기 에너지가 차고(빠를수록 많이), 가득 차면 다음 단어는 손가락으로 따라 써서 최고 필살기를 쏜다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
-import { STAGES, drawWord, nextStageId, regionEnd, stageById, stageWords, type StageDef } from '../content/stages';
+import { drawWord, frontier, nextStageId, regionEnd, regionIndexOf, regionLook, stageAt, stageById, stageNum, stageWords, type StageDef } from '../content/stages';
 import { TRAP_TABLES } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
 import { pictureSvg } from '../content/pictures';
@@ -180,18 +180,14 @@ export class Game {
 
   // ───────────── 전투 목록 ─────────────
 
-  get unlockedStages(): string[] {
-    const cleared = new Set(saves.data.cleared);
-    const out: string[] = [];
-    for (const s of STAGES) {
-      out.push(s.id);
-      if (!cleared.has(s.id) && !options.dev) break;
-    }
-    return out;
+  /** 앞에서부터 이어서 깬 다음 단계까지 열린다 (개발 옵션이면 모두) */
+  isUnlocked(id: string): boolean {
+    const n = stageNum(id);
+    return n !== null && (options.dev || n <= frontier(saves.data.cleared));
   }
 
   nextStageId(): string {
-    return nextStageId(saves.data.cleared, saves.data.lastStage);
+    return nextStageId(saves.data.cleared);
   }
 
   toMenu(): void {
@@ -220,9 +216,10 @@ export class Game {
   // ───────────── 전투 ─────────────
 
   async startStage(id: string): Promise<void> {
-    const stage = stageById(id) ?? STAGES[0];
+    const stage = stageById(id) ?? stageAt(1);
     const my = ++this.run;
     this.stage = stage;
+    this.scene.setLook(regionLook(regionIndexOf(stage.num)));
     this.setPausedState(false);
     this.screens.close();
     this.state = createBattle();
