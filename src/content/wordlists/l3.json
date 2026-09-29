@@ -6383,5 +6383,170 @@
   "word": "프로그래머",
   "domain": "사람",
   "tier": "recommended"
+ },
+ {
+  "word": "전갈",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "장수하늘소",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "도미",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "반달가슴곰",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "오색딱따구리",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "물까치",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "땅강아지",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "하늘다람쥐",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "털게",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "키조개",
+  "domain": "동물",
+  "tier": "core"
+ },
+ {
+  "word": "참기름",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "고춧가루",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "미숫가루",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "유과",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "매운탕",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "쌀밥",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "보리밥",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "콩밥",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "오곡밥",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "약식",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "경단",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "쑥떡",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "화전",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "호박전",
+  "domain": "음식",
+  "tier": "core"
+ },
+ {
+  "word": "집배원",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "이발사",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "산타클로스",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "임금",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "카우보이",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "은행원",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "관객",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "합창단",
+  "domain": "사람",
+  "tier": "core"
+ },
+ {
+  "word": "오케스트라",
+  "domain": "사람",
+  "tier": "core"
  }
 ]
