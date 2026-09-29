@@ -10,6 +10,7 @@ const banned = [
   ['?dev= 읽기', /get\(\s*["'`]dev["'`]\s*\)/],
   ['?speed= 읽기', /get\(\s*["'`]speed["'`]\s*\)/],
   ['?voice= 읽기', /get\(\s*["'`]voice["'`]\s*\)/],
+  ['?billing= 읽기 (결제 테스트 더블)', /get\(\s*["'`]billing["'`]\s*\)/],
 ];
 const found = banned.filter(([, re]) => re.test(js));
 if (!files.length) {

@@ -19,7 +19,7 @@ import { Cockpit } from '../ui/cockpit';
 import { ICONS } from '../ui/icons';
 import { Screens } from '../ui/screens';
 import { WritePad } from '../ui/writepad';
-import { audio, options, playlog, saves, sfx } from './services';
+import { audio, options, playlog, purchases, saves, sfx } from './services';
 
 type Phase = 'menu' | 'intro' | 'compose' | 'write' | 'execute' | 'victory';
 
@@ -217,6 +217,12 @@ export class Game {
 
   async startStage(id: string): Promise<void> {
     const stage = stageById(id) ?? stageAt(1);
+    // 11단계부터는 구매가 필요하다 (결제가 켜진 앱에서만): 전투 대신 보호자 안내
+    if (!purchases.canPlay(stage.num)) {
+      this.toMenu();
+      this.screens.purchase(() => this.screens.map());
+      return;
+    }
     const my = ++this.run;
     this.stage = stage;
     this.scene.setLook(regionLook(regionIndexOf(stage.num)));

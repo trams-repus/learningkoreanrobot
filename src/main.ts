@@ -3,7 +3,7 @@ import './native/tts-shim';
 import Phaser from 'phaser';
 import './styles.css';
 import { Game } from './game/game';
-import { applySettings, audio, options, recordings, RELEASE, saves, sfx } from './game/services';
+import { applySettings, audio, options, purchases, recordings, RELEASE, saves, sfx } from './game/services';
 import { BattleScene } from './scene/BattleScene';
 
 // 해상도 배율은 2까지만 쓴다. 390 휴대폰(배율 3)에서 캔버스가 1170x2532가 되어 그리기가 약 1.7배 느려졌다
@@ -71,7 +71,9 @@ async function boot(): Promise<void> {
   window.addEventListener('pointerdown', firstTouch, true);
 
   // RELEASE를 따로 검사해 출시 빌드에서는 이 코드가 빌드 결과에서 빠지게 한다
-  if (!RELEASE && options.dev) (window as unknown as { __hd: unknown }).__hd = { game, scene, audio, saves, sfx };
+  // 스토어 연결은 기다리지 않는다 (산 기록은 저장소에서 바로 읽고, 오프라인이어도 무료 단계는 된다)
+  void purchases.init();
+  if (!RELEASE && options.dev) (window as unknown as { __hd: unknown }).__hd = { game, scene, audio, saves, sfx, purchases };
 }
 
 boot().catch((e) => {

@@ -6,7 +6,8 @@ import { frontier, regionAt, regionById, regionIndexOf, stageAt, type RegionDef,
 import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
-import { applySettings, audio, options, playlog, recordings, saves, sfx } from '../game/services';
+import { applySettings, audio, options, playlog, purchases, recordings, saves, sfx } from '../game/services';
+import { FREE_UNTIL, parentQuestion } from '../core/purchase';
 import { aiPrompt, analyze, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
@@ -18,16 +19,22 @@ export class Screens {
   private overlay = document.getElementById('overlay')!;
   /** 부모 화면 분석 기간 (앱을 다시 열면 최근 7일로) */
   private period: Period = '7d';
+  /** 구매 화면이 열려 있는 동안 구매 상태가 바뀌면 다시 그린다 */
+  private unsub: (() => void) | null = null;
 
   constructor(private game: Game) {}
 
   close(): void {
+    this.unsub?.();
+    this.unsub = null;
     this.overlay.hidden = true;
     this.overlay.className = '';
     this.overlay.innerHTML = '';
   }
 
   private open(html: string, clear = false): HTMLElement {
+    this.unsub?.();
+    this.unsub = null;
     this.overlay.hidden = false;
     this.overlay.className = clear ? 'clear' : '';
     this.overlay.innerHTML = html;
@@ -147,10 +154,12 @@ export class Screens {
     const top = Math.max(1, Math.min(page ?? nowRegion, lastPage - 1));
     const node = (s: StageDef, first: boolean) => {
       const locked = !this.game.isUnlocked(s.id);
-      const cls = ['node', s.boss ? 'boss' : '', locked ? 'locked' : '', s.id === next && !locked ? 'next' : ''].join(' ');
+      // 진행으로는 열렸지만 구매가 필요한 단계: 누르면 보호자 안내 (잠금 대신 열쇠 표시)
+      const paid = !locked && !purchases.canPlay(s.num);
+      const cls = ['node', s.boss ? 'boss' : '', locked ? 'locked' : '', paid ? 'paid' : '', s.id === next && !locked ? 'next' : ''].join(' ');
       const link = first ? '' : '<span class="path-link"></span>';
-      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.num}단계 ${s.name} (${s.focus})`)}" ${locked ? 'disabled' : ''}>
-        ${ICONS[s.icon]}${cleared.has(s.id) ? `<span class="badge">${ICONS.star}</span>` : ''}${locked ? `<span class="lockmark">${ICONS.lock}</span>` : ''}
+      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.num}단계 ${s.name} (${s.focus})${paid ? ' - 보호자 확인 필요' : ''}`)}" ${locked ? 'disabled' : ''}>
+        ${ICONS[s.icon]}${cleared.has(s.id) ? `<span class="badge">${ICONS.star}</span>` : ''}${locked ? `<span class="lockmark">${ICONS.lock}</span>` : ''}${paid ? `<span class="lockmark key">${ICONS.lock}</span>` : ''}
       </button><span class="node-cap" aria-hidden="true">${s.num}. ${esc(s.focus)}</span></div>`;
     };
     // 지역별로 묶는다: 공룡 들판(1~10) → 화산섬(11~20) → …. 지역 이름 옆 i는 보호자 안내.
@@ -225,19 +234,117 @@ export class Screens {
    * 지금은 시험판이라 다음 지역도 그대로 열려 있다고 알린다.
    */
   regionInfo(stage: StageDef | null, region: RegionDef): void {
+    const back = () => (stage ? this.victory(stage) : this.map());
+    // 결제가 켜진 앱에서 아직 사지 않았으면 구매 안내로 (11단계부터 유료)
+    if (purchases.gateEnabled && !purchases.isOwned && region.index >= 2) {
+      this.purchase(back, region);
+      return;
+    }
     const el = this.open(
       `<div class="panel region-info">
         <h2>보호자 안내</h2>
         <p><b>${esc(region.name)}</b> · ${esc(region.blurb)}</p>
-        <p>여기부터는 보호자 결제 화면이 들어갈 자리입니다. 지금은 시험판이라 결제 기능이 없고, 다음 단계를 그대로 해 볼 수 있습니다.</p>
+        ${purchases.gateEnabled ? '' : `<p>이 버전(웹 시험판)에는 결제 기능이 없어 ${FREE_UNTIL + 1}단계부터도 그대로 해 볼 수 있습니다. 앱에서는 ${FREE_UNTIL}단계까지 무료이고, 한 번 구매하면 그 뒤 모든 단계가 열립니다.</p>`}
         <div class="row"><button class="big-btn" id="ri-ok">계속하기</button></div>
       </div>`,
     );
     el.querySelector('#ri-ok')!.addEventListener('click', () => {
       sfx.play('tap');
-      if (stage) this.victory(stage);
-      else this.map();
+      back();
     });
+  }
+
+  // ───────────── 구매 (보호자) ─────────────
+
+  /**
+   * 11단계부터 모든 단계 열기 (비소모성 상품 하나). 보호자 확인(곱셈 문제)을 통과해야 결제 창이 열린다.
+   * after: '나중에'·'계속'을 누르면 갈 곳. 구매 상태가 바뀌면(대기 → 완료 등) 화면을 다시 그린다.
+   */
+  purchase(after: () => void, region: RegionDef | null = null): void {
+    const st = purchases.state;
+    const price = purchases.product?.price;
+    const status =
+      st === 'owned'
+        ? '<p class="buy-status ok">구매 완료! 모든 단계가 열렸습니다.</p>'
+        : st === 'pending'
+          ? '<p class="buy-status wait">결제 승인을 기다리고 있습니다 (보호자 승인·현금 결제 등). 승인되면 자동으로 열립니다. 그동안 1~10단계는 계속할 수 있습니다.</p>'
+          : st === 'purchasing'
+            ? '<p class="buy-status wait">결제 창을 여는 중…</p>'
+            : st === 'unavailable' || st === 'unknown'
+              ? '<p class="buy-status">지금은 스토어에 연결할 수 없습니다. 인터넷 연결을 확인한 뒤 다시 열어 주세요.</p>'
+              : '';
+    const canBuy = st === 'locked';
+    const el = this.open(
+      `<div class="panel region-info buy">
+        <h2>보호자 안내</h2>
+        ${region ? `<div class="rf-art small">${regionArt(region.id)}</div><p><b>${esc(region.name)}</b> · ${esc(region.blurb)}</p>` : ''}
+        <p>${FREE_UNTIL}단계(공룡 들판)까지는 무료입니다. <b>한 번 구매하면</b> ${FREE_UNTIL + 1}단계부터 끝없이 이어지는 모든 단계와 지역이 열립니다.</p>
+        <p class="muted">광고·구독·추가 결제가 없습니다. 결제는 스토어 계정으로 처리되고, 기기를 바꾸거나 다시 설치해도 '구매 복원'으로 되찾습니다.</p>
+        ${canBuy ? `<p class="buy-price">가격: <b>${esc(price ?? '스토어에서 표시')}</b></p>` : ''}
+        ${status}
+        ${purchases.error && st !== 'owned' ? `<p class="buy-status err">${esc(purchases.error)}</p>` : ''}
+        <div class="btns">
+          ${canBuy ? '<button class="small-btn primary" id="bu-buy">구매하기 (보호자 확인)</button>' : ''}
+          ${st !== 'owned' ? '<button class="small-btn" id="bu-restore">구매 복원</button>' : ''}
+          <button class="small-btn ${st === 'owned' ? 'primary' : ''}" id="bu-later">${st === 'owned' ? '계속하기' : '나중에'}</button>
+        </div>
+      </div>`,
+    );
+    this.unsub = purchases.onChange(() => this.purchase(after, region));
+    el.querySelector('#bu-buy')?.addEventListener('click', () => {
+      sfx.play('tap');
+      this.parentGate(
+        () => {
+          this.purchase(after, region);
+          void purchases.buy();
+        },
+        () => this.purchase(after, region),
+      );
+    });
+    el.querySelector('#bu-restore')?.addEventListener('click', () => {
+      sfx.play('tap');
+      void purchases.restore();
+    });
+    el.querySelector('#bu-later')!.addEventListener('click', () => {
+      sfx.play('tap');
+      after();
+    });
+  }
+
+  /**
+   * 보호자 확인: 두 자리 곱셈 답을 숫자판으로 누른다 (보기를 주지 않아 우연히 맞히기 어렵다).
+   * 틀리면 새 문제. 결제 창을 열기 전에만 쓴다.
+   */
+  parentGate(onPass: () => void, onCancel: () => void): void {
+    const q = parentQuestion(Math.random);
+    let typed = '';
+    const el = this.open(
+      `<div class="panel gate" role="dialog" aria-label="보호자 확인">
+        <h2>보호자 확인</h2>
+        <p>아래 문제의 답을 눌러 주세요.</p>
+        <div class="gate-q">${q.a} × ${q.b} = <span id="ga-typed" class="gate-typed">?</span></div>
+        <div class="gate-pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button class="small-btn" data-n="${n}">${n}</button>`).join('')}
+          <button class="small-btn" id="ga-back" aria-label="지우기">←</button><button class="small-btn" data-n="0">0</button><button class="small-btn primary" id="ga-ok">확인</button></div>
+        <p class="gate-msg muted" id="ga-msg"></p>
+        <div class="btns"><button class="small-btn" id="ga-cancel">취소</button></div>
+      </div>`,
+    );
+    const show = () => (el.querySelector('#ga-typed')!.textContent = typed || '?');
+    el.querySelectorAll<HTMLButtonElement>('[data-n]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (typed.length < 3) typed += b.dataset.n;
+        show();
+      }),
+    );
+    el.querySelector('#ga-back')!.addEventListener('click', () => {
+      typed = typed.slice(0, -1);
+      show();
+    });
+    el.querySelector('#ga-ok')!.addEventListener('click', () => {
+      if (Number(typed) === q.answer) onPass();
+      else this.parentGate(onPass, onCancel);
+    });
+    el.querySelector('#ga-cancel')!.addEventListener('click', () => onCancel());
   }
 
   // ───────────── 승리 ─────────────
@@ -585,7 +692,14 @@ export class Screens {
   private settingsHtml(): string {
     const s = saves.data.settings;
     const chk = (id: string, on: boolean, label: string) => `<label>${label}<input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
+    const st = purchases.state;
+    const buy = !purchases.gateEnabled
+      ? `<p class="muted">이 버전(웹 시험판)에는 결제 기능이 없어 모든 단계가 열려 있습니다.</p>`
+      : `<p>${st === 'owned' ? '구매 완료: 모든 단계가 열려 있습니다.' : st === 'pending' ? '결제 승인 대기 중입니다. 승인되면 자동으로 열립니다.' : `${FREE_UNTIL}단계까지 무료, 구매하면 ${FREE_UNTIL + 1}단계부터 모두 열립니다.`}</p>
+        <div class="btns">${st === 'owned' ? '' : '<button class="small-btn primary" id="se-buy">구매 안내 보기</button>'}<button class="small-btn" id="se-restore">구매 복원</button></div>`;
     return `
+      <h3>구매</h3>
+      ${buy}
       <h3>함께 싸울 캐릭터</h3>
       <label>캐릭터<select id="se-theme"><option value="robot" ${s.characterTheme !== 'magicalGirl' ? 'selected' : ''}>로봇</option><option value="magicalGirl" ${s.characterTheme === 'magicalGirl' ? 'selected' : ''}>마법소녀</option></select></label>
       <p class="muted">바꿔도 단어 기록·해금·도움 단계는 그대로입니다. 전투 그림·효과·대사만 바뀝니다.</p>
@@ -642,6 +756,10 @@ export class Screens {
     on('se-autohelp', (t) => (s.autoHelp = t.checked));
     on('se-age', (t) => (s.childAge = t.value ? Number(t.value) : null));
     on('se-wordrec', (t) => (s.useWordRecordings = t.checked));
+    el.querySelector('#se-buy')?.addEventListener('click', () => this.purchase(() => this.parent('settings')));
+    el.querySelector('#se-restore')?.addEventListener('click', () => {
+      void purchases.restore().then(() => this.parent('settings'));
+    });
     el.querySelector('#se-default')!.addEventListener('click', () => {
       const theme = saves.data.settings.characterTheme;
       const age = saves.data.settings.childAge;

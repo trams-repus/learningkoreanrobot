@@ -1747,6 +1747,58 @@ body.theme-magic .frames.connected .frame::before {
   gap: 8px 6px;
   margin: 8px 0 10px;
 }
+/* 구매가 필요한 단계: 흐리게 + 금색 자물쇠 (진행으로 잠긴 단계와 구별) */
+.map-panel .node.paid {
+  opacity: 0.8;
+}
+.lockmark.key {
+  color: var(--trim);
+}
+/* 구매 안내·보호자 확인 */
+.buy .rf-art.small svg {
+  width: min(220px, 60vw);
+  height: auto;
+  display: block;
+  margin: 0 auto 6px;
+}
+.buy-price {
+  font-size: 20px;
+}
+.buy-status {
+  border: var(--stroke);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  background: var(--panel2);
+}
+.buy-status.ok {
+  background: #2f7a4a;
+}
+.buy-status.wait {
+  background: #6a5a1f;
+}
+.buy-status.err {
+  background: #7a2f2f;
+}
+.gate-q {
+  font-size: 34px;
+  font-weight: 900;
+  text-align: center;
+  margin: 8px 0 12px;
+}
+.gate-typed {
+  display: inline-block;
+  min-width: 64px;
+  border-bottom: 4px solid var(--trim);
+}
+.gate-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.gate-pad .small-btn {
+  min-height: 56px;
+  font-size: 24px;
+}
 /* 지도: 지역 두 개씩 넘겨 보기 (◀ 처음으로 ▶) */
 .map-nav .big-btn {
   font-size: 28px;

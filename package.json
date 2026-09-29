@@ -21,6 +21,7 @@
   "dependencies": {
     "@capacitor-community/text-to-speech": "^6.1.0",
     "@capacitor/core": "^7.6.9",
+    "capacitor-plugin-cdv-purchase": "13.18.0",
     "phaser": "3.90.0"
   },
   "devDependencies": {
