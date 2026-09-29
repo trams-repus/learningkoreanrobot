@@ -51,6 +51,15 @@ const LAYOUT: Record<'vertical' | 'horizontal', { plain: Record<'cho' | 'jung', 
   },
 };
 
+/** 겹모음 = 가로 모음(초성 아래) + 세로 모음(오른쪽). 쓰는 순서도 가로 먼저. */
+const COMPOUND_PARTS: Record<string, [string, string]> = {
+  ㅘ: ['ㅗ', 'ㅏ'], ㅙ: ['ㅗ', 'ㅐ'], ㅚ: ['ㅗ', 'ㅣ'], ㅝ: ['ㅜ', 'ㅓ'], ㅞ: ['ㅜ', 'ㅔ'], ㅟ: ['ㅜ', 'ㅣ'], ㅢ: ['ㅡ', 'ㅣ'],
+};
+const MIXED: { plain: Record<'cho' | 'low' | 'side', Box>; jong: Record<'cho' | 'low' | 'side' | 'jong', Box> } = {
+  plain: { cho: { x0: 10, y0: 6, x1: 56, y1: 44 }, low: { x0: 4, y0: 44, x1: 66, y1: 92 }, side: { x0: 60, y0: 4, x1: 96, y1: 96 } },
+  jong: { cho: { x0: 10, y0: 2, x1: 54, y1: 30 }, low: { x0: 4, y0: 30, x1: 64, y1: 60 }, side: { x0: 58, y0: 2, x1: 94, y1: 62 }, jong: { x0: 20, y0: 66, x1: 82, y1: 96 } },
+};
+
 function place(pts: Pt[], b: Box): Pt[] {
   return pts.map(([x, y]) => [b.x0 + (x / 100) * (b.x1 - b.x0), b.y0 + (y / 100) * (b.y1 - b.y0)]);
 }
@@ -60,7 +69,7 @@ export function syllableStrokes(syllable: string): PlacedStroke[] | null {
   const j = decomposeSyllable(syllable);
   if (!j) return null;
   const shape = vowelShape(j.jung);
-  if (shape === 'mixed') return null;
+  if (shape === 'mixed') return mixedStrokes(j.cho, j.jung, j.jong);
   const boxes = j.jong ? LAYOUT[shape].jong : LAYOUT[shape].plain;
   const out: PlacedStroke[] = [];
   for (const role of (j.jong ? ['cho', 'jung', 'jong'] : ['cho', 'jung']) as CellRole[]) {
@@ -68,6 +77,25 @@ export function syllableStrokes(syllable: string): PlacedStroke[] | null {
     const strokes = jamoStrokes(jamo);
     if (!strokes) return null;
     for (const st of strokes) out.push({ jamo, role, pts: place(st.pts, (boxes as Record<CellRole, Box>)[role]), closed: !!st.closed });
+  }
+  return out;
+}
+
+function mixedStrokes(cho: string, jung: string, jong: string): PlacedStroke[] | null {
+  const parts = COMPOUND_PARTS[jung];
+  if (!parts) return null;
+  const b = jong ? MIXED.jong : MIXED.plain;
+  const pieces: [string, CellRole, Box][] = [
+    [cho, 'cho', b.cho],
+    [parts[0], 'jung', b.low],
+    [parts[1], 'jung', b.side],
+  ];
+  if (jong) pieces.push([jong, 'jong', MIXED.jong.jong]);
+  const out: PlacedStroke[] = [];
+  for (const [jamo, role, box] of pieces) {
+    const strokes = jamoStrokes(jamo);
+    if (!strokes) return null;
+    for (const st of strokes) out.push({ jamo: role === 'jung' ? jung : jamo, role, pts: place(st.pts, box), closed: !!st.closed });
   }
   return out;
 }

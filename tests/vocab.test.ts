@@ -70,7 +70,7 @@ describe('어휘팩', () => {
     for (const s of WORD_AUDIO_SOURCES) {
       expect(vocabById(s.word), s.word).toBeDefined();
       expect(isSupportedWord(s.word), s.word).toBe(true);
-      if (s.link.startsWith('없음')) continue; // 녹음 없음 → 기기 TTS
+      if (s.link.startsWith('없음') || s.link.startsWith('제외')) continue; // 녹음 없음·라이선스로 제외 → 기기 TTS
       expect(s.commonsFile).toMatch(new RegExp(`^LL-Q9176_\\(kor\\)-.+-${s.word}\\.wav$`));
       expect(s.file).toMatch(/^[a-z0-9_]+\.wav$/);
       // 한글만 인코딩, 괄호는 그대로, 두 번 인코딩하지 않음
@@ -374,6 +374,7 @@ describe('L1 후보 목록 (docs/vocab-candidates-l1.json)', () => {
   it('모두 조립틀로 낼 수 있고, 겹치지 않는다 (이미 넣은 단어는 목록에서 빠진다)', () => {
     const words = (candidatesL1 as { word: string }[]).map((c) => c.word);
     expect(new Set(words).size).toBe(words.length);
+    expect(words.filter((w) => vocabById(w))).toEqual([]);
     const unsupported = words.filter((w) => !isSupportedWord(w));
     expect(unsupported).toEqual([]);
   });

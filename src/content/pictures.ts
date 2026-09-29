@@ -7,6 +7,12 @@
 // 좌표는 모두 viewBox 0 0 100 100 기준.
 
 import { INK, SKIN, HL, blob, ring, dot, drop, cheeks, face, stick, person, halo, torso, moodFace, sparkle, tube, svgFor } from './pictureKit.ts';
+import { PICS as L1_ANIMALS } from './pictures/l1-animals.ts';
+import { PICS as L1_FOOD } from './pictures/l1-food.ts';
+import { PICS as L1_THINGS } from './pictures/l1-things.ts';
+import { PICS as L1_PLACES } from './pictures/l1-places.ts';
+import { PICS as L1_NATURE } from './pictures/l1-nature.ts';
+import { PICS as L1_ACTIONS } from './pictures/l1-actions.ts';
 
 const PICTURES: Record<string, string> = {
   수박:
@@ -995,6 +1001,9 @@ const PICTURES: Record<string, string> = {
     `<ellipse cx="50" cy="40" rx="36" ry="5" fill="#ff8c1a"/>` +
     `<path d="M30 96C26 90 32 86 34 84C36 88 40 88 40 84C44 88 46 92 42 96Z" fill="#ff8c1a"/><path d="M50 96C46 90 52 86 54 84C56 88 60 88 60 84C64 88 66 92 62 96Z" fill="#ff8c1a"/><path d="M70 96C66 90 72 86 74 84C76 88 80 88 80 84C84 88 86 92 82 96Z" fill="#ff8c1a"/>`,
 };
+
+// L1 묶음 (docs/vocab-plan.md 작업 순서 2~4: 묶음별로 그리고 검수한 뒤 여기 등록)
+Object.assign(PICTURES, L1_ANIMALS, L1_FOOD, L1_THINGS, L1_PLACES, L1_NATURE, L1_ACTIONS);
 
 /** 그림이 있는 단어 목록 (그린 순서) */
 export const PICTURED_WORDS = Object.keys(PICTURES);
