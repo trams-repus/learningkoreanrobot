@@ -187,23 +187,18 @@ export function makeRobot(scene: Phaser.Scene): RobotParts {
   legs.fillRect(18, -46, 30, 6);
   rrect(legs, -30, -96, 60, 26, 8, PAL.joint);
 
-  // 왼팔 (화면 왼쪽, 늘어뜨림): 어깨 → 팔꿈치 → 손목 광선총
+  // 왼팔 (화면 왼쪽, 늘어뜨림). 모양은 한 덩어리 팔 그대로 두고, 아랫마디만 따로 움직일 수 있게 나눠 둔다
   const leftArm = scene.add.container(-66, -150);
   const la = scene.add.graphics();
   rrect(la, -12, 4, 24, 36, 9, PAL.armorDark);
-  circle(la, 0, 38, 8, PAL.joint, 2.5);
   const leftFore = scene.add.container(0, 38);
   const lf = scene.add.graphics();
   rrect(lf, -13, -2, 26, 36, 10, PAL.armor);
-  lf.fillStyle(PAL.trim, 1);
-  lf.fillRect(-13, 8, 26, 4);
-  // 손목 광선총 (작은 총구)
-  rrect(lf, -6, 30, 12, 10, 3, PAL.joint, 2.5);
-  circle(lf, 0, 44, 10, PAL.white);
+  circle(lf, 0, 40, 11, PAL.white);
   const wristGlow = scene.add.graphics();
   wristGlow.fillStyle(0xfff3a0, 1);
   wristGlow.fillCircle(0, 0, 9);
-  wristGlow.setPosition(0, 50).setAlpha(0);
+  wristGlow.setPosition(0, 40).setAlpha(0);
   leftFore.add([lf, wristGlow]);
   leftArm.add([la, leftFore]);
 
@@ -272,25 +267,14 @@ export function makeRobot(scene: Phaser.Scene): RobotParts {
   visor.fillRoundedRect(22, -30, 7, 16, 3);
   head.add([hg, visor]);
 
-  // 대포 팔: 어깨(윗마디)를 축으로 적을 향해 들고, 팔꿈치(아랫마디)에서 포신이 나온다
+  // 대포 팔: 어깨를 축으로 적을 향해 들고, 포신이 편다. 팔 모양은 한 덩어리 그대로 (관절 원·날개를 달면 팔이 부러져 보였다)
   const gunShoulder = { x: 62, y: -154 };
   const gun = scene.add.container(gunShoulder.x, gunShoulder.y);
   const ga = scene.add.graphics();
   rrect(ga, -12, 0, 24, 40, 9, PAL.armorDark);
-  circle(ga, 0, 38, 9, PAL.joint, 2.5);
   const forearm = scene.add.container(0, 38);
+  // 예전 냉각 날개 자리 (그리지 않는다)
   const fins = scene.add.graphics();
-  fins.fillStyle(PAL.armorDeep, 1);
-  fins.lineStyle(2.5, PAL.outline, 1);
-  for (const s of [-1, 1]) {
-    const pts = [V(s * 14, 2), V(s * 30, 10), V(s * 30, 24), V(s * 14, 30)];
-    fins.fillPoints(pts, true);
-    fins.strokePoints(pts, true);
-    fins.fillStyle(PAL.visor, 1);
-    fins.fillRect(s > 0 ? 18 : -26, 14, 8, 3);
-    fins.fillStyle(PAL.armorDeep, 1);
-  }
-  fins.setScale(0.2, 1);
   const fa = scene.add.graphics();
   rrect(fa, -15, -4, 30, 40, 11, PAL.armor);
   fa.fillStyle(PAL.trim, 1);

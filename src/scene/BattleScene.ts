@@ -404,19 +404,6 @@ export class BattleScene extends Phaser.Scene {
     return this.worldPoint(r.forearm, 0, 22 + 66 * r.barrel.scaleY);
   }
 
-  /** 왼손목 광선총 끝 (세계 좌표) */
-  private wrist(): { x: number; y: number } {
-    return this.worldPoint(this.robot.leftFore, 0, 50);
-  }
-
-  /** 왼팔을 적에게 겨누는 각도 (어깨 기준, 0 = 아래) */
-  private leftAim(): number {
-    const r = this.robot;
-    const from = this.worldPoint(r.body, r.leftArm.x, r.leftArm.y);
-    const to = this.foeCenter();
-    return Phaser.Math.RadToDeg(Math.atan2(to.y - from.y, to.x - from.x) - Math.PI / 2);
-  }
-
   private get tf(): SceneFoe | undefined {
     return this.foes.get(this.targetId);
   }
@@ -518,37 +505,24 @@ export class BattleScene extends Phaser.Scene {
     this.reticle.setVisible(true).setPosition(t.x, t.y + 2).setScale(t.scale / 0.95);
   }
 
-  /** 종류마다 다른 대기 동작: 작은 괴물은 통통 뛰고, 뿔공룡은 발을 구르고, 갑옷 공룡은 꼬리를 흔들고, 보스는 무겁게 숨 쉰다 */
+  /** 대기 동작: 숨 쉬듯 살짝 들썩인다 (갑옷 공룡만 꼬리를 흔든다) */
   private startFoeIdle(f: SceneFoe): void {
     f.idle.forEach((t) => t.remove());
     const p = f.parts;
     p.body.setPosition(0, 0).setAngle(0).setScale(1);
     p.tail?.setAngle(0);
     const d = (f.id % 3) * 130;
-    const head = this.tweens.add({ targets: p.head, angle: 3, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.inOut' });
-    switch (f.kind) {
-      case 'imp':
-        f.idle = [this.tweens.add({ targets: p.body, y: -9, scaleY: 1.06, duration: 230, delay: d, yoyo: true, repeat: -1, repeatDelay: 260, ease: 'Quad.out' }), head];
-        break;
-      case 'charger':
-      case 'chief':
-        f.idle = [
-          this.tweens.add({ targets: p.body, angle: -3, x: -2, duration: 380, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
-          this.tweens.add({ targets: p.head, y: p.head.y + 3, duration: 380, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
-        ];
-        break;
-      case 'armor':
-        f.idle = [
-          this.tweens.add({ targets: p.body, scaleY: 1.02, duration: 1400, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
-          this.tweens.add({ targets: p.tail!, angle: 12, duration: 700, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
-        ];
-        break;
-      case 'boss':
-        f.idle = [this.tweens.add({ targets: p.body, scaleY: 1.03, angle: 2, duration: 1300, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }), head];
-        break;
-      default:
-        f.idle = [this.tweens.add({ targets: p.body, scaleY: 1.03, y: -2, duration: 800, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }), head];
+    if (f.kind === 'armor') {
+      f.idle = [
+        this.tweens.add({ targets: p.body, scaleY: 1.02, duration: 1400, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+        this.tweens.add({ targets: p.tail!, angle: 12, duration: 700, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+      ];
+      return;
     }
+    f.idle = [
+      this.tweens.add({ targets: p.body, scaleY: 1.03, y: -2, duration: f.kind === 'imp' ? 400 : 800, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+      this.tweens.add({ targets: p.head, angle: 3, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+    ];
   }
 
   private async roar(f: SceneFoe, ms: number): Promise<void> {
@@ -650,10 +624,6 @@ export class BattleScene extends Phaser.Scene {
       this.tweens.add({ targets: m.leftArm, angle: on ? -60 : 14, duration: 200, ease: 'Back.out' });
       return;
     }
-    const r = this.robot;
-    this.tweens.add({ targets: r.leftArm, angle: on ? -115 : 0, duration: 200, ease: 'Back.out' });
-    this.tweens.add({ targets: r.leftFore, angle: on ? -55 : 0, duration: 200, ease: 'Back.out' });
-    this.tweens.add({ targets: r.body, angle: on ? 3 : 0, duration: 200 });
   }
 
   // ───────────── 단어 → 에너지 전송 ─────────────
@@ -783,16 +753,21 @@ export class BattleScene extends Phaser.Scene {
     this.robotIdle.forEach((t) => t.pause());
     this.guard(false);
     this.setCharging(null);
-    await this.robotCharge(tier === 'finisher' || tier === 'ultimate' ? 2 : tier === 'missiles' ? 1 : 0);
-    await this.robotDeploy();
+    // 무장 전개: 팔을 적 쪽(↗)으로 들고 포신을 편다
+    const r = this.robot;
+    sfx.play('deploy');
+    await Promise.all([
+      this.tween({ targets: r.gun, rotation: this.aimAngle(), duration: 200, ease: 'Back.out' }),
+      this.tween({ targets: r.barrel, scaleY: 1, duration: 240, ease: 'Back.out' }),
+    ]);
 
     if (tier === 'basic') {
       await this.fireShell(1.1, true);
     } else if (tier === 'rapid') {
-      // 콤보 2: 대포 + 손목 광선총 2연타 / 콤보 3 이상: 대포 → 손목 → 대포 3연타
-      await this.fireShell(0.9, false, -10);
-      await this.wristShot();
-      if (combo >= 3) await this.fireShell(1, true, 10);
+      for (let i = 0; i < 3; i++) {
+        await this.fireShell(0.9, i === 2, i * 10 - 10);
+        await this.wait(60);
+      }
     } else if (tier === 'missiles') {
       // 콤보 4: 미사일 한 번 + 대포 / 콤보 5 이상: 미사일 두 번(엇갈려) + 대포
       await this.openPod(true);
@@ -811,40 +786,6 @@ export class BattleScene extends Phaser.Scene {
     this.robotIdle.forEach((t) => t.resume());
   }
 
-  /** 충전: 무릎을 굽혀 몸을 낮추고, 등 추진기가 깜빡이며 힘을 모은다 (level이 높을수록 깊고 길게) */
-  private async robotCharge(level: 0 | 1 | 2): Promise<void> {
-    const r = this.robot;
-    sfx.play('charge');
-    const ms = [100, 160, 260][level];
-    r.thrustL.setAlpha(0.5);
-    r.thrustR.setAlpha(0.5);
-    this.tweens.add({ targets: [r.thrustL, r.thrustR], alpha: 0.15, duration: 60, yoyo: true, repeat: Math.round(ms / 120) });
-    this.burst('world', ROBOT.x, ROBOT.y - 10, 'dot', { color: [0xd9c49a, 0xffffff], count: 4 + level * 3, speed: 60 + level * 30, scale: 0.35, life: 400, gravity: -40 });
-    await Promise.all([
-      this.tween({ targets: r.body, y: 6 + level * 3, duration: ms, ease: 'Quad.out' }),
-      this.tween({ targets: r.legs, scaleY: 0.93 - level * 0.02, duration: ms, ease: 'Quad.out' }),
-      this.tween({ targets: r.head, angle: 6, duration: ms }),
-    ]);
-  }
-
-  /** 무장 전개: 몸을 펴며 대포 팔을 들고, 굽힌 팔꿈치를 뻗으며 포신과 냉각 날개를 편다. 왼팔은 버틴다. */
-  private async robotDeploy(): Promise<void> {
-    const r = this.robot;
-    sfx.play('deploy');
-    r.forearm.setRotation(0.7);
-    await Promise.all([
-      this.tween({ targets: r.body, y: 0, duration: 130, ease: 'Back.out' }),
-      this.tween({ targets: r.legs, scaleY: 1, duration: 130, ease: 'Back.out' }),
-      this.tween({ targets: r.head, angle: -2, duration: 130 }),
-      this.tween({ targets: r.gun, rotation: this.aimAngle(), duration: 160, ease: 'Back.out' }),
-      this.tween({ targets: r.forearm, rotation: 0, duration: 160, delay: 40, ease: 'Back.out' }),
-      this.tween({ targets: r.barrel, scaleY: 1, duration: 170, delay: 40, ease: 'Back.out' }),
-      this.tween({ targets: r.fins, scaleX: 1, duration: 150, delay: 60, ease: 'Back.out' }),
-      this.tween({ targets: r.leftArm, angle: -24, duration: 160, ease: 'Back.out' }),
-      this.tween({ targets: r.leftFore, angle: -30, duration: 160, ease: 'Back.out' }),
-    ]);
-  }
-
   private async robotRecover(): Promise<void> {
     const r = this.robot;
     await Promise.all([
@@ -858,28 +799,16 @@ export class BattleScene extends Phaser.Scene {
     r.wristGlow.setAlpha(0);
   }
 
-  /** 발사 반동: 아래팔이 튀어 오르고, 몸이 밀리며 무릎이 눌리고, 탄피가 튄다 */
+  /** 발사 반동: 몸과 팔이 뒤로 밀린다 (뒷모습에서도 보이게 아래·왼쪽으로) */
   private recoil(size: number): void {
     const r = this.robot;
-    const k = Math.min(1.6, size);
-    this.tweens.add({ targets: r.root, x: ROBOT.x - 9 * k, y: ROBOT.y + 5 * k, duration: 70, yoyo: true, ease: 'Quad.out' });
-    // 팔꿈치는 조금만 튀고, 포신이 뒤로 밀렸다 돌아온다 (팔꿈치가 크게 꺾이면 팔이 부러져 보인다)
-    this.tweens.add({ targets: r.forearm, rotation: 0.14 * k, duration: 60, yoyo: true, ease: 'Quad.out' });
-    this.tweens.add({ targets: r.barrel, scaleY: 0.72, duration: 55, yoyo: true, ease: 'Quad.out' });
-    this.tweens.add({ targets: r.gun, rotation: r.gun.rotation + 0.12 * k, duration: 70, yoyo: true });
-    this.tweens.add({ targets: r.legs, scaleY: 0.94, duration: 70, yoyo: true });
-    this.tweens.add({ targets: r.head, angle: -6, duration: 70, yoyo: true });
+    void size;
+    this.tweens.add({ targets: r.root, x: ROBOT.x - 8, y: ROBOT.y + 5, duration: 70, yoyo: true, ease: 'Quad.out' });
+    this.tweens.add({ targets: r.gun, rotation: r.gun.rotation + 0.18, duration: 70, yoyo: true });
     r.thrustL.setAlpha(1);
     r.thrustR.setAlpha(1);
     this.tweens.add({ targets: [r.thrustL, r.thrustR], alpha: 0, duration: 260 });
-    this.shake(0.003 * k, 80);
-    if (this.reduceEffects) return;
-    // 탄피: 팔꿈치에서 뒤로 튀어 떨어진다
-    const e = this.worldPoint(r.forearm, 0, 10);
-    const shell = this.add.rectangle(e.x, e.y, 5, 10, 0xffc933).setStrokeStyle(1.5, PAL.outline);
-    this.world.add(shell);
-    this.tweens.add({ targets: shell, x: e.x - 30, angle: -260, duration: 420, ease: 'Linear' });
-    this.tweens.add({ targets: shell, y: e.y - 24, duration: 160, ease: 'Quad.out', yoyo: true, hold: 0, onComplete: () => this.tweens.add({ targets: shell, y: e.y + 40, alpha: 0, duration: 200, onComplete: () => shell.destroy() }) });
+    this.shake(0.003, 80);
   }
 
   private async fireShell(size: number, big: boolean, spread = 0): Promise<void> {
@@ -944,40 +873,6 @@ export class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: f, scale: 0.55 * size, alpha: 0, duration: 110, ease: 'Quad.out', onComplete: () => f.destroy() });
   }
 
-  /** 왼손목 광선총: 왼팔을 높이 들어 적에게 뻗고 빠른 빛줄기를 쏜다 */
-  private async wristShot(): Promise<void> {
-    const r = this.robot;
-    // 뒷모습에서 왼팔은 몸통 뒤에 그려진다. 쏘는 동안만 몸통 앞으로 올려 보이게 한다.
-    const at = r.body.getIndex(r.leftArm);
-    r.body.bringToTop(r.leftArm);
-    await Promise.all([
-      this.tween({ targets: r.leftArm, angle: this.leftAim(), duration: 120, ease: 'Back.out' }),
-      this.tween({ targets: r.leftFore, angle: 0, duration: 120 }),
-    ]);
-    r.wristGlow.setScale(0.4).setAlpha(1);
-    await this.tween({ targets: r.wristGlow, scale: 1.3, duration: 90, ease: 'Quad.in' });
-    sfx.play('beam');
-    const m = this.wrist();
-    const t = this.foeCenter();
-    const bolt = this.add.graphics();
-    const len = Math.hypot(t.x - m.x, t.y - m.y);
-    bolt.fillStyle(0x5cf2ff, 0.6);
-    bolt.fillRoundedRect(0, -6, 46, 12, 6);
-    bolt.fillStyle(0xffffff, 1);
-    bolt.fillRoundedRect(4, -2.5, 38, 5, 2.5);
-    bolt.setPosition(m.x, m.y).setRotation(Math.atan2(t.y - m.y, t.x - m.x));
-    this.world.add(bolt);
-    r.wristGlow.setAlpha(0);
-    this.muzzleFlash(m, 0x5cf2ff, 0.8);
-    this.tweens.add({ targets: r.leftArm, angle: r.leftArm.angle + 10, duration: 60, yoyo: true });
-    this.tweens.add({ targets: r.root, x: ROBOT.x - 4, duration: 60, yoyo: true });
-    await this.tween({ targets: bolt, x: m.x + Math.cos(bolt.rotation) * (len - 40), y: m.y + Math.sin(bolt.rotation) * (len - 40), duration: 150, ease: 'Linear' });
-    bolt.destroy();
-    this.landHit(t.x, t.y, 0);
-    await this.tween({ targets: [r.leftArm, r.leftFore], angle: 0, duration: 140 });
-    r.body.moveTo(r.leftArm, at);
-  }
-
   private hitReact(big: boolean, id = this.targetId): void {
     const sf = this.foes.get(id);
     if (!sf) return;
@@ -988,8 +883,6 @@ export class BattleScene extends Phaser.Scene {
     // 맞으면 뒤(↗)로 살짝 밀린다
     this.tweens.add({ targets: f.root, x: sf.x + (big ? 14 : 7), y: sf.y - (big ? 6 : 3), duration: 80, yoyo: true, ease: 'Quad.out', onComplete: () => sf.idle.forEach((t) => t.resume()) });
     this.tweens.add({ targets: f.root, alpha: 0.5, duration: 50, yoyo: true, repeat: big ? 1 : 0 });
-    // 고개가 뒤로 젖혀졌다 돌아온다
-    this.tweens.add({ targets: f.head, angle: big ? -16 : -8, duration: 70, yoyo: true, ease: 'Quad.out' });
     if (big) this.shake(0.006, 140);
   }
 
@@ -1083,9 +976,6 @@ export class BattleScene extends Phaser.Scene {
 
   private async finisher(grand = false): Promise<void> {
     const r = this.robot;
-    // 왼팔로 대포 팔을 받쳐 드는 자세
-    this.tweens.add({ targets: r.leftArm, angle: -70, duration: 220, ease: 'Back.out' });
-    this.tweens.add({ targets: r.leftFore, angle: -60, duration: 220, ease: 'Back.out' });
     await this.openPod(true);
     // 힘 모으기: 에너지가 포구로 빨려 든다
     sfx.play('charge');
@@ -1272,15 +1162,10 @@ export class BattleScene extends Phaser.Scene {
         this.tweens.add({ targets: m.skirt, scaleX: 1.08, duration: 90, yoyo: true });
         this.burst('world', target.x - 10, target.y + 10, 'star', { color: [MAG.magic, 0xffffff], count: 8, speed: 130, scale: 0.25, life: 320 });
       } else {
-        // 몸통이 비틀리고 무릎이 꺾인다. 부딪힌 자리에서 불꽃이 튄다.
+        // 뒤로 밀리고 고개가 젖혀진다. 부딪힌 자리에서 불꽃이 튄다.
         const r = this.robot;
-        this.tweens.add({ targets: r.root, x: ROBOT.x - 12 * k, y: ROBOT.y + 6 * k, duration: 90, yoyo: true });
-        this.tweens.add({ targets: r.body, angle: -6 * k, duration: 90, yoyo: true, ease: 'Quad.out' });
-        // 머리는 세게 맞아도 조금만 (크게 꺾이면 머리가 떨어져 나가 보인다)
-        this.tweens.add({ targets: r.head, angle: -10, duration: 90, yoyo: true });
-        this.tweens.add({ targets: r.legs, scaleY: 0.9, duration: 90, yoyo: true });
-        this.tweens.add({ targets: r.leftArm, angle: 30, duration: 100, yoyo: true });
-        this.tweens.add({ targets: r.gun, rotation: -0.35, duration: 100, yoyo: true });
+        this.tweens.add({ targets: r.root, x: ROBOT.x - 12, y: ROBOT.y + 6, duration: 90, yoyo: true });
+        this.tweens.add({ targets: r.head, angle: -12, duration: 90, yoyo: true });
         this.tweens.add({ targets: r.visor, alpha: 0.2, duration: 70, yoyo: true, repeat: 1 });
         this.burst('world', target.x - 10, target.y + 10, 'star', { color: [0xffd23f, 0xffffff, 0xff8c42], count: 10, speed: 160, scale: 0.22, life: 300, gravity: 300 });
       }
@@ -1288,29 +1173,14 @@ export class BattleScene extends Phaser.Scene {
     };
 
     const s0 = f.root.scaleX;
-    if (kind === 'charger' || kind === 'chief') {
-      // 돌진: 뒤로 몸을 젖혀 발을 구른 뒤(흙먼지), 속도선을 남기며 곧장 들이받는다
-      await this.tween({ targets: f.body, angle: -12, duration: heavy ? 280 : 180, ease: 'Quad.out' });
-      for (let i = 0; i < (heavy ? 3 : 2); i++) {
-        sfx.play('step');
-        this.burst('world', sf.x + 10, sf.y, 'dot', { color: 0xd9c49a, count: 6, speed: 90, scale: 0.35, life: 400, gravity: -20 });
-        await this.tween({ targets: f.body, y: -6, duration: 70, yoyo: true });
-      }
-      const lines = this.speedLines(sf, target);
-      await this.tween({ targets: f.root, x: target.x + 70, y: target.y + 60, scale: s0 * 1.4, angle: 8, duration: 200, ease: 'Quad.in' });
-      impact();
-      lines.forEach((l) => this.drop(l));
-      await this.tween({ targets: f.root, x: sf.x, y: sf.y, scale: s0, angle: 0, duration: 420, ease: 'Quad.out' });
-      f.body.setAngle(0);
-    } else if (kind === 'dino') {
-      // 물기: 몸을 웅크렸다 달려들어 턱을 크게 벌린다
-      await this.tween({ targets: f.body, angle: -6, scaleY: 0.92, duration: heavy ? 260 : 150 });
+    if (kind === 'dino' || kind === 'charger' || kind === 'chief') {
+      // 돌진: 대각선 아래로 달려들었다 돌아간다 (가까워질수록 커진다)
+      await this.tween({ targets: f.body, angle: kind === 'dino' ? -6 : 8, duration: heavy ? 260 : 140 });
       sfx.play('step');
       await this.tween({ targets: f.root, x: target.x + 70, y: target.y + 60, scale: s0 * 1.35, duration: 260, ease: 'Quad.in' });
       if (f.jaw) this.tweens.add({ targets: f.jaw, scaleY: 1, duration: 80, yoyo: true });
       impact();
       await this.tween({ targets: f.root, x: sf.x, y: sf.y, scale: s0, duration: 380, ease: 'Quad.out' });
-      f.body.setScale(1);
     } else if (kind === 'armor') {
       // 꼬리 곤봉: 크게 뒤로 감았다가 땅을 내리쳐 충격파를 보낸다
       const tail = f.tail!;
@@ -1323,18 +1193,6 @@ export class BattleScene extends Phaser.Scene {
       impact();
       await this.tween({ targets: tail, angle: 0, duration: 300 });
     } else {
-      if (kind === 'boss') {
-        // 쿵: 뛰어올랐다 내려찍어 땅을 흔든 뒤 불덩이를 뿜는다
-        await this.tween({ targets: f.body, y: -26, duration: 200, ease: 'Quad.out' });
-        await this.tween({ targets: f.body, y: 0, duration: 120, ease: 'Quad.in' });
-        sfx.play('step');
-        this.shake(0.012, 260);
-        this.burst('world', sf.x, sf.y, 'dot', { color: 0xd9c49a, count: 14, speed: 150, scale: 0.45, life: 500, gravity: -20 });
-      } else if (kind === 'imp') {
-        // 통통 두 번 뛰고 입에서 쏜다. 옆의 작은 괴물들도 같이 뛴다 (무리)
-        for (const o of this.foes.values()) if (o.id !== id && o.kind === 'imp') this.tweens.add({ targets: o.parts.body, y: -10, duration: 120, yoyo: true, repeat: 1 });
-        for (let i = 0; i < 2; i++) await this.tween({ targets: f.body, y: -14, duration: 110, yoyo: true, ease: 'Quad.out' });
-      }
       // 발사체: 입에서 ↙ 방향으로
       if (f.jaw) this.tweens.add({ targets: f.jaw, scaleY: 1, duration: 150, yoyo: true, hold: 200 });
       sfx.play('roar');
@@ -1358,21 +1216,6 @@ export class BattleScene extends Phaser.Scene {
     }
     await this.wait(250);
     if (this.foes.has(id)) this.startFoeIdle(sf);
-  }
-
-  /** 돌진하는 적 뒤로 남는 속도선 (돌진이 끝나면 지운다) */
-  private speedLines(sf: SceneFoe, target: { x: number; y: number }): Phaser.GameObjects.Graphics[] {
-    if (this.reduceEffects) return [];
-    const a = Math.atan2(target.y - sf.y, target.x - sf.x);
-    return [-18, 0, 18].map((o, i) => {
-      const g = this.add.graphics();
-      g.lineStyle(4 - i, 0xffffff, 0.8);
-      g.lineBetween(0, o, -60 - i * 14, o);
-      g.setPosition(sf.x, sf.y - 40).setRotation(a);
-      this.world.add(g);
-      this.tweens.add({ targets: g, x: target.x + 40, y: target.y + 20, alpha: 0.2, duration: 200, ease: 'Quad.in' });
-      return g;
-    });
   }
 
   /** 땅을 타고 로봇 쪽으로 번지는 충격파 고리 */
