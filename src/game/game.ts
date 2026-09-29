@@ -813,6 +813,22 @@ export class Game {
     this.resetIdle();
   }
 
+  /**
+   * 안드로이드 뒤로 가기: 전투 중이면 일시정지(한 번 더 누르면 계속), 다른 화면이면 첫 화면으로.
+   * 첫 화면에서 누르면 true를 돌려 앱을 닫게 한다 (전투 중에 앱이 바로 꺼지지 않게).
+   */
+  back(): boolean {
+    if (this.inBattle) {
+      if (this.paused) this.resume();
+      else this.pause(true);
+      return false;
+    }
+    if (document.getElementById('t-start')) return true;
+    this.toMenu();
+    this.screens.title();
+    return false;
+  }
+
   private setPausedState(p: boolean): void {
     if (this.paused === p) return;
     this.paused = p;

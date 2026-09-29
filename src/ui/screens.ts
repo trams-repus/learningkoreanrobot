@@ -1,5 +1,6 @@
 // 게임 밖 화면: 시작, 전투 고르기, 승리, 일시정지, 부모 화면.
 // 아이 화면은 글 대신 큰 그림 버튼. 부모 화면은 길게 눌러야 열린다.
+import { Capacitor } from '@capacitor/core';
 import { AUDIO_MANIFEST, DIALOGUE, WORD_AUDIO_SOURCES } from '../content/audio';
 import { THEMES, type CharacterTheme } from '../content/characters';
 import { frontier, regionAt, regionById, regionIndexOf, stageAt, type RegionDef, type StageDef } from '../content/stages';
@@ -428,7 +429,8 @@ export class Screens {
       ['record', '단어 기록'],
       ['settings', '설정'],
       ['sound', '소리 확인'],
-      ['voice', '목소리 녹음'],
+      // 앱에서는 마이크 권한을 받지 않는다 (첫 출시 범위를 줄임): 부모 목소리 녹음은 웹판에서만
+      ...(Capacitor.isNativePlatform() ? [] : ([['voice', '목소리 녹음']] as [typeof tab, string][])),
     ];
     const body = tab === 'analysis' ? this.analysisHtml() : tab === 'record' ? this.recordHtml() : tab === 'settings' ? this.settingsHtml() : tab === 'sound' ? this.soundHtml() : this.voiceHtml();
     const el = this.open(
@@ -722,6 +724,10 @@ export class Screens {
       <h3>도움</h3>
       <label>도움 정도<select id="se-help"><option value="auto" ${s.helpMode === 'auto' ? 'selected' : ''}>자동 (플레이에 맞춰)</option><option value="more" ${s.helpMode === 'more' ? 'selected' : ''}>많이 (늘 부분 안내)</option></select></label>
       ${chk('se-autohelp', s.autoHelp, '막히면 선택지 줄이기·다음 자모 안내')}
+      <h3>라이선스</h3>
+      <p class="muted">이 앱이 쓰는 오픈소스·글꼴·단어 녹음의 저작권과 라이선스 고지입니다.</p>
+      <div class="btns"><button class="small-btn" id="se-lic">라이선스 보기</button></div>
+      <pre id="se-lic-text" class="lic-text" hidden></pre>
       <div class="btns"><button class="small-btn" id="se-default">설정 기본값으로</button></div>`;
   }
 
@@ -759,6 +765,16 @@ export class Screens {
     el.querySelector('#se-buy')?.addEventListener('click', () => this.purchase(() => this.parent('settings')));
     el.querySelector('#se-restore')?.addEventListener('click', () => {
       void purchases.restore().then(() => this.parent('settings'));
+    });
+    el.querySelector('#se-lic')!.addEventListener('click', () => {
+      const pre = el.querySelector<HTMLPreElement>('#se-lic-text')!;
+      pre.hidden = !pre.hidden;
+      if (pre.hidden || pre.textContent) return;
+      pre.textContent = '불러오는 중…';
+      fetch('licenses.txt')
+        .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+        .then((t) => (pre.textContent = t))
+        .catch(() => (pre.textContent = '고지 파일을 열지 못했습니다. 앱을 다시 설치해 주세요.'));
     });
     el.querySelector('#se-default')!.addEventListener('click', () => {
       const theme = saves.data.settings.characterTheme;

@@ -1925,3 +1925,16 @@ body.theme-magic .frames.connected .frame::before {
     animation: none;
   }
 }
+
+.lic-text {
+  max-height: 50vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font: 11px/1.45 ui-monospace, monospace;
+  background: #fff;
+  color: #1d2340;
+  border: 2px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px;
+}

@@ -201,13 +201,13 @@
   },
   {
     "word": "아빠",
-    "file": "appa.wav",
+    "file": "",
     "commonsFile": "LL-Q9176_(kor)-HappyMidnight-아빠.wav",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EC%95%84%EB%B9%A0.wav",
-    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
-    "speaker": "HappyMidnight",
-    "license": "CC BY-SA 4.0",
-    "collection": "Lingua Libre (Wikimedia Commons)"
+    "url": "",
+    "link": "제외(2026-09-29): CC BY-SA 4.0은 유료 앱에 ShareAlike가 걸릴 수 있어 쓰지 않음 → 기기 TTS. 원본: LL-Q9176_(kor)-HappyMidnight-아빠.wav",
+    "speaker": "",
+    "license": "",
+    "collection": ""
   },
   {
     "word": "집",
@@ -341,13 +341,13 @@
   },
   {
     "word": "밥",
-    "file": "bap.wav",
+    "file": "",
     "commonsFile": "LL-Q9176_(kor)-HappyMidnight-밥.wav",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EB%B0%A5.wav",
-    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
-    "speaker": "HappyMidnight",
-    "license": "CC BY-SA 4.0",
-    "collection": "Lingua Libre (Wikimedia Commons)"
+    "url": "",
+    "link": "제외(2026-09-29): CC BY-SA 4.0은 유료 앱에 ShareAlike가 걸릴 수 있어 쓰지 않음 → 기기 TTS. 원본: LL-Q9176_(kor)-HappyMidnight-밥.wav",
+    "speaker": "",
+    "license": "",
+    "collection": ""
   },
   {
     "word": "피자",
@@ -361,13 +361,13 @@
   },
   {
     "word": "오리",
-    "file": "ori.wav",
+    "file": "",
     "commonsFile": "LL-Q9176_(kor)-HappyMidnight-오리.wav",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EC%98%A4%EB%A6%AC.wav",
-    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
-    "speaker": "HappyMidnight",
-    "license": "CC BY-SA 4.0",
-    "collection": "Lingua Libre (Wikimedia Commons)"
+    "url": "",
+    "link": "제외(2026-09-29): CC BY-SA 4.0은 유료 앱에 ShareAlike가 걸릴 수 있어 쓰지 않음 → 기기 TTS. 원본: LL-Q9176_(kor)-HappyMidnight-오리.wav",
+    "speaker": "",
+    "license": "",
+    "collection": ""
   },
   {
     "word": "여우",
@@ -981,13 +981,13 @@
   },
   {
     "word": "가슴",
-    "file": "gaseum.wav",
+    "file": "",
     "commonsFile": "LL-Q9176_(kor)-HappyMidnight-가슴.wav",
-    "url": "https://commons.wikimedia.org/wiki/Special:FilePath/LL-Q9176_(kor)-HappyMidnight-%EA%B0%80%EC%8A%B4.wav",
-    "link": "Commons API로 찾음 (2026-09-28, GitHub Actions)",
-    "speaker": "HappyMidnight",
-    "license": "CC BY-SA 4.0",
-    "collection": "Lingua Libre (Wikimedia Commons)"
+    "url": "",
+    "link": "제외(2026-09-29): CC BY-SA 4.0은 유료 앱에 ShareAlike가 걸릴 수 있어 쓰지 않음 → 기기 TTS. 원본: LL-Q9176_(kor)-HappyMidnight-가슴.wav",
+    "speaker": "",
+    "license": "",
+    "collection": ""
   },
   {
     "word": "팔",
