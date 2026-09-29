@@ -21,7 +21,8 @@ export const BALANCE = {
     rapid: { target: 2, others: 0 },
     missiles: { target: 2, others: 1 },
     finisher: { target: 3, others: 2 },
-    ultimate: { target: 8, others: 8 },
+    /** 직접 따라 쓴 필살기 (에너지가 가득 찼을 때만) */
+    ultimate: { target: 5, others: 3 },
   } as Record<AttackTier, { target: number; others: number }>,
 };
 
@@ -45,7 +46,7 @@ export function spawnWave(state: BattleState, wave: FoeSpawn[]): Foe[] {
   state.foes = wave.map((s, i) => {
     const b = BALANCE.foe[s.kind];
     const hp = s.hp ?? b.hp;
-    return { id: state.nextId++, kind: s.kind, hp, maxHp: hp, charge: i === 0 ? 1 : 0, chargeTurns: b.chargeTurns, harmless: s.harmless ?? false, shield: s.shield ?? 0, finalBlow: s.finalBlow };
+    return { id: state.nextId++, kind: s.kind, hp, maxHp: hp, charge: i === 0 ? 1 : 0, chargeTurns: b.chargeTurns, harmless: s.harmless ?? false, shield: s.shield ?? 0, finalBlow: s.finalBlow, writeFinish: s.writeFinish };
   });
   state.actor = 0;
   state.waveMax = Math.max(1, waveHp(state).hp);
@@ -76,6 +77,11 @@ export function planTier(state: BattleState, tier: AttackTier): AttackTier {
   if (!t?.finalBlow) return tier;
   const lethal = BALANCE.attack[tier].target >= t.hp + t.shield;
   return lethal ? strongerTier(tier, t.finalBlow) : tier;
+}
+
+/** 직접 쓴 필살기로 마무리할 만큼 약해진 적 (writeFinish). 없으면 null. */
+export function weakForSpecial(state: BattleState): Foe | null {
+  return state.foes.find((f) => f.writeFinish !== undefined && f.hp + f.shield <= f.writeFinish) ?? null;
 }
 
 /** 로봇 공격 한 번. 피해는 여기서 한 번만 계산한다. 쓰러진 적은 무리에서 뺀다. */

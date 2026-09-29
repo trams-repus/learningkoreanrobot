@@ -1,24 +1,27 @@
 // 게임 흐름: 적 등장 → (대사) → 암호 수신기가 단어를 말함 → 자모 조립 → 단어 완성 → 로봇 공격 → 적 차례 → 다음 단어.
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
+// 단어마다 필살기 에너지가 차고(빠를수록 많이), 가득 차면 다음 단어는 손가락으로 따라 써서 최고 필살기를 쏜다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
 import { STAGES, drawWord, nextStageId, regionEnd, stageById, stageWords, type StageDef } from '../content/stages';
 import { TRAP_TABLES } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
 import { pictureSvg } from '../content/pictures';
 import { jamoCount, pickTraps, requiredJamo, wordFrames, cellsOf, type FrameSpec, type TrapGrade } from '../core/assembly';
-import { actorOf, createBattle, foeTurn, planTier, robotAttack, spawnWave, strongerTier, target, waveHp } from '../core/battle';
-import { bonusTimeMs, ComboClock, comboTimeMs, nextCombo, tierFor, type HelpLevel } from '../core/combo';
+import { actorOf, createBattle, foeTurn, planTier, robotAttack, spawnWave, strongerTier, target, waveHp, weakForSpecial } from '../core/battle';
+import { bonusTimeMs, ComboClock, comboTimeMs, energyAfter, ENERGY_CONFIG, nextCombo, tierFor, type AttackTier, type HelpLevel } from '../core/combo';
+import { pickWriteWord } from '../core/writing';
 import { focusPool } from '../core/analysis';
 import { helpLevelFor, recordSuccess, wordStats } from '../core/progress';
-import { decomposeSyllable } from '../hangul/hangul';
-import type { BattleState } from '../core/types';
+import { decomposeSyllable, splitWord } from '../hangul/hangul';
+import type { BattleState, Hit } from '../core/types';
 import type { BattleScene } from '../scene/BattleScene';
 import { Cockpit } from '../ui/cockpit';
 import { ICONS } from '../ui/icons';
 import { Screens } from '../ui/screens';
+import { WritePad } from '../ui/writepad';
 import { audio, options, playlog, saves, sfx } from './services';
 
-type Phase = 'menu' | 'intro' | 'compose' | 'execute' | 'victory';
+type Phase = 'menu' | 'intro' | 'compose' | 'write' | 'execute' | 'victory';
 
 const WORD_COLORS = ['#ff9d2e', '#2eb8ff', '#b06cff', '#3ed17a', '#ff5a8a'];
 
@@ -33,6 +36,14 @@ interface WordRun {
   guarded: boolean;
   color: string;
   /** 방금 완성한 음절을 읽는 중 (단어 발음이 이 소리를 끊지 않게 기다린다) */
+  syllableSaid: Promise<unknown> | null;
+}
+
+/** 따라 쓰기 필살기 단어 */
+interface WriteRun {
+  entry: VocabEntry;
+  syllables: string[];
+  color: string;
   syllableSaid: Promise<unknown> | null;
 }
 
@@ -53,12 +64,16 @@ export class Game {
   private bags = new Map<string, string[]>();
   private combo = 0;
   private current: WordRun | null = null;
+  private writeRun: WriteRun | null = null;
+  /** 에너지가 가득 찬 까닭: 콤보로 모음 / 보스가 약해져서 채워 줌 (대사가 다르다) */
+  private specialCue: 'energy' | 'weak' = 'energy';
   private clock = new ComboClock();
   private idleTimers: ReturnType<typeof setTimeout>[] = [];
   private gaugeRaf = 0;
   private resumeWaiters: (() => void)[] = [];
   private bannerTimer: ReturnType<typeof setTimeout> | undefined;
   readonly cockpit: Cockpit;
+  readonly writepad: WritePad;
   readonly screens: Screens;
 
   constructor(private scene: BattleScene) {
@@ -96,6 +111,15 @@ export class Game {
         this.resetIdle();
         sfx.play('tap');
       },
+    });
+    this.writepad = new WritePad(document.getElementById('writepad')!, {
+      onSyllableDone: (i) => {
+        const w = this.writeRun;
+        // 조립 때처럼 음절을 다 쓰면 그 음절을 읽는다 (한 글자 단어는 곧 단어로 읽는다)
+        if (w && w.syllables.length >= 2) w.syllableSaid = audio.playSyllable(w.syllables[i]);
+      },
+      onWordDone: () => void this.finishWriting(this.run),
+      onInteract: () => this.resetIdle(),
     });
     this.screens = new Screens(this);
     document.getElementById('btn-help')!.innerHTML = ICONS.bulb;
@@ -179,6 +203,9 @@ export class Game {
     this.stopGauge();
     this.cockpit.stopLoop();
     this.cockpit.lock(); // 손가락 안내도 함께 숨긴다
+    this.writepad.lock();
+    this.writeRun = null;
+    this.setWriting(false);
     audio.stop();
     this.scene.resetBattle(this.state.robotMax);
     this.showBattleUi(false);
@@ -204,6 +231,11 @@ export class Game {
     this.attacks = 0;
     this.wordIndex = 0;
     this.combo = 0;
+    this.writeRun = null;
+    this.specialCue = 'energy';
+    this.writepad.lock();
+    this.setWriting(false);
+    this.renderEnergy();
     this.scene.fxScale = stage.fxScale ?? 1;
     this.showCombo(false);
     const st = saves.data.stats;
@@ -296,6 +328,8 @@ export class Game {
   private async presentWord(my: number, firstForFoe: boolean): Promise<void> {
     await this.whenResumed();
     if (my !== this.run) return;
+    if (saves.data.energy >= ENERGY_CONFIG.max) return this.presentWriting(my);
+    this.setWriting(false);
     const entry = this.pickWord();
     this.wordIndex++;
     this.lastWord = entry.word;
@@ -362,11 +396,127 @@ export class Game {
     }
   }
 
+  // ───────────── 필살기: 직접 따라 쓰기 ─────────────
+
+  /** 조립판 ↔ 따라 쓰기 판 (조종석 크기는 그대로) */
+  private setWriting(on: boolean): void {
+    document.getElementById('cockpit')!.classList.toggle('writing', on);
+    document.getElementById('writepad')!.hidden = !on;
+    if (on) this.writepad.fit();
+  }
+
+  /** 에너지 칸 (가득 차면 로봇 상태 칸이 금색으로 빛난다) */
+  private renderEnergy(prev = saves.data.energy): void {
+    const el = document.getElementById('energy')!;
+    const e = saves.data.energy;
+    el.innerHTML = '';
+    for (let i = 0; i < ENERGY_CONFIG.max; i++) {
+      const d = document.createElement('i');
+      if (i < e) d.className = i >= prev ? 'on pop' : 'on';
+      el.appendChild(d);
+    }
+    document.getElementById('robot-status')!.classList.toggle('full', e >= ENERGY_CONFIG.max);
+  }
+
+  private gainEnergy(tier: AttackTier): void {
+    const prev = saves.data.energy;
+    saves.data.energy = energyAfter(prev, tier);
+    saves.save();
+    this.renderEnergy(prev);
+    if (prev < ENERGY_CONFIG.max && saves.data.energy >= ENERGY_CONFIG.max) sfx.play('chime');
+  }
+
+  /** 에너지가 가득 찼을 때의 단어: 대사 → 단어 음성 → 흐린 글자 위를 획 순서대로 따라 쓴다 */
+  private async presentWriting(my: number): Promise<void> {
+    const stage = this.stage!;
+    const set = saves.data.settings;
+    const pool = focusPool(stageWords(stage, set.pack, set.includeRecommended).map((w) => w.word), set.focusJamo, set.focusWords);
+    const word = pickWriteWord(pool, this.lastWord, ENERGY_CONFIG.maxStrokes, Math.random);
+    const entry = word ? vocabById(word) : undefined;
+    const syllables = entry ? splitWord(entry.word) : null;
+    const color = WORD_COLORS[(this.wordIndex + 1) % WORD_COLORS.length];
+    this.setWriting(true);
+    if (!entry || !syllables || !this.writepad.setup(syllables, color)) {
+      // 쓸 수 있는 단어가 없으면(어휘상 생기지 않아야 한다) 에너지를 비우고 보통 단어로
+      saves.data.energy = 0;
+      saves.save();
+      this.renderEnergy();
+      return this.presentWord(my, false);
+    }
+    this.wordIndex++;
+    this.lastWord = entry.word;
+    this.current = null;
+    this.writeRun = { entry, syllables, color, syllableSaid: null };
+    // 조립판은 비워 둔다 (가려져 있는 동안 떠다니는 자모를 움직이지 않게)
+    this.cockpit.setup({ frames: [], ghost: [], sequential: true, supply: [[]], motion: false });
+    this.cockpit.lock();
+    const gauge = document.getElementById('combo-gauge')!;
+    gauge.classList.remove('live');
+    (gauge.querySelector('.fill') as HTMLElement).style.width = '0%';
+    this.showPicture(entry);
+    this.phase = 'intro';
+    this.scene.setCharge(0, color);
+    const line = this.specialCue === 'weak' ? 'd_weak' : this.theme.lines.special;
+    this.specialCue = 'energy';
+    // 순서: 대사 → 대사 끝 → 단어 음성 → 쓰기 시작 (둘을 겹치지 않는다)
+    await Promise.race([audio.playDialogue(line, { force: true }), this.scene.wait(4000)]);
+    if (my !== this.run) return;
+    await this.whenResumed();
+    if (my !== this.run) return;
+    const said = await audio.playWord(entry.wordAudioId);
+    if (my !== this.run || this.writeRun?.entry !== entry) return;
+    document.getElementById('btn-listen')!.classList.toggle('nudge', !said.ok && !audio.muted);
+    this.phase = 'write';
+    this.writepad.unlock();
+    void this.writepad.showDemo();
+    this.resetIdle();
+  }
+
+  /** 다 쓰면: 쓴 글자가 크게 떠올라 로봇에게 모이고 → 최고 필살기 */
+  private async finishWriting(my: number): Promise<void> {
+    const w = this.writeRun;
+    if (!w || this.phase !== 'write') return;
+    this.phase = 'execute';
+    this.writepad.lock();
+    this.clearIdle();
+    saves.data.energy = 0;
+    saves.data.stats.finishers++;
+    saves.save();
+    this.renderEnergy();
+    if (w.syllableSaid) await Promise.race([w.syllableSaid, this.scene.wait(1200)]);
+    if (my !== this.run) return;
+    // 단어를 읽은 뒤에 필살기 대사 (둘을 겹치지 않는다)
+    await Promise.race([audio.playWord(w.entry.wordAudioId), this.scene.wait(1500)]);
+    if (my !== this.run) return;
+    // 쓴 글자가 크게 떠오르는 동안은 자막을 띄우지 않고, 발사할 때 필살기 대사
+    await this.scene.specialCutIn(w.syllables, w.color);
+    if (my !== this.run) return;
+    void audio.playDialogue(this.theme.lines.ultimate, { force: true });
+    this.writeRun = null;
+    const hits = robotAttack(this.state, 'ultimate');
+    const hp = waveHp(this.state);
+    await this.scene.attack('ultimate', hits, hp.hp, hp.max);
+    if (my !== this.run) return;
+    await this.afterAttack(my, hits);
+  }
+
   // ───────────── 조합 중 ─────────────
 
   /** 가만히 있으면: 도움 단계가 낮을 때 손가락 안내, 오래 막히면 로봇이 막아 주며 안심시킨다 */
   private resetIdle(): void {
     this.clearIdle();
+    if (this.phase === 'write') {
+      // 쓰는 중에 가만히 있으면 지금 획을 점이 다시 따라가 보여 준다
+      if (!this.paused)
+        this.idleTimers.push(
+          setTimeout(() => {
+            if (this.phase !== 'write' || this.paused) return;
+            void this.writepad.showDemo();
+            this.resetIdle();
+          }, 6000 / options.speed),
+        );
+      return;
+    }
     const cur = this.current;
     if (this.phase !== 'compose' || this.paused || !cur) return;
     if (cur.level === 'A' || cur.level === 'B') {
@@ -416,14 +566,16 @@ export class Game {
   /** 음성 다시 듣기: 조합 상태는 그대로, 듣는 동안 콤보 시간은 멈춘다. 정답 보기와 따로 센다. */
   async replayWord(count = true): Promise<void> {
     const cur = this.current;
-    if (!cur || this.paused || (this.phase !== 'compose' && this.phase !== 'intro')) return;
-    if (count) {
+    const entry = cur?.entry ?? this.writeRun?.entry;
+    if (!entry || this.paused || (this.phase !== 'compose' && this.phase !== 'intro' && this.phase !== 'write')) return;
+    // 따라 쓰기 단어는 조립 기록(도움 단계·부모 화면 분석)에 넣지 않는다
+    if (count && cur) {
       wordStats(saves.data.stats, cur.entry.id).replays++;
       playlog.replay();
       saves.save();
     }
     this.clock.hold('replay');
-    const r = await audio.playWord(cur.entry.wordAudioId);
+    const r = await audio.playWord(entry.wordAudioId);
     document.getElementById('btn-listen')!.classList.toggle('nudge', !r.ok && !audio.muted);
     this.clock.release('replay');
     this.resetIdle();
@@ -431,6 +583,12 @@ export class Game {
 
   /** 정답 자모 보기: 1번째 = 지금 음절의 흐린 자모, 2번째부터 = 다음 자모와 칸을 손가락으로 */
   help(): void {
+    if (this.phase === 'write' && !this.paused) {
+      sfx.play('tap');
+      void this.writepad.showDemo();
+      this.resetIdle();
+      return;
+    }
     const cur = this.current;
     if (!cur || this.paused || this.phase !== 'compose') return;
     sfx.play('tap');
@@ -499,14 +657,14 @@ export class Game {
     // 새 공격 소개: 이 전투의 첫 공격은 적어도 이 단계로 (예: 4단계 첫 공격 = 범위 공격)
     const unlockNow = this.attacks === 0 && !!stage.unlock && strongerTier(tier, stage.unlock) !== tier;
     if (unlockNow) tier = stage.unlock!;
-    // 보스를 쓰러뜨리는 일격은 필살기로 (10단계 최종 보스 = 최고 필살기)
+    // 대장을 쓰러뜨리는 일격은 필살기로 (5단계). 최고 필살기(ultimate)는 직접 따라 쓸 때만 나간다.
     tier = planTier(this.state, tier);
     this.attacks++;
     const st = saves.data.stats;
     recordSuccess(st, cur.entry.id, cur.assisted, elapsed);
     playlog.finish(cur.assisted, elapsed);
     st.bestCombo = Math.max(st.bestCombo, this.combo);
-    if (tier === 'finisher' || tier === 'ultimate') st.finishers++;
+    if (tier === 'finisher') st.finishers++;
     saves.save();
 
     // 완성 → 발음 → 에너지 전송 → 발사 → 명중
@@ -523,29 +681,33 @@ export class Game {
     const L = this.theme.lines;
     // 대사는 단계가 바뀔 때만 (매 공격마다 말하지 않는다). 첫 공격에는 준비 완료 대사.
     const firstHit = this.attacks === 1;
-    const line =
-      tier === 'ultimate'
-        ? L.ultimate
-        : unlockNow
-          ? L.unlock
-          : tier === 'finisher'
-            ? L.finish
-            : tier === 'missiles'
-              ? this.combo === 4
-                ? L.power
-                : null
-              : tier === 'rapid'
-                ? this.combo === 2
-                  ? L.combo
-                  : null
-                : firstHit
-                  ? L.ready
-                  : null;
+    const line = unlockNow
+      ? L.unlock
+      : tier === 'finisher'
+        ? L.finish
+        : tier === 'missiles'
+          ? this.combo === 4
+            ? L.power
+            : null
+          : tier === 'rapid'
+            ? this.combo === 2
+              ? L.combo
+              : null
+            : firstHit
+              ? L.ready
+              : null;
     if (line) void audio.playDialogue(line, { force: true });
     const hits = robotAttack(this.state, tier);
     const hp = waveHp(this.state);
     await this.scene.attack(tier, hits, hp.hp, hp.max);
     if (my !== this.run) return;
+    this.gainEnergy(tier);
+    await this.afterAttack(my, hits);
+  }
+
+  /** 공격 뒤: 쓰러진 적 → 다음 무리 / 승리, 아니면 적 차례 → 다음 단어 */
+  private async afterAttack(my: number, hits: Hit[]): Promise<void> {
+    const stage = this.stage!;
     this.defeatedCount += hits.filter((h) => h.defeated).length;
     this.renderFoeDots();
 
@@ -558,6 +720,15 @@ export class Game {
     }
     const t = target(this.state);
     if (t) this.scene.setTarget(t.id);
+    // 보스가 약해지면 에너지를 채워 준다: 마지막 일격은 직접 쓴 최고 필살기 (콤보가 낮은 아이도 한 번은 본다)
+    if (weakForSpecial(this.state) && saves.data.energy < ENERGY_CONFIG.max) {
+      const prev = saves.data.energy;
+      saves.data.energy = ENERGY_CONFIG.max;
+      saves.save();
+      this.specialCue = 'weak';
+      this.renderEnergy(prev);
+      sfx.play('chime');
+    }
 
     for (const ev of foeTurn(this.state)) {
       if (ev.type === 'foeCharge') {

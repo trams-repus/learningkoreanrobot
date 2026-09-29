@@ -223,6 +223,45 @@ svg {
 .bar .fill.low {
   background: linear-gradient(#ffd36e, #ff9d2e);
 }
+
+/* 필살기 에너지: 로봇 체력 아래 칸. 가득 차면 금색으로 빛난다 */
+.robot-status .bars {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.energy {
+  display: flex;
+  gap: 3px;
+  height: 11px;
+}
+.energy i {
+  flex: 1 1 0;
+  border-radius: 4px;
+  border: 2px solid var(--ink);
+  background: #3a4a70;
+  transition: background 0.25s;
+}
+.energy i.on {
+  background: linear-gradient(#fff3a6, #ffc933);
+}
+.energy i.pop {
+  animation: pop 0.4s ease;
+}
+.robot-status.full {
+  border-color: #ffc933;
+  box-shadow: 0 0 0 3px var(--ink), 0 0 16px 4px rgba(255, 201, 51, 0.9);
+  animation: energyGlow 0.9s ease-in-out infinite alternate;
+}
+.robot-status.full .energy i {
+  background: linear-gradient(#ffffff, #ffd23f);
+}
+@keyframes energyGlow {
+  to {
+    box-shadow: 0 0 0 3px var(--ink), 0 0 26px 8px rgba(255, 201, 51, 1);
+  }
+}
 #subtitle {
   position: absolute;
   left: 50%;
@@ -545,6 +584,112 @@ svg {
 }
 .frame.shake {
   animation: wobble 0.5s ease;
+}
+
+/* 필살기 따라 쓰기 판: 조립틀과 자모 영역 자리를 그대로 쓴다 (조종석 높이가 변하지 않게) */
+.writepad {
+  height: calc(var(--frame) + 8px + clamp(150px, 24vh, 210px));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.writepad[hidden] {
+  display: none;
+}
+#cockpit.writing {
+  border-top-color: #ffe066;
+  box-shadow: 0 -6px 22px rgba(255, 201, 51, 0.55);
+}
+#cockpit.writing #frames,
+#cockpit.writing #zone {
+  display: none;
+}
+.wbox {
+  flex: 0 0 auto;
+  border-radius: 16px;
+  background: #fffaf0;
+  border: 4px solid var(--ink);
+  box-shadow: 0 5px 0 var(--ink);
+  opacity: 0.55;
+  transition: opacity 0.2s, transform 0.2s;
+  overflow: visible;
+}
+.wbox.now {
+  opacity: 1;
+  box-shadow: 0 5px 0 var(--ink), 0 0 0 4px #ffe066;
+}
+.wbox.done {
+  opacity: 1;
+}
+.wbox.flash {
+  animation: pop 0.4s ease;
+}
+.wbox .grid rect {
+  fill: none;
+}
+.wbox .grid path {
+  stroke: #d8cdb4;
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  fill: none;
+}
+.wbox .guides path,
+.wbox .ink path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.wbox .guides path.todo {
+  stroke: #d9dde8;
+  stroke-width: 9;
+}
+.wbox .guides path.now {
+  stroke: #a9b3cc;
+  stroke-width: 11;
+  animation: strokeNow 0.8s ease-in-out infinite alternate;
+}
+.wbox .guides path.done {
+  stroke: var(--wc, #ff9d2e);
+  stroke-width: 10;
+}
+.wbox .ink path {
+  stroke: var(--wc, #ff9d2e);
+  stroke-width: 8;
+  opacity: 0.85;
+}
+.wbox .ink path.bad {
+  stroke: #ff5a5a;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.wbox .marks .start {
+  fill: #3ed17a;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+.wbox .marks .arrow {
+  fill: #2e4478;
+}
+.wbox .demo {
+  fill: #ff5a8a;
+  stroke: #fff;
+  stroke-width: 2;
+  opacity: 0;
+}
+.wbox .demo.on {
+  opacity: 1;
+}
+@keyframes strokeNow {
+  from {
+    stroke: #aab4cf;
+  }
+  to {
+    stroke: #6f7fa8;
+  }
 }
 
 /* 떠다니는 자모: 조합 영역 안에서만 */

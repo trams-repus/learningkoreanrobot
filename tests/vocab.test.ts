@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
 import { MIN_STAGE_WORDS, STAGES, bandFor, drawWord, entryDifficulty, nextStageId, regionEnd, stageWords, trapMix } from '../src/content/stages';
 import { createRng } from '../src/core/rng';
+import { BALANCE } from '../src/core/battle';
 import { EASY_FIVE, EASY_MORE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
 import { isSupportedWord, wordDifficulty, wordFeatures, wordFrames, wordTier } from '../src/core/assembly';
 import { composeSyllable } from '../src/hangul/hangul';
@@ -141,7 +142,17 @@ describe('난이도 단계별 전투', () => {
     expect(r1.find((s) => s.boss === 'mid')?.num).toBe(5);
     expect(r1.find((s) => s.boss === 'final')?.num).toBe(10);
     expect(r1[4].waves.flat().find((f) => f.kind === 'chief')?.finalBlow).toBe('finisher');
-    expect(r1[9].waves.flat().find((f) => f.kind === 'boss')?.finalBlow).toBe('ultimate');
+    // 1단계 공룡과 10단계 보스는 약해지면 직접 쓴 필살기로 마무리 (한 방에 쓰러지는 체력에서, 혼자 나오는 적)
+    for (const s of STAGES) {
+      for (const wave of s.waves) {
+        for (const f of wave.filter((x) => x.writeFinish !== undefined)) {
+          expect(f.writeFinish!, s.id).toBeLessThanOrEqual(BALANCE.attack.ultimate.target);
+          expect(wave.length, s.id).toBe(1);
+        }
+      }
+    }
+    expect(r1[0].waves[0][0].writeFinish).toBeGreaterThan(0);
+    expect(r1[9].waves.flat().find((f) => f.kind === 'boss')?.writeFinish).toBeGreaterThan(0);
     expect(r1[3].unlock).toBe('missiles'); // 4단계: 범위 공격 소개
     expect(Math.max(...r1[3].waves.map((w) => w.length))).toBe(2); // 두 마리 동시
     expect(Math.max(...r1[7].waves.map((w) => w.length))).toBe(3); // 8단계: 세 마리

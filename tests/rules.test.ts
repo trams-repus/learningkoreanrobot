@@ -3,8 +3,8 @@ import { canHold, cellsOf, checkFrame, chooseCell, distractorsFor, frameFor, jam
 import { ADVANCED_GROUPS, TRAP_TABLES, TRAPS } from '../src/content/distractors';
 import { VOCAB } from '../src/content/vocab';
 import { isVowel } from '../src/hangul/hangul';
-import { actorOf, createBattle, foeTurn, planTier, robotAttack, spawnWave, target, waveHp, BALANCE } from '../src/core/battle';
-import { bonusTimeMs, ComboClock, COMBO_CONFIG, comboTimeMs, nextCombo, tierFor } from '../src/core/combo';
+import { actorOf, createBattle, foeTurn, planTier, robotAttack, spawnWave, target, waveHp, weakForSpecial, BALANCE } from '../src/core/battle';
+import { bonusTimeMs, ComboClock, COMBO_CONFIG, comboTimeMs, energyAfter, ENERGY_CONFIG, nextCombo, tierFor } from '../src/core/combo';
 import { createRng } from '../src/core/rng';
 
 describe('조립틀', () => {
@@ -220,11 +220,35 @@ describe('전투', () => {
   });
   it('보스를 쓰러뜨리는 일격은 마무리 필살기로 올라간다 (그 전에는 그대로)', () => {
     const s = createBattle();
-    spawnWave(s, [{ kind: 'boss', hp: 3, finalBlow: 'ultimate' }]);
+    spawnWave(s, [{ kind: 'chief', hp: 3, finalBlow: 'finisher' }]);
     expect(planTier(s, 'basic')).toBe('basic');
     robotAttack(s, 'rapid');
-    expect(planTier(s, 'basic')).toBe('ultimate');
-    const [h] = robotAttack(s, 'ultimate');
+    expect(planTier(s, 'basic')).toBe('finisher');
+    const [h] = robotAttack(s, 'finisher');
     expect(h.defeated).toBe(true);
+  });
+  it('writeFinish: 약해진 보스는 직접 쓴 필살기 한 방이면 쓰러진다 (방패 포함)', () => {
+    const s = createBattle();
+    spawnWave(s, [{ kind: 'boss', hp: 8, shield: 2, writeFinish: 4 }]);
+    expect(weakForSpecial(s)).toBeNull();
+    robotAttack(s, 'rapid'); // 방패 2 깨짐
+    robotAttack(s, 'rapid'); // 8 → 6
+    expect(weakForSpecial(s)).toBeNull();
+    robotAttack(s, 'rapid'); // 6 → 4
+    expect(weakForSpecial(s)?.kind).toBe('boss');
+    expect(robotAttack(s, 'ultimate')[0].defeated).toBe(true);
+  });
+});
+
+describe('필살기 에너지', () => {
+  it('빠를수록(공격 단계가 높을수록) 많이 차고, 느려도 1칸은 찬다. 가득 차면 더 늘지 않는다', () => {
+    expect(energyAfter(0, 'basic')).toBe(1);
+    expect(energyAfter(0, 'rapid')).toBeGreaterThan(energyAfter(0, 'basic'));
+    expect(energyAfter(0, 'finisher')).toBeGreaterThanOrEqual(energyAfter(0, 'missiles'));
+    expect(energyAfter(ENERGY_CONFIG.max - 1, 'finisher')).toBe(ENERGY_CONFIG.max);
+    expect(energyAfter(ENERGY_CONFIG.max, 'ultimate')).toBe(ENERGY_CONFIG.max);
+  });
+  it('콤보 공격은 최고 필살기(ultimate)까지 올라가지 않는다: ultimate는 직접 쓰기 전용', () => {
+    for (let c = 0; c <= 30; c++) expect(tierFor(c)).not.toBe('ultimate');
   });
 });

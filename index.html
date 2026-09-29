@@ -29,6 +29,8 @@
         </div>
         <div id="frames" class="frames"></div>
         <div id="zone" class="zone"></div>
+        <!-- 필살기: 에너지가 가득 차면 끌어 넣기 대신 손가락으로 따라 쓴다 -->
+        <div id="writepad" class="writepad" hidden></div>
       </section>
     </div>
     <!-- 전투 그림(캔버스) 위에 겹치는 표시: 위치는 main.ts가 #battle 영역에 맞춘다 -->
@@ -39,7 +41,11 @@
       </div>
       <div class="status robot-status" id="robot-status" hidden>
         <span class="st-icon" id="robot-icon"></span>
-        <div class="bar"><div class="fill" id="robot-fill"></div></div>
+        <div class="bars">
+          <div class="bar"><div class="fill" id="robot-fill"></div></div>
+          <!-- 필살기 에너지: 단어를 완성할 때마다 찬다 -->
+          <div class="energy" id="energy" aria-label="필살기 에너지"></div>
+        </div>
       </div>
       <div id="subtitle" hidden><span></span></div>
       <div id="stage-banner" hidden><b></b><span></span></div>

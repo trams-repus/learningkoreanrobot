@@ -539,6 +539,76 @@ export class BattleScene extends Phaser.Scene {
     this.setCharge(1);
   }
 
+  /**
+   * 직접 쓴 필살기: 아이가 쓴 글자가 전투 한가운데 크게 떠올라 빛난 뒤 로봇(마법소녀)에게 모인다.
+   * 끝나면 attack('ultimate')로 최고 필살기를 쏜다 (2026-09-28 사용자 지시: 가득 차면 더 화려한 공격).
+   */
+  async specialCutIn(text: string[], color: string): Promise<void> {
+    const r = this.rect;
+    const d = this.dpr;
+    const n = text.length;
+    const size = Math.min(r.w / (n + 0.6), r.h * 0.42);
+    const cx = r.x + r.w / 2;
+    const cy = r.y + r.h * 0.5;
+    const magic = this.theme === 'magicalGirl';
+    const gold = magic ? MAG.glow : 0xffd23f;
+    const shade = this.add.rectangle(r.x * d, r.y * d, r.w * d, r.h * d, 0x0b1020, 0.55).setOrigin(0).setAlpha(0);
+    const rays = this.add.graphics();
+    rays.fillStyle(gold, 0.35);
+    for (let i = 0; i < 12; i++) {
+      const a = (i / 12) * Math.PI * 2;
+      const L = Math.max(r.w, r.h) * d;
+      rays.fillTriangle(0, 0, Math.cos(a - 0.09) * L, Math.sin(a - 0.09) * L, Math.cos(a + 0.09) * L, Math.sin(a + 0.09) * L);
+    }
+    rays.setPosition(cx * d, cy * d).setScale(0.1).setAlpha(0);
+    const label = this.add
+      .text(cx * d, (cy - size * 0.78) * d, '필살기!', {
+        fontFamily: 'HDFont, sans-serif',
+        fontStyle: '900',
+        fontSize: `${Math.round(size * 0.36 * d)}px`,
+        color: magic ? '#ffd6f5' : '#ffe066',
+        stroke: '#16203a',
+        strokeThickness: Math.max(4, size * 0.07 * d),
+      })
+      .setOrigin(0.5)
+      .setScale(0.2);
+    const glyphs = text.map((t, i) =>
+      this.add
+        .text((cx + (i - (n - 1) / 2) * size) * d, cy * d, t, {
+          fontFamily: 'HDFont, sans-serif',
+          fontStyle: '900',
+          fontSize: `${Math.round(size * d)}px`,
+          color: '#ffffff',
+          stroke: color,
+          strokeThickness: Math.max(6, size * 0.12 * d),
+        })
+        .setOrigin(0.5)
+        .setScale(0.2),
+    );
+    const all = [shade, rays, label, ...glyphs];
+    all.forEach((o) => this.fx.add(o));
+    sfx.play('energy');
+    if (!this.reduceEffects) {
+      this.cameras.main.flash(160, 255, 240, 180);
+      this.tweens.add({ targets: rays, angle: 40, duration: 1000 });
+    }
+    await Promise.all([
+      this.tween({ targets: shade, alpha: 1, duration: 180 }),
+      this.tween({ targets: rays, alpha: this.reduceEffects ? 0 : 1, scale: 1, duration: 320, ease: 'Quad.out' }),
+      this.tween({ targets: label, scale: 1, duration: 280, ease: 'Back.out' }),
+      ...glyphs.map((g, i) => this.tween({ targets: g, scale: 1, duration: 320, delay: i * 90, ease: 'Back.out' })),
+    ]);
+    sfx.play(magic ? 'sparkle' : 'chime');
+    this.burst('fx', cx * d, cy * d, 'star', { color: [gold, 0xffffff], count: 18, speed: 260 * d, scale: 0.4, life: 600 });
+    await this.wait(520);
+    this.tweens.killTweensOf(rays);
+    await this.tween({ targets: [shade, rays, label], alpha: 0, duration: 160 });
+    all.forEach((o) => o.destroy());
+    // 같은 자리에서 playTransfer가 글자를 다시 만들어 로봇에게 날린다 (글꼴 크기 = 높이 × 0.7)
+    const rects = text.map((_, i) => new DOMRect(cx + (i - (n - 1) / 2) * size - size / 2, cy - size / 0.7 / 2, size, size / 0.7));
+    await this.playTransfer(text, rects, color);
+  }
+
   // ───────────── 로봇 공격 (콤보 단계별) ─────────────
 
   /**

@@ -33,6 +33,7 @@ export const DIALOGUE: Record<string, string> = {
   d_chief: '대장 뿔공룡이다! 강한 공격을 조심해!',
   d_pack: '적이 한꺼번에 몰려온다!',
   d_heavy: '강한 공격이 온다! 빨리 만들자!',
+  d_weak: '적이 약해졌다! 글자를 직접 써서 필살기로 끝내자!',
   // 전투(스테이지)별 첫 대사
   d_s2: '공룡 두 마리가 온다! 빨리 만들면 두 번 공격!',
   d_s3: '받침 공룡이다! 받침까지 넣어서 세게 맞히자!',
@@ -54,6 +55,7 @@ export const DIALOGUE: Record<string, string> = {
   r_reboot: '수리 완료! 다시 간다!',
   r_unlock: '새 무기 장착! 미사일 발사!',
   r_ultimate: '전력 최대! 최강 필살기!',
+  r_special: '에너지 가득! 글자를 직접 써서 필살기를 쏘자!',
   // 마법소녀
   m_pick: '글자를 조립해 강력한 마법을 완성하자!',
   m_hurry: '빨리 조합해 줘! 마법을 완성하자!',
@@ -64,6 +66,7 @@ export const DIALOGUE: Record<string, string> = {
   m_reboot: '회복 마법! 다시 일어났어!',
   m_unlock: '새 마법이다! 유성아, 쏟아져라!',
   m_ultimate: '모든 빛을 모아서, 최강 마법!',
+  m_special: '마력이 가득 찼어! 글자를 직접 써서 최강 마법을 쓰자!',
 };
 
 const TTS_NOTE = '기기 한국어 TTS로 재생. 기기마다 목소리가 다르며 기기에 한국어 음성이 있어야 한다.';

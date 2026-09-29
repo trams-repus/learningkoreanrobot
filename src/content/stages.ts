@@ -67,13 +67,14 @@ const H: TrapGrade = 'hard';
 const REGION1: StageDef[] = [
   {
     // 수박은 첫 문제 한 번만. 세 번 반복하면 "수박만 나온다"로 느껴졌다 (2026-09-28 사용자 제보).
+    // 공룡이 약해지면(체력 2 이하) 에너지가 가득 차서 첫 전투부터 직접 쓰는 필살기를 한 번 보여 준다.
     id: 's1',
     num: 1,
     region: 'r1',
     name: '첫 출동',
     focus: '쉬운 두 글자',
     icon: 'dino',
-    waves: [[{ kind: 'dino', hp: 4, harmless: true }]],
+    waves: [[{ kind: 'dino', hp: 4, harmless: true, writeFinish: 2 }]],
     fixedWords: ['수박'],
     pool: [...EASY_FIVE],
     traps: [E, E],
@@ -194,8 +195,8 @@ const REGION1: StageDef[] = [
     focus: '최종 보스',
     icon: 'boss',
     boss: 'final',
-    // 마지막 일격은 늘 최고 필살기 (콤보가 낮아도 한 번은 본다)
-    waves: [[{ kind: 'imp' }, { kind: 'imp' }], [{ kind: 'boss', hp: 8, finalBlow: 'ultimate' }]],
+    // 보스가 약해지면(체력 4 이하) 에너지가 가득 차서, 마지막 일격은 늘 직접 쓴 최고 필살기 (콤보가 낮아도 한 번은 본다)
+    waves: [[{ kind: 'imp' }, { kind: 'imp' }], [{ kind: 'boss', hp: 8, writeFinish: 4 }]],
     pool: { syllables: [1, 2], tiers: ['plain', 'jong', 'tense'] },
     traps: [E, M, M, H],
     intro: 'd_boss',
@@ -310,7 +311,7 @@ export function stageFromRules(num: number, region: RegionId, overrides: Partial
     WAVE_ROTATION[(k + i) % WAVE_ROTATION.length].slice(0, size).map((kind) => ({ kind, ...(shield && kind === 'charger' ? { shield: 1 } : {}) }));
   const bossKind: FoeKind = (num / 5) % 2 === 0 ? 'boss' : 'chief';
   const waves: FoeSpawn[][] = bossStage
-    ? [pack(0).slice(0, 2), [{ kind: bossKind, hp: bossKind === 'boss' ? 9 : 7, finalBlow: 'finisher', ...(shield ? { shield: 2 } : {}) }]]
+    ? [pack(0).slice(0, 2), [{ kind: bossKind, hp: bossKind === 'boss' ? 9 : 7, finalBlow: 'finisher', ...(shield ? { shield: 2 } : {}), ...(bossKind === 'boss' ? { writeFinish: 4 } : {}) }]]
     : [pack(0), pack(1)];
   // 단어: 단계마다 초점을 바꾼다 (긴 단어 → 받침 → 쌍자음·ㅐ류)
   const longest = Math.max(...band.syllables);

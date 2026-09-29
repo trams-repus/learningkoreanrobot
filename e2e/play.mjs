@@ -1,4 +1,5 @@
 // 브라우저 자동 플레이: 시작 → 수박 조립(끌어서 놓기) → 공격 → 승리 → 다음 전투 일부 → 난이도 단계 전투 몇 단어.
+// 에너지가 가득 차면 나오는 필살기 단어는 흐린 글자 획을 손가락(터치)·마우스로 따라 긋는다.
 // 휴대폰·태블릿 크기는 실제 터치 끌기(CDP 터치 이벤트), 데스크톱은 마우스 끌기. 탭만으로는 들어가지 않아야 한다.
 // 사용: npm run build && npx vite preview --port 4173 & node e2e/play.mjs
 // 헤드리스 Chromium에는 한국어 음성이 없어 '재생 수단 없음' 경로(자막 후 진행)를 검사한다.
@@ -71,13 +72,74 @@ async function cellCenter(page, i, role) {
   }, { i, role });
 }
 
+/** 한 획 긋기: 점 사이를 8px 간격으로 채워 손가락처럼 */
+async function traceStroke(page, vp, pts) {
+  const path = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1];
+    const b = pts[i];
+    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / 8));
+    for (let k = 1; k <= n; k++) path.push({ x: a.x + ((b.x - a.x) * k) / n, y: a.y + ((b.y - a.y) * k) / n });
+  }
+  if (vp.mobile) {
+    if (!cdps.has(page)) cdps.set(page, await page.context().newCDPSession(page));
+    const cdp = cdps.get(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: path[0].x, y: path[0].y, id: 1 }] });
+    for (const p of path.slice(1)) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: p.x, y: p.y, id: 1 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  } else {
+    await page.mouse.move(path[0].x, path[0].y);
+    await page.mouse.down();
+    for (const p of path.slice(1)) await page.mouse.move(p.x, p.y);
+    await page.mouse.up();
+  }
+}
+
+/** 이 뷰포트에서 쓴 필살기 단어들 */
+let WRITES = [];
+
+/** 필살기 단어 따라 쓰기. 처음 한 번은 첫 획을 거꾸로 그어 '방향 틀림'이 실수로 세지고 계속 쓸 수 있는지 본다. */
+async function writeWord(page, vp) {
+  await waitFor(page, () => window.__hd.game.phase === 'write');
+  const first = WRITES.length === 0;
+  const word = await page.evaluate(() => window.__hd.game.writeRun.entry.word);
+  if (first) {
+    await sleep(300);
+    await page.screenshot({ path: `${OUT}/${vp.name}-04-write.png` });
+    const pts = await page.evaluate(() => window.__hd.game.writepad.strokeClientPoints());
+    await traceStroke(page, vp, [...pts].reverse());
+    await sleep(150);
+  }
+  let strokes = 0;
+  for (let guard = 0; guard < 80; guard++) {
+    if ((await page.evaluate(() => window.__hd.game.phase)) !== 'write') break;
+    const pts = await page.evaluate(() => window.__hd.game.writepad.strokeClientPoints());
+    if (!pts) break;
+    await traceStroke(page, vp, pts);
+    strokes++;
+    await sleep(60);
+    if (first && strokes === 3) await page.screenshot({ path: `${OUT}/${vp.name}-04-write-mid.png` });
+  }
+  await waitFor(page, () => window.__hd.game.phase !== 'write');
+  if (first) {
+    await waitFor(page, () => window.__cutins > 0, null, 15000);
+    await sleep(160);
+    await page.screenshot({ path: `${OUT}/${vp.name}-04-special.png` });
+  }
+  const r = await page.evaluate(() => ({ misses: window.__hd.game.writepad.misses, auto: window.__hd.game.writepad.autoStrokes }));
+  const out = { word, strokes, ...r };
+  WRITES.push(out);
+  return out;
+}
+
 const isVictory = (page) => page.evaluate(() => window.__hd.game.phase === 'victory');
 const inCells = (page) => page.evaluate(() => document.querySelectorAll('#frames .jamo-chip.in-cell').length);
 const freeChips = (page) => page.evaluate(() => [...document.querySelectorAll('#zone .jamo-chip')].filter((c) => !c.classList.contains('in-cell') && !c.classList.contains('leaving')).map((c) => c.dataset.jamo));
 
 /** 현재 단어를 끌어서 조립한다 (자음 → 모음 → 받침, 음절 차례대로) */
 async function solveWord(page, vp, shotPrefix) {
-  await waitFor(page, () => window.__hd.game.phase === 'compose');
+  await waitFor(page, () => ['compose', 'write'].includes(window.__hd.game.phase));
+  if ((await page.evaluate(() => window.__hd.game.phase)) === 'write') return `✍${(await writeWord(page, vp)).word}`;
   const frames = await page.evaluate(() => window.__hd.game.current.frames.map((f) => ({ s: f.syllable, cells: f.hasJong ? [f.cho, f.jung, f.jong] : [f.cho, f.jung], roles: f.hasJong ? ['cho', 'jung', 'jong'] : ['cho', 'jung'] })));
   const word = frames.map((f) => f.s).join('');
   if (shotPrefix) await page.screenshot({ path: `${OUT}/${shotPrefix}-compose.png` });
@@ -144,6 +206,13 @@ async function run(vp) {
   page.on('console', (m) => m.type() === 'error' && errors.push(`console: ${m.text()}`));
   await page.goto(`${BASE}?dev=1&speed=2`);
   await page.waitForSelector('#t-start', { timeout: 20000 });
+  WRITES = [];
+  await page.evaluate(() => {
+    const sc = window.__hd.scene;
+    const cut = sc.specialCutIn.bind(sc);
+    window.__cutins = 0;
+    sc.specialCutIn = (...a) => (window.__cutins++, cut(...a));
+  });
   await sleep(300);
   const startDisabled = await page.evaluate(() => document.getElementById('t-start').disabled);
   await page.screenshot({ path: `${OUT}/${vp.name}-01-title.png` });
@@ -262,7 +331,7 @@ async function run(vp) {
       await page.screenshot({ path: `${OUT}/${vp.name}-03-robot-attack${n}.png` });
     }
     log.push(w);
-    await waitFor(page, () => window.__hd.game.phase === 'compose' || window.__hd.game.phase === 'victory', null, 30000);
+    await waitFor(page, () => ['compose', 'write', 'victory'].includes(window.__hd.game.phase), null, 30000);
   }
   await waitFor(page, () => window.__hd.game.phase === 'victory' && !document.getElementById('overlay').hidden, null, 30000);
   const combo1 = await page.evaluate(() => window.__hd.saves.data.stats.bestCombo);
@@ -312,7 +381,7 @@ async function run(vp) {
       await page.screenshot({ path: `${OUT}/${vp.name}-09-magic-attack${n}.png` });
     }
     log3.push(w);
-    await waitFor(page, () => window.__hd.game.phase === 'compose' || window.__hd.game.phase === 'victory', null, 30000);
+    await waitFor(page, () => ['compose', 'write', 'victory'].includes(window.__hd.game.phase), null, 30000);
   }
   await waitFor(page, () => window.__hd.game.phase === 'victory' && !document.getElementById('overlay').hidden, null, 30000);
   await page.screenshot({ path: `${OUT}/${vp.name}-10-magic-victory.png` });
@@ -338,6 +407,7 @@ async function run(vp) {
       await page.waitForSelector('#t-map');
       await page.click('#t-map', { force: true });
     }
+    await page.evaluate(() => (window.__hd.saves.data.energy = 0));
     await page.click(`[data-stage="${id}"]`, { force: true });
     await waitFor(page, (id) => window.__hd.game.stage?.id === id && window.__hd.game.phase === 'compose', id);
   };
@@ -391,7 +461,7 @@ async function run(vp) {
     const words = [];
     for (let n = 0; n < 16 && !(await isVictory(page)) && !(await page.$('#rf-next')); n++) {
       words.push(await solveWord(page, vp, null));
-      await waitFor(page, () => ['compose', 'victory'].includes(window.__hd.game.phase), null, 40000);
+      await waitFor(page, () => ['compose', 'write', 'victory'].includes(window.__hd.game.phase), null, 40000);
     }
     await waitFor(page, () => !!document.getElementById('rf-next'), null, 40000);
     await sleep(500);
@@ -445,6 +515,8 @@ async function run(vp) {
     attackTiers: attackTiers.join(' '),
     tierOk,
     finale,
+    writes: WRITES.map((w) => `${w.word}:${w.strokes}획/틀림${w.misses}/대신${w.auto}`).join(' '),
+    writeOk: WRITES.length > 0 && WRITES[0].misses === 1 && WRITES.every((w) => w.auto === 0) && log.some((w) => w.startsWith('✍')),
     words: Object.fromEntries(Object.entries(stats).map(([k, v]) => [k, `${v.independent}/${v.assisted}`])),
     errors,
   };
@@ -494,7 +566,7 @@ for (const vp of VIEWPORTS.filter((v) => !only || v.name.includes(only))) {
   try {
     const r = await run(vp);
     console.log(JSON.stringify(r));
-    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || r.firstDistractors.length < 2) failed = true;
+    if (r.errors.length || !r.paused || !r.resumed || !r.keptOnSwitch || !r.startDisabledBeforePick || r.savedTheme !== 'magicalGirl' || !r.tierOk || !r.writeOk || r.firstDistractors.length < 2) failed = true;
     if (r.finale && !r.finale.ok) failed = true;
     if (r.tapInserted || r.outOfOrderInserted || r.farDropInserted || r.trapsLeft.length < 1 || !r.syllablesRead || !r.subakRecording || !r.removeOk || !r.picShown) failed = true;
   } catch (e) {

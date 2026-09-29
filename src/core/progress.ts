@@ -1,7 +1,7 @@
 // 진행 기록과 설정. 기기 안(localStorage)에만 저장한다. 아이의 이름·생년월일·목소리는 저장하지 않는다.
 import type { CharacterTheme } from '../content/characters';
 import type { PackId } from '../content/vocab';
-import type { HelpLevel } from './combo';
+import { ENERGY_CONFIG, type HelpLevel } from './combo';
 
 export const SAVE_VERSION = 2;
 
@@ -73,6 +73,8 @@ export interface SaveData {
   lastStage: string | null;
   /** '새 지역 발견' 장면을 이미 본 지역 */
   regionsSeen: string[];
+  /** 필살기 에너지 (ENERGY_CONFIG.max가 가득). 전투가 바뀌어도 이어진다. */
+  energy: number;
   settings: Settings;
   stats: Stats;
 }
@@ -101,7 +103,7 @@ export function emptyStats(): Stats {
 }
 
 export function defaultSave(): SaveData {
-  return { version: SAVE_VERSION, stageSet: STAGE_SET, cleared: [], lastStage: null, regionsSeen: [], settings: defaultSettings(), stats: emptyStats() };
+  return { version: SAVE_VERSION, stageSet: STAGE_SET, cleared: [], lastStage: null, regionsSeen: [], energy: 0, settings: defaultSettings(), stats: emptyStats() };
 }
 
 export function emptyWordStats(): WordStats {
@@ -149,6 +151,7 @@ export function sanitizeSave(raw: unknown): SaveData {
     cleared: sameStages && Array.isArray(r.cleared) ? r.cleared.filter((x): x is string => typeof x === 'string') : [],
     lastStage: sameStages && typeof r.lastStage === 'string' ? r.lastStage : null,
     regionsSeen: sameStages && Array.isArray(r.regionsSeen) ? r.regionsSeen.filter((x): x is string => typeof x === 'string') : [],
+    energy: typeof r.energy === 'number' && Number.isFinite(r.energy) ? Math.max(0, Math.min(ENERGY_CONFIG.max, Math.floor(r.energy))) : 0,
     settings: {
       muted: bool(s.muted, d.settings.muted),
       voiceVolume: num(s.voiceVolume, d.settings.voiceVolume, 0, 1),

@@ -19,6 +19,8 @@ export interface Foe {
   shield: number;
   /** 이 적을 쓰러뜨리는 공격은 적어도 이 단계로 나간다 (보스 마무리 필살기) */
   finalBlow?: AttackTier;
+  /** 체력(+방패)이 이 값 이하로 약해지면 필살기 에너지를 가득 채워, 직접 쓴 필살기로 마무리하게 한다 */
+  writeFinish?: number;
 }
 
 export interface FoeSpawn {
@@ -27,6 +29,7 @@ export interface FoeSpawn {
   harmless?: boolean;
   shield?: number;
   finalBlow?: AttackTier;
+  writeFinish?: number;
 }
 
 export interface BattleState {

@@ -4,7 +4,7 @@
 
 export type CharacterTheme = 'robot' | 'magicalGirl';
 
-export type LineKey = 'hurry' | 'ready' | 'combo' | 'power' | 'finish' | 'reboot' | 'pick' | 'unlock' | 'ultimate';
+export type LineKey = 'hurry' | 'ready' | 'combo' | 'power' | 'finish' | 'reboot' | 'pick' | 'unlock' | 'ultimate' | 'special';
 
 export interface ThemeDef {
   id: CharacterTheme;
@@ -23,7 +23,7 @@ export const THEMES: Record<CharacterTheme, ThemeDef> = {
     id: 'robot',
     name: '로봇',
     device: '암호 수신기',
-    lines: { hurry: 'r_hurry', ready: 'r_ready', combo: 'r_combo', power: 'r_power', finish: 'r_finish', reboot: 'r_reboot', pick: 'r_pick', unlock: 'r_unlock', ultimate: 'r_ultimate' },
+    lines: { hurry: 'r_hurry', ready: 'r_ready', combo: 'r_combo', power: 'r_power', finish: 'r_finish', reboot: 'r_reboot', pick: 'r_pick', unlock: 'r_unlock', ultimate: 'r_ultimate', special: 'r_special' },
     // 힘 있게, 기계음으로 왜곡하지 않는다
     dialogueVoice: { rate: 1.1, pitch: 0.9 },
   },
@@ -31,7 +31,7 @@ export const THEMES: Record<CharacterTheme, ThemeDef> = {
     id: 'magicalGirl',
     name: '마법소녀',
     device: '마법 수정',
-    lines: { hurry: 'm_hurry', ready: 'm_ready', combo: 'm_combo', power: 'm_power', finish: 'm_finish', reboot: 'm_reboot', pick: 'm_pick', unlock: 'm_unlock', ultimate: 'm_ultimate' },
+    lines: { hurry: 'm_hurry', ready: 'm_ready', combo: 'm_combo', power: 'm_power', finish: 'm_finish', reboot: 'm_reboot', pick: 'm_pick', unlock: 'm_unlock', ultimate: 'm_ultimate', special: 'm_special' },
     // 밝지만 작고 약한 목소리가 되지 않게 너무 높이지 않는다
     dialogueVoice: { rate: 1.1, pitch: 1.25 },
   },

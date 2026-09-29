@@ -19,6 +19,22 @@ export const COMBO_CONFIG = {
   finisherEvery: 6,
 };
 
+/**
+ * 필살기 에너지: 단어를 완성할 때마다 차고, 빠를수록(콤보 공격 단계가 높을수록) 많이 찬다.
+ * 가득 차면 다음 단어는 끌어 넣기 대신 손가락으로 직접 따라 써서 최고 필살기를 쏜다 (2026-09-28 사용자 지시).
+ * 느려도 1칸은 찬다. 수치는 플레이테스트용 임시값.
+ */
+export const ENERGY_CONFIG = {
+  max: 6,
+  gain: { basic: 1, rapid: 2, missiles: 2, finisher: 3, ultimate: 0 } as Record<AttackTier, number>,
+  /** 필살기로 쓸 단어의 최대 획 수 (넘으면 획이 가장 적은 단어) */
+  maxStrokes: 12,
+};
+
+export function energyAfter(energy: number, tier: AttackTier, cfg = ENERGY_CONFIG): number {
+  return Math.min(cfg.max, Math.max(0, energy) + cfg.gain[tier]);
+}
+
 /** 보너스 시간. stageScale은 전투별 여유 (1보다 작으면 빠듯하다: 11단계 이후 콤보 목표 시간 단축) */
 export function bonusTimeMs(jamoToPlace: number, level: HelpLevel, stageScale = 1, cfg = COMBO_CONFIG): number {
   return (cfg.baseMs + jamoToPlace * cfg.perJamoMs) * cfg.levelScale[level] * stageScale;
