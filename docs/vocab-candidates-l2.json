@@ -1,0 +1,2424 @@
+[
+ {
+  "word": "소나기",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "장마",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "함박눈",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "눈보라",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "우박",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "서리",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "이슬",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "햇빛",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "초승달",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "보름달",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "반달",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "은하수",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "북두칠성",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "혜성",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "유성",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "화성",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "목성",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "토성",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "태양",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "우주",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "회오리바람",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "산들바람",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "얼음판",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "계곡",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "절벽",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "산꼭대기",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "들판",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "초원",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "늪",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "모래언덕",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "해변",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "소용돌이",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "물결",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "샘물",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "시냇물",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "자갈밭",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "수정",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "보석_수정",
+  "group": "자연"
+ },
+ {
+  "word": "다이아몬드",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "루비",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "진주",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "금",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "석탄",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "공룡뼈",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "조개껍데기",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "산호초",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "해초",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "이끼",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "강아지풀",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "토끼풀",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "들꽃",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "꽃잎",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "꽃봉오리",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "꽃다발",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "꽃밭",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "꽃씨",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "떡잎",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "가시",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "덩굴",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "통나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "장작",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "숯",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "은행잎",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "단풍나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "버드나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "사과나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "감나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "전나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "크리스마스트리",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "자작나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "참나무",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "알로에",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "코스모스",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "봉숭아",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "카네이션",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "안개꽃",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "국화",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "연잎",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "경찰관",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "구조대원",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "기자",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "사진사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "작가",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "음악가",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "피아니스트",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "바이올리니스트",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "과학자",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "교장선생님",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "버스기사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "택시기사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "기관사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "승무원",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "목동",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "사육사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "수의사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "약사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "치과의사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "한의사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "바리스타",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "웨이터",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "우편배달부",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "택배기사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "청소부",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "환경미화원",
+  "group": "사람"
+ },
+ {
+  "word": "경비원",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "정원사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "잠수부",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "등산가",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "운동선수",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "축구선수",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "야구선수",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "수영선수",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "체조선수",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "태권도선수",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "심판",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "배우",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "무용가",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "산타할아버지",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "임금님",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "장군",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "선비",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "가족사진",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "신랑",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "신부",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "왕비",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "마법사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "마녀",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "허수아비",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "",
+  "group": "사람"
+ },
+ {
+  "word": "눈동자",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "눈꺼풀",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "콧등",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "입꼬리",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "앞니",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "어금니",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "송곳니",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "잇몸",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "뒤통수",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "정수리",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "턱수염",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "곱슬머리",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "땋은머리",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "앞머리",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "가르마",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "겨드랑이",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "등뼈",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "심장",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "손등",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "손금",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "새끼손가락",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "검지",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "중지",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "약지",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "발등",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "뒤꿈치",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "옆구리",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "주근깨",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "딸꾹질",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "재채기",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "기침",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "하품",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "트림",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "땀",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "콧노래",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "",
+  "group": "신체"
+ },
+ {
+  "word": "걸어가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "뛰어가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "기어가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "날아가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "헤엄치다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "미끄러지다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "매달리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "뛰어넘다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "건너다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "올라가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "내려가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "들어가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "나오다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "돌다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "돌리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "굴리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "차다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "공을_차다",
+  "group": "행동"
+ },
+ {
+  "word": "치다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "공을_치다",
+  "group": "행동"
+ },
+ {
+  "word": "튀기다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "받아치다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "굴러가다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "쏟다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "섞다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "젓다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "굽다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "볶다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "썰다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "깎다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "벗기다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "끌다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "나르다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "싣다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "내리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "무너지다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "부수다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "고치다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "조립하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "칠하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "지우다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "오리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "묶다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "풀다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "매다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "꿰매다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "뜨개질하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "다림질하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "빨래하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "널다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "정리하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "쓸다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "닦다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "헹구다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "말리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "가꾸다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "캐다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "뽑다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "모으다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "나누다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "재다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "고르다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "사다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "팔다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "바꾸다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "빌리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "포장하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "선물하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "전화하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "연주하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "소리치다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "속삭이다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "하품하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "재채기하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "기침하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "코골다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "잠들다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "깨다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "샤워하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "빗다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "입다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "벗다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "신다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "들어올리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "안아주다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "업어주다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "쓰다듬다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "간지럽히다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "악수하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "손잡다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "껴안다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "밀어주다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "달래다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "돕다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "가르치다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "배우다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "공부하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "발표하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "응원하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "경주하다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "이기다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "부딪히다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "떨어지다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "흘리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "깨지다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "찢어지다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "녹다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "얼다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "자라다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "피다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "시들다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "날리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "흩어지다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "모이다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "빛나다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "흔들리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "떨리다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "",
+  "group": "행동"
+ },
+ {
+  "word": "가늘다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "헐렁하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "똑바르다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "비뚤다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "구불구불하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "울퉁불퉁하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "매끄럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "거칠다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "끈적끈적하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "미끄럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "폭신하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "단단하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "물렁하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "촉촉하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "축축하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "바삭하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "쫄깃하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "달콤하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "새콤하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "고소하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "싱겁다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "향기롭다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "냄새나다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "환하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "캄캄하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "흐리다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "화창하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "쌀쌀하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "포근하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "무덥다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "선선하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "미지근하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "가득하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "얕다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "가깝다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "반갑다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "고맙다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "미안하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "속상하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "창피하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "자랑스럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "용감하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "씩씩하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "착하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "부지런하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "게으르다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "튼튼하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "약하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "강하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "건강하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "지루하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "설레다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "긴장하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "걱정하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "외롭다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "부럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "뿌듯하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "편안하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "답답하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "어지럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "간지럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "가렵다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "따갑다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "쓰리다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "저리다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "",
+  "group": "상태"
+ },
+ {
+  "word": "먹구름",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "뭉게구름",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "눈송이",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "빗방울",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ },
+ {
+  "word": "해돋이",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "",
+  "group": "자연"
+ }
+]
