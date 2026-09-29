@@ -17,9 +17,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@capacitor-community/text-to-speech": "^6.1.0",
+    "@capacitor/core": "^7.6.9",
     "phaser": "3.90.0"
   },
   "devDependencies": {
+    "@capacitor/android": "^7.6.9",
+    "@capacitor/cli": "^7.6.9",
     "playwright": "1.56.1",
     "typescript": "7.0.2",
     "vite": "8.3.1",

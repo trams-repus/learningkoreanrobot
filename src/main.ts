@@ -1,4 +1,5 @@
 // 시작점: 서비스 준비 → Phaser 전투 장면 → 화면 배치 → 시작 화면.
+import './native/tts-shim';
 import Phaser from 'phaser';
 import './styles.css';
 import { Game } from './game/game';
