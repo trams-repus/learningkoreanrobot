@@ -57,7 +57,7 @@ export class Screens {
     };
     const el = this.open(
       `<div class="title-screen">
-        <div class="logo">인우와 한글로봇</div>
+        <div class="logo">한글대작전</div>
         <div class="pick-row">${card('robot')}${card('magicalGirl')}</div>
         <div class="title-bottom">
           <button class="big-btn start-btn" id="t-start" aria-label="출격" ${chosen ? '' : 'disabled'}>${ICONS.play}출격!</button>

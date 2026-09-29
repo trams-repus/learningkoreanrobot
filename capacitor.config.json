@@ -1,6 +1,6 @@
 {
   "appId": "io.github.tramsrepus.hangulrobot",
-  "appName": "인우와 한글로봇",
+  "appName": "한글대작전",
   "webDir": "dist",
   "android": { "allowMixedContent": false }
 }

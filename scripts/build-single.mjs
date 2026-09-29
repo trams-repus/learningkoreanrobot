@@ -1,5 +1,5 @@
 // dist/ 빌드를 파일 하나로 묶는다 (JS·CSS·글꼴을 모두 안에 넣음). 서버 없이 폰에서 파일 하나로 열 수 있다.
-//   dist-single/inwoo-hangul-robot.html : 완전한 HTML 문서
+//   dist-single/hangul-daejakjeon.html : 완전한 HTML 문서
 //   dist-single/artifact.html           : 문서 뼈대(<html>/<head>/<body>)를 빼고 내용만 담은 판 (게시용)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,7 +37,7 @@ html = html.replace('</body>', () => `${audioScript}<script type="module">${js}<
 console.log(`단어 녹음 ${Object.keys(audioMap).length}개를 파일 안에 넣음`);
 
 fs.mkdirSync(out, { recursive: true });
-fs.writeFileSync(path.join(out, 'inwoo-hangul-robot.html'), html);
+fs.writeFileSync(path.join(out, 'hangul-daejakjeon.html'), html);
 
 // 게시용: 제목·스타일을 맨 앞에, 그다음 본문 내용
 const title = html.match(/<title>.*?<\/title>/s)[0];

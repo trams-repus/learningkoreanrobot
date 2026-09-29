@@ -1,4 +1,4 @@
-# Play 스토어 등록 안내 (인우와 한글로봇)
+# Play 스토어 등록 안내 (한글대작전)
 
 ## 1. 업로드 키 만들기 (한 번만, 직접)
 업로드 키는 비밀이라 저장소에 올리지 않는다. Java가 있는 PC에서:
@@ -17,7 +17,7 @@ keytool -genkeypair -v -keystore upload.keystore -alias upload -keyalg RSA -keys
 그 뒤 main push(또는 Actions에서 "안드로이드 APK" 수동 실행)마다 `inwoo-hangul-robot-aab` 아티팩트로 AAB가 나온다.
 
 ## 3. Play Console
-- 앱 만들기: 이름 "인우와 한글로봇", 게임, 무료. Play 앱 서명(Google이 서명 키 관리) 사용.
+- 앱 만들기: 이름 "한글대작전", 게임, 무료. Play 앱 서명(Google이 서명 키 관리) 사용.
 - 개인정보처리방침 URL: https://trams-repus.github.io/learningkoreanrobot/privacy.html
 - 대상 연령: 5세 이하, 6~8세 → 가족 정책 적용. 광고 없음, 데이터 수집 없음(데이터 보안 양식에 "수집·공유 없음").
 - 콘텐츠 등급 설문: 폭력 = 만화풍 로봇·공룡 전투(피 없음).
