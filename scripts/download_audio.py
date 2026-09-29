@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""단어 녹음(Wikimedia Commons / Lingua Libre, CC0) 내려받기와 검사. 표준 라이브러리만 쓴다.
+"""단어 녹음(Wikimedia Commons / Lingua Libre, CC0·CC BY. BY-SA는 쓰지 않는다) 내려받기와 검사. 표준 라이브러리만 쓴다.
 
     python3 scripts/download_audio.py --limit 1   # 수박 하나만 먼저
     python3 scripts/download_audio.py             # 전체
@@ -34,7 +34,7 @@ SOURCES = ROOT / "src/content/word-audio-sources.json"
 OUT = ROOT / "public/audio/words"
 REPORT = OUT / "download-report.json"
 VOCAB_TS = ROOT / "src/content/vocab.ts"
-UA = "inwoo-hangul-robot/0.1 (children's Hangul game; https://github.com/trams-repus/learningkoreanrobot)"
+UA = "hangul-daejakjeon/0.1 (children's Hangul game; https://github.com/trams-repus/learningkoreanrobot)"
 
 
 def urls_for(s: dict) -> list[str]:
@@ -126,7 +126,7 @@ def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     report, ok = [], 0
     for s in sources:
-        if s["link"].startswith("없음"):
+        if s["link"].startswith(("없음", "제외")):
             print(f"SKIP {s['word']}: {s['link']}")
             continue
         dest = OUT / s["file"]

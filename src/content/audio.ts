@@ -45,6 +45,8 @@ export const DIALOGUE: Record<string, string> = {
   d_s9: '거대 공룡이 가까이 있다! 힘을 모으자!',
   d_region2: '화산섬에 도착했다! 더 센 적들이다!',
   d_newregion: '새 지역 발견! 화산섬!',
+  d_regionnew: '새 지역에 도착했다! 더 센 적들이다!',
+  d_newregion_any: '새 지역 발견! 어떤 적이 기다릴까?',
   // 로봇
   r_pick: '글자를 조립해 로봇을 출격시키자!',
   r_hurry: '대장! 빨리 조합해 줘!',

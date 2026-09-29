@@ -2,7 +2,7 @@
 // 조합하는 동안에는 적의 피해도, 시간 초과 패배도 없다. 빠르게 완성하면 콤보가 올라 공격이 화려해진다.
 // 단어마다 필살기 에너지가 차고(빠를수록 많이), 가득 차면 다음 단어는 손가락으로 따라 써서 최고 필살기를 쏜다.
 import { THEMES, themeOf, type CharacterTheme, type ThemeDef } from '../content/characters';
-import { STAGES, drawWord, nextStageId, regionEnd, stageById, stageWords, type StageDef } from '../content/stages';
+import { drawWord, frontier, hearablePool, nextStageId, regionEnd, regionIndexOf, regionLook, stageAt, stageById, stageNum, stageWords, type StageDef } from '../content/stages';
 import { TRAP_TABLES } from '../content/distractors';
 import { vocabById, type VocabEntry } from '../content/vocab';
 import { pictureSvg } from '../content/pictures';
@@ -19,7 +19,7 @@ import { Cockpit } from '../ui/cockpit';
 import { ICONS } from '../ui/icons';
 import { Screens } from '../ui/screens';
 import { WritePad } from '../ui/writepad';
-import { audio, options, playlog, saves, sfx } from './services';
+import { audio, options, playlog, purchases, saves, sfx } from './services';
 
 type Phase = 'menu' | 'intro' | 'compose' | 'write' | 'execute' | 'victory';
 
@@ -33,6 +33,11 @@ interface WordRun {
   assisted: boolean;
   mistakes: number;
   speedEligible: boolean;
+  /**
+   * 이 단어 소리를 실제로 들었는가 (재생 성공, 또는 부모가 소리를 끔). 못 들은 채 틀린 것은 오답 기록·분석에 넣지 않는다.
+   * 다시 듣기가 성공하면 그때부터 센다.
+   */
+  heard: boolean;
   guarded: boolean;
   color: string;
   /** 방금 완성한 음절을 읽는 중 (단어 발음이 이 소리를 끊지 않게 기다린다) */
@@ -88,10 +93,11 @@ export class Game {
         if (r.kind === 'different') {
           const got = r.made ? decomposeSyllable(r.made) : null;
           const need = requiredJamo(cur.frames);
-          for (const role of r.wrongCells) {
-            const put = got ? got[role] || null : null;
-            playlog.miss(cur.frames[i].syllable, role, cur.frames[i][role], put, !!put && !need.includes(put));
-          }
+          if (cur.heard)
+            for (const role of r.wrongCells) {
+              const put = got ? got[role] || null : null;
+              playlog.miss(cur.frames[i].syllable, role, cur.frames[i][role], put, !!put && !need.includes(put));
+            }
           this.onWrongSyllable(cur, r.wrongCells.map((role) => cur.frames[i][role]), r.made);
         }
         // 한 음절이 맞으면 그 음절 소리로 읽는다 (사용자 지시). 한 글자 단어는 곧 단어로 읽으므로 건너뛴다.
@@ -104,6 +110,7 @@ export class Game {
         const cur = this.current;
         if (!cur || !exp) return;
         const f = cur.frames[exp.frame];
+        if (!cur.heard) return;
         playlog.drop(f.syllable, exp.role, f[exp.role], jamo, !over ? null : over.frame === exp.frame ? over.role : 'other', !requiredJamo(cur.frames).includes(jamo));
       },
       onSlipDrop: () => playlog.slip(),
@@ -180,18 +187,14 @@ export class Game {
 
   // ───────────── 전투 목록 ─────────────
 
-  get unlockedStages(): string[] {
-    const cleared = new Set(saves.data.cleared);
-    const out: string[] = [];
-    for (const s of STAGES) {
-      out.push(s.id);
-      if (!cleared.has(s.id) && !options.dev) break;
-    }
-    return out;
+  /** 앞에서부터 이어서 깬 다음 단계까지 열린다 (개발 옵션이면 모두) */
+  isUnlocked(id: string): boolean {
+    const n = stageNum(id);
+    return n !== null && (options.dev || n <= frontier(saves.data.cleared));
   }
 
   nextStageId(): string {
-    return nextStageId(saves.data.cleared, saves.data.lastStage);
+    return nextStageId(saves.data.cleared);
   }
 
   toMenu(): void {
@@ -220,9 +223,16 @@ export class Game {
   // ───────────── 전투 ─────────────
 
   async startStage(id: string): Promise<void> {
-    const stage = stageById(id) ?? STAGES[0];
+    const stage = stageById(id) ?? stageAt(1);
+    // 11단계부터는 구매가 필요하다 (결제가 켜진 앱에서만): 전투 대신 보호자 안내
+    if (!purchases.canPlay(stage.num)) {
+      this.toMenu();
+      this.screens.purchase(() => this.screens.map());
+      return;
+    }
     const my = ++this.run;
     this.stage = stage;
+    this.scene.setLook(regionLook(regionIndexOf(stage.num)));
     this.setPausedState(false);
     this.screens.close();
     this.state = createBattle();
@@ -317,7 +327,8 @@ export class Game {
     const s = this.stage!;
     if (s.fixedWords && this.wordIndex < s.fixedWords.length) return vocabById(s.fixedWords[this.wordIndex])!;
     const set = saves.data.settings;
-    const pool = focusPool(stageWords(s, set.pack, set.includeRecommended).map((w) => w.word), set.focusJamo, set.focusWords);
+    const all = focusPool(stageWords(s, set.pack, set.includeRecommended).map((w) => w.word), set.focusJamo, set.focusWords);
+    const pool = hearablePool(all, (w) => audio.methodFor(vocabById(w)!.wordAudioId) !== 'none');
     // 전투마다 섞은 주머니에서 하나씩: 다 쓰기 전엔 반복 없음, 다시 해도 이어서 뽑는다 (기기에는 저장하지 않음)
     const key = `${s.id}|${set.pack}|${set.includeRecommended}`;
     const { word, bag } = drawWord(this.bags.get(key) ?? [], pool, this.lastWord, Math.random);
@@ -355,7 +366,7 @@ export class Game {
     // 칸 안내(흐린 정답 글자): 11단계부터는 처음 보는 단어에만
     const ghost = frames.map((_, i) => level === 'A' || (stage.guide !== 'less' && level === 'B' && i === 0));
     const color = WORD_COLORS[this.wordIndex % WORD_COLORS.length];
-    this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, guarded: false, color, syllableSaid: null };
+    this.current = { entry, frames, level, toPlace, assisted: level === 'A' || level === 'B', mistakes: 0, speedEligible: true, heard: false, guarded: false, color, syllableSaid: null };
     this.cockpit.setup({ frames, ghost, sequential, supply, motion: saves.data.settings.jamoMotion });
     this.showPicture(entry);
     this.phase = 'intro';
@@ -372,6 +383,7 @@ export class Game {
     if (my !== this.run || this.current?.entry !== entry) return;
     // 재생 오류가 난 문제는 속도 평가에서 뺀다 (소리가 원래 없는 기기는 부모와 함께 진행하므로 그대로 잰다)
     this.current.speedEligible = said.ok || said.method === 'none' || audio.muted;
+    this.current.heard = said.ok || audio.muted;
     // 소리가 실제로 끝나지 않았으면 들었다고 치지 않는다: 다시 듣기 버튼을 깜빡여 알려준다
     document.getElementById('btn-listen')!.classList.toggle('nudge', !said.ok && !audio.muted);
     this.phase = 'compose';
@@ -543,10 +555,13 @@ export class Game {
 
   private onWrongSyllable(cur: WordRun, wrongTargets: string[], made: string | null): void {
     cur.mistakes++;
-    const st = saves.data.stats;
-    wordStats(st, cur.entry.id).wrongSyllables++;
-    for (const j of wrongTargets) st.stuckJamo[j] = (st.stuckJamo[j] ?? 0) + 1;
-    saves.save();
+    // 소리를 못 들었으면 오답으로 기록하지 않는다 (안내·다시 듣기는 그대로 한다)
+    if (cur.heard) {
+      const st = saves.data.stats;
+      wordStats(st, cur.entry.id).wrongSyllables++;
+      for (const j of wrongTargets) st.stuckJamo[j] = (st.stuckJamo[j] ?? 0) + 1;
+      saves.save();
+    }
     const my = this.run;
     // 다른 글자를 만들었어도 '틀린 한글'이라고 하지 않는다: 암호를 다시 들어 보자고 안내한다
     if (cur.mistakes === 1 || !made) void audio.playDialogue('d_retry', { force: true });
@@ -576,6 +591,7 @@ export class Game {
     }
     this.clock.hold('replay');
     const r = await audio.playWord(entry.wordAudioId);
+    if (r.ok && cur && this.current === cur) cur.heard = true;
     document.getElementById('btn-listen')!.classList.toggle('nudge', !r.ok && !audio.muted);
     this.clock.release('replay');
     this.resetIdle();
@@ -699,7 +715,7 @@ export class Game {
     if (line) void audio.playDialogue(line, { force: true });
     const hits = robotAttack(this.state, tier);
     const hp = waveHp(this.state);
-    await this.scene.attack(tier, hits, hp.hp, hp.max);
+    await this.scene.attack(tier, hits, hp.hp, hp.max, this.combo);
     if (my !== this.run) return;
     this.gainEnergy(tier);
     await this.afterAttack(my, hits);
@@ -795,6 +811,22 @@ export class Game {
     this.screens.close();
     this.setPausedState(false);
     this.resetIdle();
+  }
+
+  /**
+   * 안드로이드 뒤로 가기: 전투 중이면 일시정지(한 번 더 누르면 계속), 다른 화면이면 첫 화면으로.
+   * 첫 화면에서 누르면 true를 돌려 앱을 닫게 한다 (전투 중에 앱이 바로 꺼지지 않게).
+   */
+  back(): boolean {
+    if (this.inBattle) {
+      if (this.paused) this.resume();
+      else this.pause(true);
+      return false;
+    }
+    if (document.getElementById('t-start')) return true;
+    this.toMenu();
+    this.screens.title();
+    return false;
   }
 
   private setPausedState(p: boolean): void {

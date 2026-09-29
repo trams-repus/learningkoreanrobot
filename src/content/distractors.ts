@@ -46,6 +46,14 @@ export const TRAPS: Record<string, Record<TrapGrade, string[]>> = {
   ㅔ: { easy: ['ㅜ', 'ㅗ'], medium: ['ㅓ'], hard: ['ㅐ'] },
   ㅒ: { easy: ['ㅜ', 'ㅗ'], medium: ['ㅐ'], hard: ['ㅖ'] },
   ㅖ: { easy: ['ㅜ', 'ㅗ'], medium: ['ㅔ'], hard: ['ㅒ'] },
+  // 겹모음: 중간 = 겹모음을 이루는 홑모음, 어려움 = 모양·소리가 비슷한 다른 겹모음
+  ㅘ: { easy: ['ㅜ', 'ㅣ'], medium: ['ㅗ', 'ㅏ'], hard: ['ㅝ', 'ㅚ'] },
+  ㅙ: { easy: ['ㅜ', 'ㅣ'], medium: ['ㅘ', 'ㅐ'], hard: ['ㅞ', 'ㅚ'] },
+  ㅚ: { easy: ['ㅜ', 'ㅏ'], medium: ['ㅗ', 'ㅣ'], hard: ['ㅙ', 'ㅞ', 'ㅟ'] },
+  ㅝ: { easy: ['ㅗ', 'ㅣ'], medium: ['ㅜ', 'ㅓ'], hard: ['ㅘ', 'ㅟ'] },
+  ㅞ: { easy: ['ㅗ', 'ㅏ'], medium: ['ㅝ', 'ㅔ'], hard: ['ㅙ', 'ㅚ'] },
+  ㅟ: { easy: ['ㅗ', 'ㅏ'], medium: ['ㅜ', 'ㅣ'], hard: ['ㅚ', 'ㅢ'] },
+  ㅢ: { easy: ['ㅗ', 'ㅏ'], medium: ['ㅡ', 'ㅣ'], hard: ['ㅟ', 'ㅚ'] },
 };
 
 /** 받침에서 자주 헷갈리는 짝 (소리가 같거나 비슷한 받침). 받침 칸의 '어려움' 함정은 이것을 먼저 쓴다. */
@@ -62,10 +70,11 @@ export const JONG_HARD: Record<string, string[]> = {
   ㅊ: ['ㅅ', 'ㅈ'],
 };
 
-/** 아직 배우지 않은 복잡한 자모 무리 (쌍자음, ㅐ·ㅔ류): 단어에 같은 무리가 없으면 함정으로 내지 않는다 */
+/** 아직 배우지 않은 복잡한 자모 무리 (쌍자음, ㅐ·ㅔ류, 겹모음): 단어에 같은 무리가 없으면 함정으로 내지 않는다 */
 export const ADVANCED_GROUPS: string[][] = [
   ['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ'],
   ['ㅐ', 'ㅔ', 'ㅒ', 'ㅖ'],
+  ['ㅘ', 'ㅙ', 'ㅚ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅢ'],
 ];
 
 export const TRAP_TABLES: TrapTables = { table: TRAPS, jongHard: JONG_HARD, advancedGroups: ADVANCED_GROUPS };

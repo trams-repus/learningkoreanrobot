@@ -5,7 +5,7 @@
 import Phaser from 'phaser';
 import type { FoeKind } from '../core/types';
 import type { AttackTier, Hit } from '../core/types';
-import { drawBackground, drawGauge, makeBoss, makeCharger, makeChief, makeDino, makeFoeShield, makeGuard, makeImp, makeMissile, makeRobot, makeTextures, makeWarning, PAL, type FoeParts, type RobotParts } from './art';
+import { BG_LOOKS, drawBackground, drawGauge, paintBackground, makeArmor, makeBoss, makeCharger, makeChief, makeDino, makeFoeShield, makeGuard, makeImp, makeImpactStar, makeMissile, makeRobot, makeTextures, makeWarning, PAL, type FoeParts, type RobotParts } from './art';
 import { sfx, options } from '../game/services';
 import type { CharacterTheme } from '../content/characters';
 import { drawMagicGauge, makeHealSigil, makeMagicCircle, makeMagicGirl, makeMagicShield, makeMeteor, makeStarBullet, MAG, type MagicParts } from './magicArt';
@@ -22,7 +22,13 @@ const SLOTS: { x: number; y: number; s: number }[][] = [
   [{ x: 256, y: 136, s: 0.9 }, { x: 330, y: 110, s: 0.78 }],
   [{ x: 280, y: 138, s: 0.86 }, { x: 218, y: 112, s: 0.7 }, { x: 330, y: 104, s: 0.66 }],
 ];
-const BASE_SCALE: Record<FoeKind, number> = { dino: 0.95, imp: 0.95, charger: 0.95, chief: 1.05, boss: 0.7 };
+const BASE_SCALE: Record<FoeKind, number> = { dino: 0.95, imp: 0.9, charger: 0.95, armor: 0.95, chief: 1.05, boss: 0.7 };
+/** 명중 세기: 0 = 작은 탄, 1 = 큰 탄, 2 = 필살기 마무리 */
+type Power = 0 | 1 | 2;
+/** 명중 순간 멈춤(ms, 실제 시간). 짧아야 손맛이 나고 길면 끊겨 보인다. 임시값 */
+const HIT_STOP: Record<Power, number> = { 0: 35, 1: 70, 2: 130 };
+
+const FOE_ART: Record<FoeKind, (s: Phaser.Scene) => FoeParts> = { dino: makeDino, imp: makeImp, charger: makeCharger, armor: makeArmor, chief: makeChief, boss: makeBoss };
 
 interface SceneFoe {
   id: number;
@@ -66,6 +72,15 @@ export class BattleScene extends Phaser.Scene {
   private rect = { x: 0, y: 0, w: 1, h: 1 };
   private blasts = 0;
   private chargeColor = PAL.visor;
+  /** 히트 스톱이 풀리는 시각 (게임 반복 시계, 0 = 멈춤 없음). 장면 시계는 멈춤 동안 느려지므로 따로 잰다. */
+  private stopUntil = 0;
+  private loopNow = 0;
+  /** 필살기 조명 막 (중간에 끊겨도 resetBattle이 치운다) */
+  private dimRect: Phaser.GameObjects.Rectangle | null = null;
+  private bg!: Phaser.GameObjects.Graphics;
+  private look = 0;
+  /** 명중 말풍선(쾅!·펑!)을 차례로 고른다: 무작위 없이 같은 상황에 같은 결과 */
+  private words = 0;
   ready: Promise<void>;
   private markReady!: () => void;
 
@@ -84,7 +99,8 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.ignore(this.fx);
     this.fxCam.ignore(this.world);
 
-    this.world.add(drawBackground(this, { x: FOE.x, y: FOE.y + 4 }, { x: ROBOT.x, y: ROBOT.y - 14 }));
+    this.bg = drawBackground(this, { x: FOE.x, y: FOE.y + 4 }, { x: ROBOT.x, y: ROBOT.y - 14 });
+    this.world.add(this.bg);
     this.foeLayer = this.add.container(0, 0);
     this.world.add(this.foeLayer);
     this.robot = makeRobot(this);
@@ -146,6 +162,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** 진행 중 연출을 모두 끊는다. 기다리던 흐름은 풀려나고, 호출한 쪽이 세대 번호로 무시한다. */
   abortAll(): void {
+    this.endHitStop();
     this.tweens.killAll();
     this.time.removeAllEvents();
     const list = [...this.pending];
@@ -204,7 +221,86 @@ export class BattleScene extends Phaser.Scene {
     this.burst('world', x, y, 'dot', { color: [0x8a8a8a, 0xb0b0b0], count: 4, speed: 40, scale: 0.4 * size, life: 700, gravity: -60 });
   }
 
+  /**
+   * 명중 순간 아주 짧게 멈춘다 (히트 스톱). 장면 시계를 거의 세우고, 게임 반복 시계(update의 time)로 푼다:
+   * 장면 시계로 풀면 느려진 만큼 멈춤도 길어진다. 일시정지하면 반복도 멈추므로 함께 멈춘다. 효과 줄이기에서는 하지 않는다.
+   */
+  private hitStop(ms: number): void {
+    if (this.reduceEffects || ms <= 0) return;
+    const slow = 0.05 * options.speed;
+    this.tweens.timeScale = slow;
+    this.time.timeScale = slow;
+    this.stopUntil = Math.max(this.stopUntil, this.loopNow + ms / options.speed);
+  }
+
+  private endHitStop(): void {
+    this.stopUntil = 0;
+    this.tweens.timeScale = options.speed;
+    this.time.timeScale = options.speed;
+  }
+
+  update(time: number): void {
+    this.loopNow = time;
+    if (this.stopUntil && time >= this.stopUntil) this.endHitStop();
+  }
+
+  /** 부위 안의 한 점 → 세계 좌표 (관절이 몇 마디든 실제 그려진 자리) */
+  private worldPoint(part: Phaser.GameObjects.Container, x: number, y: number): { x: number; y: number } {
+    const p = part.getWorldTransformMatrix().transformPoint(x, y, { x: 0, y: 0 });
+    return this.world.pointToContainer(p) as Phaser.Math.Vector2;
+  }
+
+  /**
+   * 명중: 효과음·멈춤·명중 별·말풍선·폭발·적 피격이 모두 이 한 순간에 맞춰 나온다.
+   * 큰 명중은 뒤따라 작은 폭발이 시간차로 두 번 더 터진다 (연출 전용: 피해는 이미 한 번만 계산됨).
+   */
+  private landHit(x: number, y: number, power: Power, id = this.targetId): void {
+    const magic = this.theme === 'magicalGirl';
+    const color = magic ? (power === 2 ? MAG.glow : MAG.magic) : 0xffd23f;
+    if (magic) sfx.play(power === 2 ? 'bigExplode' : 'magicHit');
+    else sfx.play(power === 2 ? 'bigExplode' : power === 1 ? 'explode' : 'hit');
+    this.hitStop(HIT_STOP[power]);
+    const size = [0.9, 1.4, 2][power];
+    if (magic) this.magicBlast(x, y, size, power === 1 ? MAG.magic : MAG.magic2);
+    else this.blast(x, y, size);
+    this.hitReact(power > 0, id);
+    if (this.reduceEffects) return;
+    const star = makeImpactStar(this, color);
+    star.setPosition(x, y).setScale(0.3 * (power + 1) * 0.6).setAngle((this.words * 23) % 45);
+    this.world.add(star);
+    this.tweens.add({ targets: star, scale: 0.55 + power * 0.35, duration: 70, ease: 'Quad.out', onComplete: () => this.tweens.add({ targets: star, alpha: 0, scale: star.scale * 1.2, duration: 140, onComplete: () => star.destroy() }) });
+    if (power > 0) {
+      const list = magic ? ['팡!', '반짝!', '샤랑!'] : ['쾅!', '펑!', '콰광!'];
+      const word = this.add
+        .text(x + 26, y - 30, list[this.words++ % list.length], { fontFamily: 'HDFont, sans-serif', fontStyle: '900', fontSize: `${22 + power * 8}px`, color: '#ffffff', stroke: magic ? '#b0307e' : '#c2403a', strokeThickness: 7 })
+        .setOrigin(0.5)
+        .setAngle(-12)
+        .setScale(0.3);
+      this.world.add(word);
+      this.tweens.add({ targets: word, scale: 1, y: word.y - 10, duration: 160, ease: 'Back.out' });
+      this.tweens.add({ targets: word, alpha: 0, duration: 220, delay: 380, onComplete: () => word.destroy() });
+      // 시간차 폭발
+      for (let i = 0; i < 2; i++) {
+        this.time.delayedCall(90 + i * 100, () => {
+          const dx = (i ? -1 : 1) * (14 + power * 6);
+          const dy = (i ? 8 : -10) * (1 + power * 0.3);
+          if (magic) this.magicBlast(x + dx, y + dy, 0.6 + power * 0.2, i ? MAG.magic2 : MAG.glow);
+          else this.blast(x + dx, y + dy, 0.6 + power * 0.2);
+          sfx.play(magic ? 'sparkle' : 'hit');
+        });
+      }
+    }
+  }
+
   // ───────────── 로봇 ─────────────
+
+  /** 지역 배경 (regionLook 번호). 모양은 같고 색만 바뀐다. */
+  setLook(i: number): void {
+    const n = ((i % BG_LOOKS.length) + BG_LOOKS.length) % BG_LOOKS.length;
+    if (!this.bg || n === this.look) return;
+    this.look = n;
+    paintBackground(this.bg, { x: FOE.x, y: FOE.y + 4 }, { x: ROBOT.x, y: ROBOT.y - 14 }, BG_LOOKS[n]);
+  }
 
   /** 선택한 캐릭터만 보이게 한다. 기록·규칙과는 무관한 그림 전환. */
   setTheme(t: CharacterTheme): void {
@@ -258,12 +354,22 @@ export class BattleScene extends Phaser.Scene {
     this.foeLayer.removeAll(true);
     this.guardFx?.destroy();
     this.guardFx = null;
+    this.drop(this.dimRect);
+    this.dimRect = null;
     this.fx.removeAll(true);
     this.blasts = 0;
     this.cameras.main.resetFX();
     const r = this.robot;
     r.root.setPosition(ROBOT.x, ROBOT.y).setAngle(0);
     r.gun.setRotation(0);
+    r.forearm.setRotation(0);
+    r.fins.setScale(0.2, 1);
+    r.leftArm.setAngle(0);
+    r.leftFore.setAngle(0);
+    r.wristGlow.setAlpha(0);
+    r.legs.setScale(1);
+    r.body.setAngle(0);
+    r.head.setAngle(0);
     r.barrel.setScale(1, 0.15);
     r.hatch.setAngle(0);
     r.muzzleGlow.setAlpha(0);
@@ -276,6 +382,9 @@ export class BattleScene extends Phaser.Scene {
     m.arm.setRotation(-0.5);
     m.leftArm.setAngle(14);
     m.tipGlow.setAlpha(0);
+    m.skirt.setScale(1);
+    m.ponytail.setAngle(0);
+    this.guarding = false;
     this.chargeColor = PAL.visor;
     this.setCharge(0);
     this.startRobotIdle();
@@ -289,12 +398,10 @@ export class BattleScene extends Phaser.Scene {
     return Math.atan2(to.y - from.y, to.x - from.x) - Math.PI / 2;
   }
 
-  /** 팔 방향으로 포구 위치 (세계 좌표) */
+  /** 포구 위치 (세계 좌표): 어깨·팔꿈치를 거친 실제 자리. 포신이 접혀 있으면 그만큼 당긴다. */
   private muzzle(): { x: number; y: number } {
-    const s = this.robot.gunShoulder;
-    const a = this.robot.gun.rotation + Math.PI / 2;
-    const len = 122 * this.robot.barrel.scaleY + 62 * (1 - this.robot.barrel.scaleY);
-    return { x: ROBOT.x + s.x + Math.cos(a) * len, y: ROBOT.y + this.robot.body.y + s.y + Math.sin(a) * len };
+    const r = this.robot;
+    return this.worldPoint(r.forearm, 0, 22 + 66 * r.barrel.scaleY);
   }
 
   private get tf(): SceneFoe | undefined {
@@ -316,7 +423,7 @@ export class BattleScene extends Phaser.Scene {
     this.hooks.onFoeHp(hp, max);
     const entries = list.slice(0, SLOTS.length).map((f, i) => {
       const slot = slots[i];
-      const parts = f.kind === 'dino' ? makeDino(this) : f.kind === 'imp' ? makeImp(this) : f.kind === 'charger' ? makeCharger(this) : f.kind === 'chief' ? makeChief(this) : makeBoss(this);
+      const parts = FOE_ART[f.kind](this);
       const scale = BASE_SCALE[f.kind] * slot.s;
       parts.root.setPosition(slot.x, slot.y - 260).setScale(scale);
       const sf: SceneFoe = { id: f.id, kind: f.kind, parts, x: slot.x, y: slot.y, scale, idle: [], warn: null, shieldFx: null };
@@ -398,12 +505,22 @@ export class BattleScene extends Phaser.Scene {
     this.reticle.setVisible(true).setPosition(t.x, t.y + 2).setScale(t.scale / 0.95);
   }
 
+  /** 대기 동작: 숨 쉬듯 살짝 들썩인다 (갑옷 공룡만 꼬리를 흔든다) */
   private startFoeIdle(f: SceneFoe): void {
     f.idle.forEach((t) => t.remove());
     const p = f.parts;
     p.body.setPosition(0, 0).setAngle(0).setScale(1);
+    p.tail?.setAngle(0);
+    const d = (f.id % 3) * 130;
+    if (f.kind === 'armor') {
+      f.idle = [
+        this.tweens.add({ targets: p.body, scaleY: 1.02, duration: 1400, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+        this.tweens.add({ targets: p.tail!, angle: 12, duration: 700, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+      ];
+      return;
+    }
     f.idle = [
-      this.tweens.add({ targets: p.body, scaleY: 1.03, y: -2, duration: f.kind === 'imp' ? 400 : 800, delay: (f.id % 3) * 130, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
+      this.tweens.add({ targets: p.body, scaleY: 1.03, y: -2, duration: f.kind === 'imp' ? 400 : 800, delay: d, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
       this.tweens.add({ targets: p.head, angle: 3, duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.inOut' }),
     ];
   }
@@ -479,6 +596,7 @@ export class BattleScene extends Phaser.Scene {
 
   /** 아이가 오래 막혀 있으면 로봇이 방어막을 편다 (연출 전용) */
   guard(on: boolean): void {
+    this.guardPose(on);
     if (on && !this.guardFx) {
       const magic = this.theme === 'magicalGirl';
       const g = magic ? makeMagicShield(this) : makeGuard(this);
@@ -491,6 +609,20 @@ export class BattleScene extends Phaser.Scene {
       const g = this.guardFx;
       this.guardFx = null;
       this.tweens.add({ targets: g, alpha: 0, scale: 1.2, duration: 300, onComplete: () => g.destroy() });
+    }
+  }
+
+  /** 방어 자세: 로봇은 왼팔을 앞으로 들어 막고, 마법소녀는 마법봉을 가로로 들어 막는다 */
+  private guarding = false;
+
+  private guardPose(on: boolean): void {
+    if (!this.robot || on === this.guarding) return;
+    this.guarding = on;
+    if (this.theme === 'magicalGirl') {
+      const m = this.magic;
+      this.tweens.add({ targets: m.arm, rotation: on ? -1.9 : -0.5, duration: 200, ease: 'Back.out' });
+      this.tweens.add({ targets: m.leftArm, angle: on ? -60 : 14, duration: 200, ease: 'Back.out' });
+      return;
     }
   }
 
@@ -615,14 +747,14 @@ export class BattleScene extends Phaser.Scene {
    * 콤보 단계에 따라 눈에 띄게 다른 공격. 피해는 호출한 쪽이 이미 한 번 계산했고,
    * 여기서는 마지막 명중 순간에 체력 표시를 바꾼다.
    */
-  async attack(tier: AttackTier, hits: Hit[], hp: number, max: number): Promise<void> {
+  async attack(tier: AttackTier, hits: Hit[], hp: number, max: number, combo = 0): Promise<void> {
     if (!this.tf) return;
-    if (this.theme === 'magicalGirl') return this.magicAttack(tier, hits, hp, max);
+    if (this.theme === 'magicalGirl') return this.magicAttack(tier, hits, hp, max, combo);
     this.robotIdle.forEach((t) => t.pause());
-    const r = this.robot;
     this.guard(false);
     this.setCharging(null);
     // 무장 전개: 팔을 적 쪽(↗)으로 들고 포신을 편다
+    const r = this.robot;
     sfx.play('deploy');
     await Promise.all([
       this.tween({ targets: r.gun, rotation: this.aimAngle(), duration: 200, ease: 'Back.out' }),
@@ -637,8 +769,10 @@ export class BattleScene extends Phaser.Scene {
         await this.wait(60);
       }
     } else if (tier === 'missiles') {
+      // 콤보 4: 미사일 한 번 + 대포 / 콤보 5 이상: 미사일 두 번(엇갈려) + 대포
       await this.openPod(true);
-      const shots = [this.fireMissiles(), this.wait(150).then(() => this.fireShell(1.1, false))];
+      const shots = [this.fireMissiles(0), this.wait(150).then(() => this.fireShell(1.1, true))];
+      if (combo >= 5) shots.push(this.wait(420).then(() => this.fireMissiles(1)));
       await Promise.all(shots);
       await this.stagger();
       await this.openPod(false);
@@ -647,31 +781,47 @@ export class BattleScene extends Phaser.Scene {
     }
 
     await this.applyHits(hits, hp, max);
-    await Promise.all([
-      this.tween({ targets: r.gun, rotation: 0, duration: 300, delay: 120 }),
-      this.tween({ targets: r.barrel, scaleY: 0.15, duration: 300, delay: 120 }),
-    ]);
-    r.muzzleGlow.setAlpha(0);
+    await this.robotRecover();
     this.setCharge(0);
     this.robotIdle.forEach((t) => t.resume());
   }
 
-  private async fireShell(size: number, big: boolean, spread = 0): Promise<void> {
+  private async robotRecover(): Promise<void> {
     const r = this.robot;
-    r.muzzleGlow.setScale(0.3).setAlpha(1);
-    sfx.play('charge');
-    await this.tween({ targets: r.muzzleGlow, scale: 1.2, duration: big ? 220 : 110, ease: 'Quad.in' });
-    sfx.play('cannon');
+    await Promise.all([
+      this.tween({ targets: r.gun, rotation: 0, duration: 300, delay: 120 }),
+      this.tween({ targets: r.forearm, rotation: 0, duration: 260, delay: 120 }),
+      this.tween({ targets: r.barrel, scaleY: 0.15, duration: 300, delay: 120 }),
+      this.tween({ targets: r.fins, scaleX: 0.2, duration: 220, delay: 120 }),
+      this.tween({ targets: [r.leftArm, r.leftFore, r.head], angle: 0, duration: 300, delay: 120 }),
+    ]);
     r.muzzleGlow.setAlpha(0);
-    const m = this.muzzle();
-    this.burst('world', m.x, m.y, 'star', { color: [0xffffff, 0xffd23f], count: 8, speed: 130, scale: 0.3, life: 200 });
-    // 발사 반동: 몸과 팔이 뒤로 밀린다 (뒷모습에서도 보이게 아래·왼쪽으로)
+    r.wristGlow.setAlpha(0);
+  }
+
+  /** 발사 반동: 몸과 팔이 뒤로 밀린다 (뒷모습에서도 보이게 아래·왼쪽으로) */
+  private recoil(size: number): void {
+    const r = this.robot;
+    void size;
     this.tweens.add({ targets: r.root, x: ROBOT.x - 8, y: ROBOT.y + 5, duration: 70, yoyo: true, ease: 'Quad.out' });
     this.tweens.add({ targets: r.gun, rotation: r.gun.rotation + 0.18, duration: 70, yoyo: true });
     r.thrustL.setAlpha(1);
     r.thrustR.setAlpha(1);
     this.tweens.add({ targets: [r.thrustL, r.thrustR], alpha: 0, duration: 260 });
     this.shake(0.003, 80);
+  }
+
+  private async fireShell(size: number, big: boolean, spread = 0): Promise<void> {
+    const r = this.robot;
+    r.muzzleGlow.setScale(0.3).setAlpha(1);
+    sfx.play('charge');
+    await this.tween({ targets: r.muzzleGlow, scale: 1.2, duration: big ? 150 : 90, ease: 'Quad.in' });
+    sfx.play('cannon');
+    r.muzzleGlow.setAlpha(0);
+    const m = this.muzzle();
+    this.burst('world', m.x, m.y, 'star', { color: [0xffffff, 0xffd23f], count: 8, speed: 130, scale: 0.3, life: 200 });
+    this.muzzleFlash(m, 0xffd23f, size);
+    this.recoil(size);
 
     const t = this.foeCenter();
     const tx = t.x + spread;
@@ -687,13 +837,40 @@ export class BattleScene extends Phaser.Scene {
     const trail = this.add.particles(0, 0, 'dot', { follow: shell, lifespan: 200, scale: { start: 0.25 * size, end: 0 }, tint: [0xffd23f, 0xff8c42], frequency: this.reduceEffects ? 50 : 14 });
     this.world.add(trail);
     // 원근감: 멀어질수록 작아진다
-    await this.tween({ targets: shell, x: tx, y: ty, scale: 0.6, duration: 260, ease: 'Sine.in' });
+    await this.tween({ targets: shell, x: tx, y: ty, scale: 0.6, duration: 220, ease: 'Sine.in' });
     trail.stop();
     this.time.delayedCall(300, () => trail.destroy());
     shell.destroy();
-    sfx.play(big ? 'explode' : 'hit');
-    this.blast(tx, ty, big ? 1.4 : 0.9);
-    this.hitReact(big);
+    this.landHit(tx, ty, big ? 1 : 0);
+  }
+
+  /**
+   * 필살기 조명: 배경만 어두워지고 캐릭터와 적은 밝게 남는다 (배경 바로 위, 적·캐릭터 아래에 깐다).
+   * 끌 때는 켤 때 받은 막을 넘긴다.
+   */
+  private spotlight(on: true): Phaser.GameObjects.Rectangle | null;
+  private spotlight(on: false, dim: Phaser.GameObjects.Rectangle | null): null;
+  private spotlight(on: boolean, dim: Phaser.GameObjects.Rectangle | null = null): Phaser.GameObjects.Rectangle | null {
+    if (!on) {
+      if (dim) this.tweens.add({ targets: dim, alpha: 0, duration: 260, onComplete: () => dim.destroy() });
+      return null;
+    }
+    if (this.reduceEffects) return null;
+    this.drop(this.dimRect);
+    const d = this.add.rectangle(-400, -600, W + 800, H + 1000, 0x0b1020, 1).setOrigin(0).setAlpha(0);
+    this.world.addAt(d, 1);
+    this.dimRect = d;
+    this.tweens.add({ targets: d, alpha: 0.42, duration: 220 });
+    return d;
+  }
+
+  /** 총구 불꽃: 명중 별과 같은 모양을 작게, 한 박자만 */
+  private muzzleFlash(p: { x: number; y: number }, color: number, size = 1): void {
+    if (this.reduceEffects) return;
+    const f = makeImpactStar(this, color, 6);
+    f.setPosition(p.x, p.y).setScale(0.25 * size).setAngle(this.words * 17);
+    this.world.add(f);
+    this.tweens.add({ targets: f, scale: 0.55 * size, alpha: 0, duration: 110, ease: 'Quad.out', onComplete: () => f.destroy() });
   }
 
   private hitReact(big: boolean, id = this.targetId): void {
@@ -743,7 +920,8 @@ export class BattleScene extends Phaser.Scene {
     await this.tween({ targets: this.robot.hatch, angle: open ? -110 : 0, duration: 200, ease: 'Back.out' });
   }
 
-  private async fireMissiles(): Promise<void> {
+  /** salvo 1 = 두 번째 일제 사격: 반대쪽으로 휘어 들어가 다른 곳을 때린다 */
+  private async fireMissiles(salvo = 0): Promise<void> {
     const r = this.robot;
     // 적이 여럿이면 미사일을 나눠 쏜다 (범위 공격)
     const ids = [this.targetId, ...this.others()];
@@ -762,7 +940,8 @@ export class BattleScene extends Phaser.Scene {
       // 서로 다른 탄도: 위로 솟았다가 휘어 들어간다
       const ex = t.x + (ids.length > 1 ? (i % 2 ? 8 : -8) : (i - 1.5) * 16);
       const ey = t.y + (i % 2 ? 10 : -12);
-      const curve = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(sx, sy), new Phaser.Math.Vector2(sx - 40 + i * 40, sy - 150 - i * 15), new Phaser.Math.Vector2(ex, ey));
+      const bend = salvo ? 60 - i * 40 : -40 + i * 40;
+      const curve = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(sx, sy), new Phaser.Math.Vector2(sx + bend, sy - 150 - i * 15 - salvo * 40), new Phaser.Math.Vector2(ex + salvo * 10, ey - salvo * 14));
       const p = { t: 0 };
       await this.tween({
         targets: p,
@@ -781,7 +960,8 @@ export class BattleScene extends Phaser.Scene {
       this.time.delayedCall(300, () => trail.destroy());
       m.destroy();
       sfx.play('explode');
-      this.blast(ex, ey, 1);
+      this.hitStop(25);
+      this.blast(ex + salvo * 10, ey - salvo * 14, 1);
       this.hitReact(false, id);
     });
     await Promise.all(flights);
@@ -807,14 +987,19 @@ export class BattleScene extends Phaser.Scene {
       this.world.add(d);
       this.tweens.add({ targets: d, x: m.x, y: m.y, scale: 0.05, duration: 500, delay: i * 25, onComplete: () => d.destroy() });
     }
-    await this.tween({ targets: r.muzzleGlow, scale: 2.4, duration: 650, ease: 'Quad.in' });
+    const dim = this.spotlight(true);
+    // 빛 덩어리가 적을 가리지 않게 크기를 묶는다
+    await this.tween({ targets: r.muzzleGlow, scale: 1.6, duration: 650, ease: 'Quad.in' });
     // 대형 에너지 포격
     sfx.play('beam');
     const t = this.foeCenter();
     const beam = this.add.graphics();
-    const len = Math.hypot(t.x - m.x, t.y - m.y);
-    beam.fillStyle(0x5cf2ff, 0.55);
-    beam.fillRoundedRect(0, -16, len, 32, 16);
+    // 광선은 적을 뚫고 화면 끝까지 뻗는다
+    const len = Math.hypot(t.x - m.x, t.y - m.y) + 220;
+    beam.fillStyle(0x5cf2ff, 0.4);
+    beam.fillRoundedRect(0, -24, len, 48, 24);
+    beam.fillStyle(0x5cf2ff, 0.75);
+    beam.fillRoundedRect(0, -15, len, 30, 15);
     beam.fillStyle(0xffffff, 1);
     beam.fillRoundedRect(0, -7, len, 14, 7);
     beam.setPosition(m.x, m.y).setRotation(Math.atan2(t.y - m.y, t.x - m.x)).setScale(0, 1);
@@ -838,10 +1023,12 @@ export class BattleScene extends Phaser.Scene {
     await this.wait(spots * 70 + 120);
     await this.tween({ targets: beam, scaleY: 0, alpha: 0, duration: 200 });
     beam.destroy();
+    this.spotlight(false, dim);
     r.muzzleGlow.setAlpha(0);
     this.tweens.add({ targets: [r.thrustL, r.thrustR], alpha: 0, duration: 300 });
     // 마무리 충격파
     sfx.play('bigExplode');
+    this.hitStop(HIT_STOP[2]);
     this.blast(t.x, t.y, 2);
     const ring = this.add.graphics();
     ring.lineStyle(6, 0xffffff, 1);
@@ -866,6 +1053,7 @@ export class BattleScene extends Phaser.Scene {
     const ids = [...this.foes.keys()];
     for (let k = 0; k < 3; k++) {
       sfx.play('bigExplode');
+      this.hitStop(60);
       for (const id of ids) {
         const c = this.foeCenter(id);
         const dx = (k - 1) * 22;
@@ -961,37 +1149,56 @@ export class BattleScene extends Phaser.Scene {
       if (heavy) sfx.play('bigExplode');
       this.blast(target.x, target.y, heavy ? 1.5 : 1);
       this.shake(heavy ? 0.014 : 0.008, heavy ? 320 : 200);
+      this.hitStop(heavy ? 90 : 45);
+      const k = heavy ? 1.5 : 1;
       if (this.theme === 'magicalGirl') {
+        // 몸이 비틀리고 포니테일과 망토가 휘날린다. 왼팔은 균형을 잡으려 벌어진다.
         const m = this.magic;
-        this.tweens.add({ targets: m.root, x: ROBOT.x - 12, y: ROBOT.y + 6, duration: 90, yoyo: true });
-        this.tweens.add({ targets: m.head, angle: -10, duration: 90, yoyo: true });
-        this.tweens.add({ targets: m.ponytail, angle: 30, duration: 120, yoyo: true });
+        this.tweens.add({ targets: m.root, x: ROBOT.x - 12 * k, y: ROBOT.y + 6 * k, duration: 90, yoyo: true });
+        this.tweens.add({ targets: m.body, angle: -7 * k, duration: 90, yoyo: true, ease: 'Quad.out' });
+        this.tweens.add({ targets: m.head, angle: -12 * k, duration: 90, yoyo: true });
+        this.tweens.add({ targets: m.ponytail, angle: 34 * k, duration: 120, yoyo: true });
+        this.tweens.add({ targets: m.leftArm, angle: 50, duration: 100, yoyo: true });
+        this.tweens.add({ targets: m.skirt, scaleX: 1.08, duration: 90, yoyo: true });
+        this.burst('world', target.x - 10, target.y + 10, 'star', { color: [MAG.magic, 0xffffff], count: 8, speed: 130, scale: 0.25, life: 320 });
       } else {
+        // 뒤로 밀리고 고개가 젖혀진다. 부딪힌 자리에서 불꽃이 튄다.
         const r = this.robot;
         this.tweens.add({ targets: r.root, x: ROBOT.x - 12, y: ROBOT.y + 6, duration: 90, yoyo: true });
         this.tweens.add({ targets: r.head, angle: -12, duration: 90, yoyo: true });
         this.tweens.add({ targets: r.visor, alpha: 0.2, duration: 70, yoyo: true, repeat: 1 });
+        this.burst('world', target.x - 10, target.y + 10, 'star', { color: [0xffd23f, 0xffffff, 0xff8c42], count: 10, speed: 160, scale: 0.22, life: 300, gravity: 300 });
       }
       this.hooks.onRobotHp(hpAfter);
     };
 
+    const s0 = f.root.scaleX;
     if (kind === 'dino' || kind === 'charger' || kind === 'chief') {
       // 돌진: 대각선 아래로 달려들었다 돌아간다 (가까워질수록 커진다)
-      const s = f.root.scaleX;
       await this.tween({ targets: f.body, angle: kind === 'dino' ? -6 : 8, duration: heavy ? 260 : 140 });
       sfx.play('step');
-      await this.tween({ targets: f.root, x: target.x + 70, y: target.y + 60, scale: s * 1.35, duration: 260, ease: 'Quad.in' });
+      await this.tween({ targets: f.root, x: target.x + 70, y: target.y + 60, scale: s0 * 1.35, duration: 260, ease: 'Quad.in' });
       if (f.jaw) this.tweens.add({ targets: f.jaw, scaleY: 1, duration: 80, yoyo: true });
       impact();
-      await this.tween({ targets: f.root, x: sf.x, y: sf.y, scale: s, duration: 380, ease: 'Quad.out' });
+      await this.tween({ targets: f.root, x: sf.x, y: sf.y, scale: s0, duration: 380, ease: 'Quad.out' });
+    } else if (kind === 'armor') {
+      // 꼬리 곤봉: 크게 뒤로 감았다가 땅을 내리쳐 충격파를 보낸다
+      const tail = f.tail!;
+      await this.tween({ targets: tail, angle: -70, duration: heavy ? 320 : 220, ease: 'Quad.out' });
+      await this.tween({ targets: tail, angle: 40, duration: 110, ease: 'Quad.in' });
+      sfx.play('explode');
+      this.shake(0.01, 200);
+      this.burst('world', sf.x + 40 * s0, sf.y - 4, 'dot', { color: [0xd9c49a, 0xb7a98a], count: 12, speed: 140, scale: 0.4, life: 500, gravity: 80 });
+      await this.groundWave(sf.x, sf.y, target, heavy);
+      impact();
+      await this.tween({ targets: tail, angle: 0, duration: 300 });
     } else {
       // 발사체: 입에서 ↙ 방향으로
       if (f.jaw) this.tweens.add({ targets: f.jaw, scaleY: 1, duration: 150, yoyo: true, hold: 200 });
       sfx.play('roar');
       await this.wait(200);
-      const s = f.root.scaleX;
-      const sx = sf.x + f.mouth.x * s;
-      const sy = sf.y + f.mouth.y * s;
+      const sx = sf.x + f.mouth.x * s0;
+      const sy = sf.y + f.mouth.y * s0;
       const ball = this.add.graphics();
       ball.fillStyle(kind === 'boss' ? 0xff6a3d : 0xb06cff, 1);
       ball.fillCircle(0, 0, 12);
@@ -1009,6 +1216,19 @@ export class BattleScene extends Phaser.Scene {
     }
     await this.wait(250);
     if (this.foes.has(id)) this.startFoeIdle(sf);
+  }
+
+  /** 땅을 타고 로봇 쪽으로 번지는 충격파 고리 */
+  private async groundWave(x: number, y: number, target: { x: number; y: number }, heavy: boolean): Promise<void> {
+    const g = this.add.graphics();
+    g.lineStyle(6, 0xffd166, 1);
+    g.strokeEllipse(0, 0, 60, 18);
+    g.lineStyle(3, 0xffffff, 0.9);
+    g.strokeEllipse(0, 0, 40, 11);
+    g.setPosition(x, y);
+    this.world.add(g);
+    await this.tween({ targets: g, x: target.x + 20, y: target.y + 110, scaleX: heavy ? 2.6 : 2, scaleY: heavy ? 2.6 : 2, duration: 320, ease: 'Quad.in' });
+    this.tweens.add({ targets: g, alpha: 0, scaleX: 3.2, duration: 160, onComplete: () => g.destroy() });
   }
 
   async reboot(hpAfter: number): Promise<void> {
@@ -1108,33 +1328,78 @@ export class BattleScene extends Phaser.Scene {
     this.burst('world', x, y, 'star', { color: [0xffffff, MAG.glow, color, MAG.magic2], count: 9, speed: 170 * size, scale: 0.28 * size, life: 420 });
   }
 
-  private async magicAttack(tier: AttackTier, hits: Hit[], hp: number, max: number): Promise<void> {
+  private async magicAttack(tier: AttackTier, hits: Hit[], hp: number, max: number, combo = 0): Promise<void> {
     const m = this.magic;
     this.magicIdle.forEach((t) => t.pause());
     this.guard(false);
     this.setCharging(null);
-    // 마법봉을 적에게 겨누고 끝에 빛을 모은다
-    sfx.play('chime');
-    await this.tween({ targets: m.arm, rotation: this.magicAim(), duration: 220, ease: 'Back.out' });
+    await this.magicCharge(tier === 'finisher' || tier === 'ultimate' ? 2 : tier === 'missiles' ? 1 : 0);
+    await this.magicTwirl();
 
     if (tier === 'basic') {
       await this.wandShot(1.15, true);
     } else if (tier === 'rapid') {
-      await this.circleVolley();
+      // 콤보 2: 마법진 둘에서 3연사 / 콤보 3 이상: 마법진 셋에서 5연사
+      await this.circleVolley(combo >= 3 ? 3 : 2);
     } else if (tier === 'missiles') {
+      // 콤보 4: 유성 넷 / 콤보 5 이상: 유성 여섯
       const shot = this.wandShot(0.9, false);
       await this.wait(120);
-      await Promise.all([shot, this.meteorShower(4)]);
+      await Promise.all([shot, this.meteorShower(combo >= 5 ? 6 : 4)]);
       await this.stagger();
     } else {
       await this.magicFinisher(tier === 'ultimate');
     }
 
     await this.applyHits(hits, hp, max);
-    await this.tween({ targets: m.arm, rotation: -0.5, duration: 300, delay: 120 });
+    await Promise.all([
+      this.tween({ targets: m.arm, rotation: -0.5, duration: 300, delay: 120 }),
+      this.tween({ targets: m.leftArm, angle: 14, duration: 300, delay: 120 }),
+      this.tween({ targets: m.body, y: 0, duration: 320, delay: 120, ease: 'Quad.in' }),
+      this.tween({ targets: m.ponytail, angle: 0, duration: 300, delay: 120 }),
+    ]);
     m.tipGlow.setAlpha(0);
     this.setCharge(0);
     this.magicIdle.forEach((t) => t.resume());
+  }
+
+  /** 충전: 로봇과 반대로 몸이 살짝 떠오르고, 발밑에서 빛 알갱이가 솟으며 포니테일이 날린다 */
+  private async magicCharge(level: 0 | 1 | 2): Promise<void> {
+    const m = this.magic;
+    sfx.play('sparkle');
+    const ms = [120, 180, 280][level];
+    this.burst('world', ROBOT.x, ROBOT.y - 20, 'star', { color: [MAG.glow, MAG.magic2, 0xffffff], count: 5 + level * 4, speed: 50 + level * 20, scale: 0.22, life: 600, gravity: -180 });
+    this.tweens.add({ targets: m.gem, alpha: 0.4, duration: 70, yoyo: true, repeat: 1 + level });
+    await Promise.all([
+      this.tween({ targets: m.body, y: -8 - level * 4, duration: ms, ease: 'Sine.out' }),
+      this.tween({ targets: m.ponytail, angle: -24, duration: ms, ease: 'Sine.out' }),
+      this.tween({ targets: m.leftArm, angle: 55, duration: ms, ease: 'Sine.out' }),
+      this.tween({ targets: m.skirt, scaleX: 1.06, duration: ms, yoyo: true }),
+    ]);
+  }
+
+  /** 마법봉을 한 바퀴 돌려 겨눈다 (로봇의 무장 전개에 해당) */
+  private async magicTwirl(): Promise<void> {
+    const m = this.magic;
+    sfx.play('chime');
+    const aim = this.magicAim();
+    m.tipGlow.setScale(0.5).setAlpha(0.8);
+    // 한 바퀴 돌며 끝의 빛이 원을 그린다 (시계 방향으로 돌아 겨눈 자리에서 멈춘다)
+    const trail = this.reduceEffects ? null : this.add.particles(0, 0, 'star', { lifespan: 260, scale: { start: 0.2, end: 0 }, tint: [MAG.glow, MAG.magic], frequency: 18 });
+    if (trail) this.world.add(trail);
+    await this.tween({
+      targets: m.arm,
+      rotation: aim + Math.PI * 2,
+      duration: 240,
+      ease: 'Cubic.out',
+      onUpdate: () => {
+        const p = this.wandTip();
+        trail?.setPosition(p.x, p.y);
+      },
+    });
+    m.arm.setRotation(aim);
+    trail?.stop();
+    if (trail) this.time.delayedCall(300, () => trail.destroy());
   }
 
   /** 빛의 탄환 한 발 (from이 없으면 마법봉 끝에서) */
@@ -1142,10 +1407,12 @@ export class BattleScene extends Phaser.Scene {
     const m = this.magic;
     if (!from) {
       m.tipGlow.setScale(0.3).setAlpha(1);
-      await this.tween({ targets: m.tipGlow, scale: 1.2, duration: big ? 220 : 110, ease: 'Quad.in' });
+      await this.tween({ targets: m.tipGlow, scale: 1.2, duration: big ? 150 : 90, ease: 'Quad.in' });
       m.tipGlow.setAlpha(0);
-      this.tweens.add({ targets: m.arm, rotation: m.arm.rotation + 0.15, duration: 70, yoyo: true });
+      this.tweens.add({ targets: m.arm, rotation: m.arm.rotation + 0.25, duration: 70, yoyo: true });
       this.tweens.add({ targets: m.root, x: ROBOT.x - 6, y: ROBOT.y + 4, duration: 70, yoyo: true, ease: 'Quad.out' });
+      this.tweens.add({ targets: m.skirt, scaleX: 1.07, duration: 80, yoyo: true });
+      this.tweens.add({ targets: m.ponytail, angle: m.ponytail.angle - 12, duration: 90, yoyo: true });
     }
     const p = from ?? this.wandTip();
     sfx.play('magicShot');
@@ -1158,23 +1425,34 @@ export class BattleScene extends Phaser.Scene {
     this.world.add(b);
     const trail = this.add.particles(0, 0, 'star', { follow: b, lifespan: 260, scale: { start: 0.22 * size, end: 0 }, tint: [0xffffff, MAG.magic, MAG.magic2], frequency: this.reduceEffects ? 60 : 16, rotate: { min: 0, max: 360 } });
     this.world.add(trail);
-    await this.tween({ targets: b, x: tx, y: ty, scale: 0.7, duration: 280, ease: 'Sine.in' });
+    // 마법봉 끝이 적과 가까워도 날아가는 길이 보이게, 위로 솟았다가 휘어 내려 꽂힌다
+    const arc = new Phaser.Curves.QuadraticBezier(new Phaser.Math.Vector2(p.x, p.y), new Phaser.Math.Vector2((p.x + tx) / 2 - 30, Math.min(p.y, ty) - 70), new Phaser.Math.Vector2(tx, ty));
+    const k = { t: 0 };
+    await this.tween({
+      targets: k,
+      t: 1,
+      duration: 260,
+      ease: 'Sine.in',
+      onUpdate: () => {
+        const q = arc.getPoint(k.t);
+        b.setPosition(q.x, q.y).setScale(1 - 0.3 * k.t);
+      },
+    });
     trail.stop();
     this.time.delayedCall(300, () => trail.destroy());
     b.destroy();
-    sfx.play('magicHit');
-    this.magicBlast(tx, ty, big ? 1.4 : 0.9, big ? MAG.magic : MAG.magic2);
-    this.hitReact(big);
+    this.landHit(tx, ty, big ? 1 : 0);
   }
 
   /** 중간 콤보: 마법진 세 개가 펼쳐지고 별빛 탄환이 연달아 날아간다 */
-  private async circleVolley(): Promise<void> {
+  private async circleVolley(n: 2 | 3 = 3): Promise<void> {
     const tip = this.wandTip();
-    const spots = [
+    const all = [
       { x: tip.x - 34, y: tip.y - 30 },
       { x: tip.x + 6, y: tip.y - 52 },
       { x: tip.x + 30, y: tip.y - 10 },
     ];
+    const spots = n === 3 ? all : [all[0], all[2]];
     sfx.play('magicCircle');
     const circles = spots.map((s, i) => {
       const c = makeMagicCircle(this, 20, i === 1 ? MAG.magic : MAG.magic2, MAG.glow);
@@ -1185,7 +1463,7 @@ export class BattleScene extends Phaser.Scene {
       return c;
     });
     await this.wait(260);
-    const order = [0, 1, 2, 1, 0];
+    const order = n === 3 ? [0, 1, 2, 1, 0] : [0, 1, 0];
     const shots = order.map(async (ci, i) => {
       await this.wait(i * 110);
       await this.wandShot(0.8, i === order.length - 1, spots[ci], (ci - 1) * 12);
@@ -1229,6 +1507,7 @@ export class BattleScene extends Phaser.Scene {
       this.time.delayedCall(320, () => trail.destroy());
       me.destroy();
       sfx.play('magicHit');
+      this.hitStop(25);
       this.magicBlast(ex, ey, 1.1, i % 2 ? MAG.magic2 : MAG.magic);
       this.hitReact(i === n - 1, id);
     });
@@ -1248,9 +1527,15 @@ export class BattleScene extends Phaser.Scene {
   /** 필살기: 큰 마법진에서 거대한 마법 광선 + 유성 + 연쇄 별빛 폭발 + 충격파 */
   private async magicFinisher(grand = false): Promise<void> {
     const m = this.magic;
-    const tip = this.wandTip();
+    // 두 팔을 들어 올리는 필살 자세 (왼손도 하늘로)
+    this.tweens.add({ targets: m.leftArm, angle: 160, duration: 260, ease: 'Back.out' });
     const circle = makeMagicCircle(this, 44, MAG.magic, MAG.magic2);
-    circle.setPosition(tip.x + 10, tip.y - 8).setScale(0).setAlpha(0.95);
+    // 마법봉 끝은 적과 거의 붙어 있어 거기서 광선을 쏘면 방향이 엉뚱해진다 (아래로 꺾여 소녀를 지나갔다).
+    // 어깨와 적 사이, 조금 위에 마법진을 띄워 그곳에서 적을 향해 쏜다.
+    const k = this.magic.root.scaleX;
+    const sh = { x: ROBOT.x + this.magic.armShoulder.x * k, y: ROBOT.y + this.magic.armShoulder.y * k };
+    const tc = this.foeCenter();
+    circle.setPosition(sh.x + (tc.x - sh.x) * 0.4, sh.y + (tc.y - sh.y) * 0.4 - 24).setScale(0).setAlpha(0.95);
     this.world.add(circle);
     sfx.play('magicCircle');
     this.tweens.add({ targets: circle, angle: 360, duration: 1200, repeat: -1 });
@@ -1264,11 +1549,12 @@ export class BattleScene extends Phaser.Scene {
       this.world.add(d);
       this.tweens.add({ targets: d, x: circle.x, y: circle.y, scale: 0.05, angle: 180, duration: 480, delay: i * 25, onComplete: () => d.destroy() });
     }
-    await this.tween({ targets: m.tipGlow, scale: 2.2, duration: 550, ease: 'Quad.in' });
+    const dim = this.spotlight(true);
+    await this.tween({ targets: m.tipGlow, scale: 1.6, duration: 550, ease: 'Quad.in' });
     // 거대한 마법 광선 (여러 색 띠 + 하얀 중심)
     sfx.play('magicBeam');
     const t = this.foeCenter();
-    const len = Math.hypot(t.x - circle.x, t.y - circle.y);
+    const len = Math.hypot(t.x - circle.x, t.y - circle.y) + 220;
     const beam = this.add.graphics();
     beam.fillStyle(MAG.magic2, 0.45);
     beam.fillRoundedRect(0, -22, len, 44, 22);
@@ -1294,10 +1580,12 @@ export class BattleScene extends Phaser.Scene {
     await this.wait(spots * 70 + 120);
     await this.tween({ targets: beam, scaleY: 0, alpha: 0, duration: 200 });
     beam.destroy();
+    this.spotlight(false, dim);
     m.tipGlow.setAlpha(0);
     this.tweens.add({ targets: circle, scale: 0, alpha: 0, duration: 200, onComplete: () => this.drop(circle) });
     // 마무리 충격파: 무지개빛 고리
     sfx.play('bigExplode');
+    this.hitStop(HIT_STOP[2]);
     this.magicBlast(t.x, t.y, 2, MAG.glow);
     const ring = this.add.graphics();
     ring.lineStyle(6, MAG.magic, 1);

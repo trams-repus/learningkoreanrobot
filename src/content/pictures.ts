@@ -6,143 +6,14 @@
 //   구별되지 않는 가족 호칭은 "누구 옆의 누구"로 그리고 가리키는 사람 뒤에 노란 빛을 둔다.
 // 좌표는 모두 viewBox 0 0 100 100 기준.
 
-const INK = '#1d2340';
-const SKIN = '#ffd6ad';
-const HL = '#ffc933';
-
-/** 원 여러 개를 안쪽 선 없이 한 덩어리로 (나무 잎, 구름, 갈기) */
-function blob(fill: string, cs: [number, number, number][]): string {
-  const outer = cs.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" stroke-width="7"/>`).join('');
-  const inner = cs.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" stroke="none"/>`).join('');
-  return `<g fill="${fill}">${outer}${inner}</g>`;
-}
-
-/** 신체 부위 강조: 노란 점선 고리 */
-function ring(x: number, y: number, rx: number, ry = rx): string {
-  return `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" stroke="${HL}" stroke-width="5" stroke-dasharray="7 5"/>`;
-}
-
-function dot(x: number, y: number, r = 3.3, fill = INK): string {
-  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="none"/>`;
-}
-
-function drop(x: number, y: number, s = 1): string {
-  return `<path d="M${x} ${y} c${-3 * s} ${6 * s} ${-4 * s} ${8 * s} ${-4 * s} ${10 * s} a${4 * s} ${4 * s} 0 0 0 ${8 * s} 0 c0 ${-2 * s} ${-1 * s} ${-4 * s} ${-4 * s} ${-10 * s}z" fill="#4aa8f0"/>`;
-}
-
-const cheeks = (y: number, dx = 16, cx = 50) =>
-  `<circle cx="${cx - dx}" cy="${y}" r="5" fill="#ff9aa8" stroke="none" opacity=".6"/><circle cx="${cx + dx}" cy="${y}" r="5" fill="#ff9aa8" stroke="none" opacity=".6"/>`;
-
-/** 이마·코·머리를 가리킬 때 쓰는 기본 얼굴 (이마가 보이게 앞머리를 짧게) */
-function face(extra = ''): string {
-  return (
-    `<circle cx="21" cy="56" r="7" fill="${SKIN}"/><circle cx="79" cy="56" r="7" fill="${SKIN}"/>` +
-    `<circle cx="50" cy="54" r="29" fill="${SKIN}"/>` +
-    `<path d="M21 50C19 27 35 20 50 20S81 27 79 50C74 40 63 34 50 34S26 40 21 50Z" fill="#5a3b24"/>` +
-    dot(40, 55) +
-    dot(60, 55) +
-    `<path d="M50 58q-3 5 0 7"/><path d="M42 72q8 6 16 0"/>` +
-    cheeks(66, 17) +
-    extra
-  );
-}
-
-/** 막대 사람 (가다·오다·놀다) */
-function stick(x: number, y: number, body: string, s = 1): string {
-  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="${body}" stroke-width="6"/><circle cx="0" cy="0" r="10" fill="${SKIN}"/></g>`;
-}
-
-interface Look {
-  hair: string;
-  style: 'short' | 'long' | 'pony' | 'bun' | 'bald';
-  shirt: string;
-  /** 턱수염 색 (할아버지) */
-  beard?: string;
-  /** 콧수염 (아저씨) */
-  mustache?: boolean;
-  glasses?: boolean;
-  /** 모자 색 (아저씨) */
-  cap?: string;
-}
-
-/**
- * 사람 (가족 호칭). (x, y)는 발밑 가운데, s는 크기 — 어른 1.2 안팎, 아이 0.8 안팎.
- * 누나·오빠·언니·동생처럼 그림 한 장으로 구별하기 어려운 말은 "누구 옆의 누구"로 보여 준다
- * (작은 아이 옆의 큰 아이, 엄마 옆의 이모). 가리키는 사람은 halo()로 강조한다.
- */
-function person(x: number, y: number, s: number, k: Look): string {
-  const w = (n: number) => (n / s).toFixed(2);
-  const back =
-    k.style === 'long'
-      ? `<path d="M-14 -30C-16 -48 -6 -50 0 -50S16 -48 14 -30L15 -14H-15Z" fill="${k.hair}"/>`
-      : k.style === 'pony'
-        ? `<path d="M10 -40C22 -40 23 -26 17 -18C18 -27 16 -33 9 -35Z" fill="${k.hair}"/>`
-        : k.style === 'bun'
-          ? `<circle cx="0" cy="-47" r="6.5" fill="${k.hair}"/>`
-          : '';
-  const top =
-    k.style === 'bald'
-      ? `<path d="M-11.5 -29C-13 -36 -11 -40 -7 -43M11.5 -29C13 -36 11 -40 7 -43" stroke="${k.hair}" stroke-width="${w(4.5)}"/>`
-      : `<path d="M-12 -34C-13 -46 -6 -47 0 -47S13 -46 12 -34C9 -39 4 -41 0 -40S-9 -39 -12 -34Z" fill="${k.hair}"/>`;
-  const cap = k.cap
-    ? `<path d="M-13 -37C-13 -51 13 -51 13 -37Z" fill="${k.cap}"/><path d="M6 -38H20C21 -38 21 -35 19 -35H6Z" fill="${k.cap}"/>`
-    : '';
-  const beard = k.beard ? `<path d="M-11 -30C-10 -15 10 -15 11 -30C6 -25 -6 -25 -11 -30Z" fill="${k.beard}"/>` : '';
-  const mouth = k.mustache
-    ? `<path d="M-7 -27C-4 -30 -1 -29 0 -27C1 -29 4 -30 7 -27C4 -25 -4 -25 -7 -27Z" fill="#3a2a20" stroke-width="${w(1.5)}"/><path d="M-3 -23q3 2 6 0" stroke-width="${w(2)}"/>`
-    : `<path d="M-4 -26q4 3 8 0" stroke-width="${w(2)}"/>`;
-  const glasses = k.glasses
-    ? `<g stroke-width="${w(1.6)}"><circle cx="-5" cy="-32" r="4.2"/><circle cx="5" cy="-32" r="4.2"/><path d="M-0.8 -32h1.6"/></g>`
-    : '';
-  return (
-    `<g transform="translate(${x} ${y}) scale(${s})" stroke-width="${w(3)}">` +
-    back +
-    `<path d="M-15 0C-15 -13 -9 -20 0 -20S15 -13 15 0Z" fill="${k.shirt}"/>` +
-    `<circle cx="0" cy="-33" r="12" fill="${SKIN}"/>` +
-    (k.cap ? cap : top) +
-    beard +
-    `<circle cx="-4.5" cy="-32" r="1.9" fill="${INK}" stroke="none"/><circle cx="4.5" cy="-32" r="1.9" fill="${INK}" stroke="none"/>` +
-    glasses +
-    mouth +
-    `</g>`
-  );
-}
-
-/** 가족 그림에서 가리키는 사람: 뒤에 노란 빛 */
-function halo(x: number, y: number, s: number): string {
-  return `<ellipse cx="${x}" cy="${y - 25 * s}" rx="${21 * s}" ry="${29 * s}" fill="#fff1b8" stroke="${HL}" stroke-width="4" stroke-dasharray="7 5"/>`;
-}
-
-/** 몸통 (어깨·가슴): 머리와 윗옷 */
-function torso(extra = ''): string {
-  return (
-    `<path d="M20 96V58C20 44 32 38 50 38S80 44 80 58V96Z" fill="#3b78e6"/><path d="M42 38Q50 46 58 38" fill="${SKIN}"/>` +
-    `<circle cx="50" cy="20" r="14" fill="${SKIN}"/><path d="M36 18C36 6 44 4 50 4S64 6 64 18C60 12 56 11 50 11S40 12 36 18Z" fill="#5a3b24"/>` +
-    dot(45, 21, 2.2) +
-    dot(55, 21, 2.2) +
-    `<path d="M46 27q4 3 8 0" stroke-width="2.5"/>` +
-    extra
-  );
-}
-
-/** 표정 얼굴 (기쁘다·졸리다·조용하다): 눈·입은 따로 */
-function moodFace(inner: string): string {
-  return (
-    `<circle cx="50" cy="54" r="32" fill="${SKIN}"/>` +
-    `<path d="M18 50C17 26 33 20 50 20S83 26 82 50C76 40 64 35 50 35S24 40 18 50Z" fill="#5a3b24"/>` +
-    inner
-  );
-}
-
-/** 작은 반짝이 (예쁘다·기쁘다) */
-function sparkle(x: number, y: number, r = 6, fill = HL): string {
-  return `<path d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z" fill="${fill}" stroke="none"/>`;
-}
-
-/** 두 겹 선 (테두리 있는 굵은 선: 팔·손잡이·다리) */
-function tube(d: string, fill: string, wd: number): string {
-  return `<path d="${d}" stroke-width="${wd + 7}"/><path d="${d}" stroke="${fill}" stroke-width="${wd}"/>`;
-}
+import { INK, SKIN, HL, blob, ring, dot, drop, cheeks, face, stick, person, halo, torso, moodFace, sparkle, tube, svgFor } from './pictureKit.ts';
+import { PICS as L1_ANIMALS } from './pictures/l1-animals.ts';
+import { PICS as L1_FOOD } from './pictures/l1-food.ts';
+import { PICS as L1_THINGS } from './pictures/l1-things.ts';
+import { PICS as L1_PLACES } from './pictures/l1-places.ts';
+import { PICS as L1_NATURE } from './pictures/l1-nature.ts';
+import { PICS as L1_ACTIONS } from './pictures/l1-actions.ts';
+import { REGISTERED_PICS } from './pictureIndex.ts';
 
 const PICTURES: Record<string, string> = {
   수박:
@@ -1132,15 +1003,16 @@ const PICTURES: Record<string, string> = {
     `<path d="M30 96C26 90 32 86 34 84C36 88 40 88 40 84C44 88 46 92 42 96Z" fill="#ff8c1a"/><path d="M50 96C46 90 52 86 54 84C56 88 60 88 60 84C64 88 66 92 62 96Z" fill="#ff8c1a"/><path d="M70 96C66 90 72 86 74 84C76 88 80 88 80 84C84 88 86 92 82 96Z" fill="#ff8c1a"/>`,
 };
 
+// L1 묶음 (docs/vocab-plan.md 작업 순서 2~4: 묶음별로 그리고 검수한 뒤 여기 등록)
+Object.assign(PICTURES, L1_ANIMALS, L1_FOOD, L1_THINGS, L1_PLACES, L1_NATURE, L1_ACTIONS);
+// 그 뒤 묶음은 scripts/register-words.mjs가 등록한다 (pictureIndex.ts 자동 생성)
+Object.assign(PICTURES, REGISTERED_PICS);
+
 /** 그림이 있는 단어 목록 (그린 순서) */
 export const PICTURED_WORDS = Object.keys(PICTURES);
 
 /** 그림 ID(p_단어)의 SVG. 그림이 없으면 null (그림 칸을 비운다). */
 export function pictureSvg(pictureId: string): string | null {
   const inner = PICTURES[pictureId.replace(/^p_/, '')];
-  if (!inner) return null;
-  return (
-    `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
-    `<g fill="none" stroke="${INK}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">${inner}</g></svg>`
-  );
+  return inner ? svgFor(inner) : null;
 }

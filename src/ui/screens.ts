@@ -1,12 +1,14 @@
 // 게임 밖 화면: 시작, 전투 고르기, 승리, 일시정지, 부모 화면.
 // 아이 화면은 글 대신 큰 그림 버튼. 부모 화면은 길게 눌러야 열린다.
+import { Capacitor } from '@capacitor/core';
 import { AUDIO_MANIFEST, DIALOGUE, WORD_AUDIO_SOURCES } from '../content/audio';
 import { THEMES, type CharacterTheme } from '../content/characters';
-import { REGIONS, STAGES, type RegionDef, type StageDef } from '../content/stages';
+import { frontier, regionAt, regionById, regionIndexOf, stageAt, type RegionDef, type StageDef } from '../content/stages';
 import { packWords, VOCAB } from '../content/vocab';
 import { defaultSettings } from '../core/progress';
 import type { Game } from '../game/game';
-import { applySettings, audio, options, playlog, recordings, saves, sfx } from '../game/services';
+import { applySettings, audio, options, playlog, purchases, recordings, saves, sfx } from '../game/services';
+import { FREE_UNTIL, parentQuestion } from '../core/purchase';
 import { aiPrompt, analyze, MIN_WORDS_FOR_ANALYSIS, PERIOD_NAME, type Period } from '../core/analysis';
 import { recordClip } from '../services/recordings';
 import { ICONS } from './icons';
@@ -18,16 +20,22 @@ export class Screens {
   private overlay = document.getElementById('overlay')!;
   /** 부모 화면 분석 기간 (앱을 다시 열면 최근 7일로) */
   private period: Period = '7d';
+  /** 구매 화면이 열려 있는 동안 구매 상태가 바뀌면 다시 그린다 */
+  private unsub: (() => void) | null = null;
 
   constructor(private game: Game) {}
 
   close(): void {
+    this.unsub?.();
+    this.unsub = null;
     this.overlay.hidden = true;
     this.overlay.className = '';
     this.overlay.innerHTML = '';
   }
 
   private open(html: string, clear = false): HTMLElement {
+    this.unsub?.();
+    this.unsub = null;
     this.overlay.hidden = false;
     this.overlay.className = clear ? 'clear' : '';
     this.overlay.innerHTML = html;
@@ -134,30 +142,44 @@ export class Screens {
 
   // ───────────── 전투 고르기 ─────────────
 
-  map(): void {
-    const unlocked = new Set(this.game.unlockedStages);
+  /**
+   * 전투 고르기. 단계가 끝없이 이어지므로 지역 두 개씩 보여 주고 ◀ ▶로 넘긴다.
+   * page = 위쪽에 보일 지역 번호 (없으면 지금 도전할 단계의 지역).
+   */
+  map(page?: number): void {
     const cleared = new Set(saves.data.cleared);
     const next = this.game.nextStageId();
+    const nowRegion = regionIndexOf(frontier(saves.data.cleared));
+    // 아직 못 가는 지역은 바로 다음 하나까지만 미리 보여 준다
+    const lastPage = nowRegion + 1;
+    const top = Math.max(1, Math.min(page ?? nowRegion, lastPage - 1));
     const node = (s: StageDef, first: boolean) => {
-      const locked = !unlocked.has(s.id);
-      const cls = ['node', s.boss ? 'boss' : '', locked ? 'locked' : '', s.id === next && !locked ? 'next' : ''].join(' ');
+      const locked = !this.game.isUnlocked(s.id);
+      // 진행으로는 열렸지만 구매가 필요한 단계: 누르면 보호자 안내 (잠금 대신 열쇠 표시)
+      const paid = !locked && !purchases.canPlay(s.num);
+      const cls = ['node', s.boss ? 'boss' : '', locked ? 'locked' : '', paid ? 'paid' : '', s.id === next && !locked ? 'next' : ''].join(' ');
       const link = first ? '' : '<span class="path-link"></span>';
-      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.num}단계 ${s.name} (${s.focus})`)}" ${locked ? 'disabled' : ''}>
-        ${ICONS[s.icon]}${cleared.has(s.id) ? `<span class="badge">${ICONS.star}</span>` : ''}${locked ? `<span class="lockmark">${ICONS.lock}</span>` : ''}
+      return `${link}<div class="node-wrap"><button class="${cls}" data-stage="${s.id}" aria-label="${esc(`${s.num}단계 ${s.name} (${s.focus})${paid ? ' - 보호자 확인 필요' : ''}`)}" ${locked ? 'disabled' : ''}>
+        ${ICONS[s.icon]}${cleared.has(s.id) ? `<span class="badge">${ICONS.star}</span>` : ''}${locked ? `<span class="lockmark">${ICONS.lock}</span>` : ''}${paid ? `<span class="lockmark key">${ICONS.lock}</span>` : ''}
       </button><span class="node-cap" aria-hidden="true">${s.num}. ${esc(s.focus)}</span></div>`;
     };
-    // 지역별로 묶는다: 공룡 들판(1~10) → 화산섬(11~). 지역 이름 옆 i는 보호자 안내.
-    const regions = REGIONS.map((r) => {
-      const list = STAGES.filter((s) => s.region === r.id);
-      if (!list.length) return '';
-      const open = list.some((s) => unlocked.has(s.id));
+    // 지역별로 묶는다: 공룡 들판(1~10) → 화산섬(11~20) → …. 지역 이름 옆 i는 보호자 안내.
+    const regions = [top, top + 1].map((k) => {
+      const r = regionAt(k);
+      const list = Array.from({ length: 10 }, (_, i) => stageAt((k - 1) * 10 + i + 1));
+      const open = list.some((s) => this.game.isUnlocked(s.id));
       return `<section class="region ${open ? '' : 'locked'}" data-region="${r.id}">
         <div class="region-head"><span>${esc(r.name)}</span>${r.id !== 'r1' ? `<button class="region-info-btn" data-info="${r.id}" aria-label="${esc(r.name)} 보호자 안내">i</button>` : ''}</div>
         <div class="map">${list.map((s, i) => node(s, i === 0)).join('')}</div></section>`;
     }).join('');
+    // 넘기기 단추는 아래 줄에 둔다 (위 오른쪽은 부모 화면 단추 자리)
     const el = this.open(
       `<div class="panel map-panel">${regions}
-        <div class="row"><button class="big-btn secondary" id="m-home" aria-label="처음으로">${ICONS.home}</button></div></div>
+        <div class="row map-nav">
+          <button class="big-btn secondary" id="m-prev" aria-label="앞 지역" ${top <= 1 ? 'disabled' : ''}>◀</button>
+          <button class="big-btn secondary" id="m-home" aria-label="처음으로">${ICONS.home}</button>
+          <button class="big-btn secondary" id="m-next" aria-label="다음 지역" ${top + 1 >= lastPage ? 'disabled' : ''}>▶</button>
+        </div></div>
        <div class="corner">${this.parentButton()}</div>`,
     );
     el.querySelectorAll<HTMLButtonElement>('[data-stage]').forEach((b) =>
@@ -169,9 +191,17 @@ export class Screens {
     el.querySelectorAll<HTMLButtonElement>('[data-info]').forEach((b) =>
       b.addEventListener('click', () => {
         sfx.play('tap');
-        this.regionInfo(null, REGIONS.find((r) => r.id === b.dataset.info)!);
+        this.regionInfo(null, regionById(b.dataset.info!)!);
       }),
     );
+    el.querySelector('#m-prev')?.addEventListener('click', () => {
+      sfx.play('tap');
+      this.map(top - 1);
+    });
+    el.querySelector('#m-next')?.addEventListener('click', () => {
+      sfx.play('tap');
+      this.map(top + 1);
+    });
     el.querySelector('#m-home')!.addEventListener('click', () => {
       sfx.play('tap');
       this.title();
@@ -184,7 +214,7 @@ export class Screens {
 
   /** 지역의 마지막 전투를 처음 깼을 때: 새 지역 발견 장면 → 보호자 안내 → 승리 화면 */
   regionFound(stage: StageDef, region: RegionDef): void {
-    void audio.playDialogue('d_newregion', { force: true });
+    void audio.playDialogue(region.index === 2 ? 'd_newregion' : 'd_newregion_any', { force: true });
     sfx.play('victory');
     const el = this.open(
       `<div class="region-found" role="dialog" aria-label="${esc(`새 지역 발견: ${region.name}`)}">
@@ -205,26 +235,124 @@ export class Screens {
    * 지금은 시험판이라 다음 지역도 그대로 열려 있다고 알린다.
    */
   regionInfo(stage: StageDef | null, region: RegionDef): void {
+    const back = () => (stage ? this.victory(stage) : this.map());
+    // 결제가 켜진 앱에서 아직 사지 않았으면 구매 안내로 (11단계부터 유료)
+    if (purchases.gateEnabled && !purchases.isOwned && region.index >= 2) {
+      this.purchase(back, region);
+      return;
+    }
     const el = this.open(
       `<div class="panel region-info">
         <h2>보호자 안내</h2>
         <p><b>${esc(region.name)}</b> · ${esc(region.blurb)}</p>
-        <p>여기부터는 보호자 결제 화면이 들어갈 자리입니다. 지금은 시험판이라 결제 기능이 없고, 다음 단계를 그대로 해 볼 수 있습니다.</p>
+        ${purchases.gateEnabled ? '' : `<p>이 버전(웹 시험판)에는 결제 기능이 없어 ${FREE_UNTIL + 1}단계부터도 그대로 해 볼 수 있습니다. 앱에서는 ${FREE_UNTIL}단계까지 무료이고, 한 번 구매하면 그 뒤 모든 단계가 열립니다.</p>`}
         <div class="row"><button class="big-btn" id="ri-ok">계속하기</button></div>
       </div>`,
     );
     el.querySelector('#ri-ok')!.addEventListener('click', () => {
       sfx.play('tap');
-      if (stage) this.victory(stage);
-      else this.map();
+      back();
     });
+  }
+
+  // ───────────── 구매 (보호자) ─────────────
+
+  /**
+   * 11단계부터 모든 단계 열기 (비소모성 상품 하나). 보호자 확인(곱셈 문제)을 통과해야 결제 창이 열린다.
+   * after: '나중에'·'계속'을 누르면 갈 곳. 구매 상태가 바뀌면(대기 → 완료 등) 화면을 다시 그린다.
+   */
+  purchase(after: () => void, region: RegionDef | null = null): void {
+    const st = purchases.state;
+    const price = purchases.product?.price;
+    const status =
+      st === 'owned'
+        ? '<p class="buy-status ok">구매 완료! 모든 단계가 열렸습니다.</p>'
+        : st === 'pending'
+          ? '<p class="buy-status wait">결제 승인을 기다리고 있습니다 (보호자 승인·현금 결제 등). 승인되면 자동으로 열립니다. 그동안 1~10단계는 계속할 수 있습니다.</p>'
+          : st === 'purchasing'
+            ? '<p class="buy-status wait">결제 창을 여는 중…</p>'
+            : st === 'unavailable' || st === 'unknown'
+              ? '<p class="buy-status">지금은 스토어에 연결할 수 없습니다. 인터넷 연결을 확인한 뒤 다시 열어 주세요.</p>'
+              : '';
+    const canBuy = st === 'locked';
+    const el = this.open(
+      `<div class="panel region-info buy">
+        <h2>보호자 안내</h2>
+        ${region ? `<div class="rf-art small">${regionArt(region.id)}</div><p><b>${esc(region.name)}</b> · ${esc(region.blurb)}</p>` : ''}
+        <p>${FREE_UNTIL}단계(공룡 들판)까지는 무료입니다. <b>한 번 구매하면</b> ${FREE_UNTIL + 1}단계부터 끝없이 이어지는 모든 단계와 지역이 열립니다.</p>
+        <p class="muted">광고·구독·추가 결제가 없습니다. 결제는 스토어 계정으로 처리되고, 기기를 바꾸거나 다시 설치해도 '구매 복원'으로 되찾습니다.</p>
+        ${canBuy ? `<p class="buy-price">가격: <b>${esc(price ?? '스토어에서 표시')}</b></p>` : ''}
+        ${status}
+        ${purchases.error && st !== 'owned' ? `<p class="buy-status err">${esc(purchases.error)}</p>` : ''}
+        <div class="btns">
+          ${canBuy ? '<button class="small-btn primary" id="bu-buy">구매하기 (보호자 확인)</button>' : ''}
+          ${st !== 'owned' ? '<button class="small-btn" id="bu-restore">구매 복원</button>' : ''}
+          <button class="small-btn ${st === 'owned' ? 'primary' : ''}" id="bu-later">${st === 'owned' ? '계속하기' : '나중에'}</button>
+        </div>
+      </div>`,
+    );
+    this.unsub = purchases.onChange(() => this.purchase(after, region));
+    el.querySelector('#bu-buy')?.addEventListener('click', () => {
+      sfx.play('tap');
+      this.parentGate(
+        () => {
+          this.purchase(after, region);
+          void purchases.buy();
+        },
+        () => this.purchase(after, region),
+      );
+    });
+    el.querySelector('#bu-restore')?.addEventListener('click', () => {
+      sfx.play('tap');
+      void purchases.restore();
+    });
+    el.querySelector('#bu-later')!.addEventListener('click', () => {
+      sfx.play('tap');
+      after();
+    });
+  }
+
+  /**
+   * 보호자 확인: 두 자리 곱셈 답을 숫자판으로 누른다 (보기를 주지 않아 우연히 맞히기 어렵다).
+   * 틀리면 새 문제. 결제 창을 열기 전에만 쓴다.
+   */
+  parentGate(onPass: () => void, onCancel: () => void): void {
+    const q = parentQuestion(Math.random);
+    let typed = '';
+    const el = this.open(
+      `<div class="panel gate" role="dialog" aria-label="보호자 확인">
+        <h2>보호자 확인</h2>
+        <p>아래 문제의 답을 눌러 주세요.</p>
+        <div class="gate-q">${q.a} × ${q.b} = <span id="ga-typed" class="gate-typed">?</span></div>
+        <div class="gate-pad">${[1, 2, 3, 4, 5, 6, 7, 8, 9].map((n) => `<button class="small-btn" data-n="${n}">${n}</button>`).join('')}
+          <button class="small-btn" id="ga-back" aria-label="지우기">←</button><button class="small-btn" data-n="0">0</button><button class="small-btn primary" id="ga-ok">확인</button></div>
+        <p class="gate-msg muted" id="ga-msg"></p>
+        <div class="btns"><button class="small-btn" id="ga-cancel">취소</button></div>
+      </div>`,
+    );
+    const show = () => (el.querySelector('#ga-typed')!.textContent = typed || '?');
+    el.querySelectorAll<HTMLButtonElement>('[data-n]').forEach((b) =>
+      b.addEventListener('click', () => {
+        if (typed.length < 3) typed += b.dataset.n;
+        show();
+      }),
+    );
+    el.querySelector('#ga-back')!.addEventListener('click', () => {
+      typed = typed.slice(0, -1);
+      show();
+    });
+    el.querySelector('#ga-ok')!.addEventListener('click', () => {
+      if (Number(typed) === q.answer) onPass();
+      else this.parentGate(onPass, onCancel);
+    });
+    el.querySelector('#ga-cancel')!.addEventListener('click', () => onCancel());
   }
 
   // ───────────── 승리 ─────────────
 
   victory(stage: StageDef): void {
-    const idx = STAGES.indexOf(stage);
-    const hasNext = idx >= 0 && idx < STAGES.length - 1;
+    // 단계는 끝없이 이어진다: 늘 다음 전투가 있다
+    const hasNext = true;
     const el = this.open(
       `<div class="panel victory">
         <div class="stars"><span>${ICONS.star}</span><span>${ICONS.star}</span><span>${ICONS.star}</span></div>
@@ -247,7 +375,7 @@ export class Screens {
     });
     el.querySelector('#v-next')?.addEventListener('click', () => {
       sfx.play('tap');
-      void this.game.startStage(STAGES[idx + 1].id);
+      void this.game.startStage(stageAt(stage.num + 1).id);
     });
   }
 
@@ -301,7 +429,8 @@ export class Screens {
       ['record', '단어 기록'],
       ['settings', '설정'],
       ['sound', '소리 확인'],
-      ['voice', '목소리 녹음'],
+      // 앱에서는 마이크 권한을 받지 않는다 (첫 출시 범위를 줄임): 부모 목소리 녹음은 웹판에서만
+      ...(Capacitor.isNativePlatform() ? [] : ([['voice', '목소리 녹음']] as [typeof tab, string][])),
     ];
     const body = tab === 'analysis' ? this.analysisHtml() : tab === 'record' ? this.recordHtml() : tab === 'settings' ? this.settingsHtml() : tab === 'sound' ? this.soundHtml() : this.voiceHtml();
     const el = this.open(
@@ -527,7 +656,7 @@ export class Screens {
     const played = Object.values(st.battlesPlayed).reduce((a, b) => a + b, 0);
     const won = Object.values(st.battlesWon).reduce((a, b) => a + b, 0);
     return `
-      <p class="muted">이 기기 안에만 저장됩니다. 이름·생년월일은 저장하지 않습니다.${saves.available ? '' : ' <b>지금은 저장소를 쓸 수 없어 기록이 남지 않습니다.</b>'}${saves.recovered ? ' 이전 저장 데이터가 손상되어 새로 시작했습니다.' : ''}</p>
+      <p class="muted">이 기기 안에만 저장됩니다. 이름·생년월일은 저장하지 않습니다.${saves.available ? '' : ' <b>지금은 저장소를 쓸 수 없어 기록이 남지 않습니다.</b>'}${saves.recovered ? ' 이전 저장 데이터가 손상되어 새로 시작했습니다.' : ''}${saves.saveFailed ? ' <b>최근 기록을 저장하지 못했습니다 (기기 저장 공간을 확인해 주세요).</b>' : ''}${saves.migratedFrom !== null ? ' 전투 구성이 바뀌어 깬 전투 기록을 새 구성에 맞게 옮겼습니다 (단어 기록·설정은 그대로).' : ''}</p>
       <h3>전투</h3>
       <p>출동 ${played}회 · 승리 ${won}회 · 최고 콤보 ${st.bestCombo} · 마무리 일격 ${st.finishers}회 · 재가동 ${st.reboots}회</p>
       <h3>단어</h3>
@@ -565,7 +694,14 @@ export class Screens {
   private settingsHtml(): string {
     const s = saves.data.settings;
     const chk = (id: string, on: boolean, label: string) => `<label>${label}<input type="checkbox" id="${id}" ${on ? 'checked' : ''}></label>`;
+    const st = purchases.state;
+    const buy = !purchases.gateEnabled
+      ? `<p class="muted">이 버전(웹 시험판)에는 결제 기능이 없어 모든 단계가 열려 있습니다.</p>`
+      : `<p>${st === 'owned' ? '구매 완료: 모든 단계가 열려 있습니다.' : st === 'pending' ? '결제 승인 대기 중입니다. 승인되면 자동으로 열립니다.' : `${FREE_UNTIL}단계까지 무료, 구매하면 ${FREE_UNTIL + 1}단계부터 모두 열립니다.`}</p>
+        <div class="btns">${st === 'owned' ? '' : '<button class="small-btn primary" id="se-buy">구매 안내 보기</button>'}<button class="small-btn" id="se-restore">구매 복원</button></div>`;
     return `
+      <h3>구매</h3>
+      ${buy}
       <h3>함께 싸울 캐릭터</h3>
       <label>캐릭터<select id="se-theme"><option value="robot" ${s.characterTheme !== 'magicalGirl' ? 'selected' : ''}>로봇</option><option value="magicalGirl" ${s.characterTheme === 'magicalGirl' ? 'selected' : ''}>마법소녀</option></select></label>
       <p class="muted">바꿔도 단어 기록·해금·도움 단계는 그대로입니다. 전투 그림·효과·대사만 바뀝니다.</p>
@@ -579,7 +715,7 @@ export class Screens {
       ${chk('se-motion', s.jamoMotion, '자모가 천천히 떠다니기')}
       ${chk('se-reduce', s.reduceEffects, '폭발·흔들림 효과 줄이기')}
       <h3>단어</h3>
-      <label>어휘팩<select id="se-pack"><option value="4-6" ${s.pack === '4-6' ? 'selected' : ''}>4~6세 팩</option><option value="7-8" ${s.pack === '7-8' ? 'selected' : ''}>7~8세 팩</option></select></label>
+      <label>어휘팩<select id="se-pack"><option value="4-6" ${s.pack === '4-6' ? 'selected' : ''}>4~6세 팩</option><option value="7-8" ${s.pack === '7-8' ? 'selected' : ''}>7~8세 팩</option><option value="9+" ${s.pack === '9+' ? 'selected' : ''}>9세 이상 팩</option></select></label>
       ${chk('se-rec', s.includeRecommended, '권장 단어도 섞기 (끄면 핵심 단어만)')}
       <p class="muted">어휘팩은 게임 내부의 임시 선정입니다. 공식 어휘 등급과 대조하기 전이며, 아이 나이에 따른 공식 기준이 아닙니다.</p>
       <h3>아이</h3>
@@ -588,6 +724,10 @@ export class Screens {
       <h3>도움</h3>
       <label>도움 정도<select id="se-help"><option value="auto" ${s.helpMode === 'auto' ? 'selected' : ''}>자동 (플레이에 맞춰)</option><option value="more" ${s.helpMode === 'more' ? 'selected' : ''}>많이 (늘 부분 안내)</option></select></label>
       ${chk('se-autohelp', s.autoHelp, '막히면 선택지 줄이기·다음 자모 안내')}
+      <h3>라이선스</h3>
+      <p class="muted">이 앱이 쓰는 오픈소스·글꼴·단어 녹음의 저작권과 라이선스 고지입니다.</p>
+      <div class="btns"><button class="small-btn" id="se-lic">라이선스 보기</button></div>
+      <pre id="se-lic-text" class="lic-text" hidden></pre>
       <div class="btns"><button class="small-btn" id="se-default">설정 기본값으로</button></div>`;
   }
 
@@ -616,12 +756,26 @@ export class Screens {
       document.body.classList.toggle('reduce-motion', t.checked);
       this.game.setReduceEffects(t.checked);
     });
-    on('se-pack', (t) => (s.pack = t.value === '7-8' ? '7-8' : '4-6'));
+    on('se-pack', (t) => (s.pack = t.value === '7-8' || t.value === '9+' ? t.value : '4-6'));
     on('se-rec', (t) => (s.includeRecommended = t.checked));
     on('se-help', (t) => (s.helpMode = t.value === 'more' ? 'more' : 'auto'));
     on('se-autohelp', (t) => (s.autoHelp = t.checked));
     on('se-age', (t) => (s.childAge = t.value ? Number(t.value) : null));
     on('se-wordrec', (t) => (s.useWordRecordings = t.checked));
+    el.querySelector('#se-buy')?.addEventListener('click', () => this.purchase(() => this.parent('settings')));
+    el.querySelector('#se-restore')?.addEventListener('click', () => {
+      void purchases.restore().then(() => this.parent('settings'));
+    });
+    el.querySelector('#se-lic')!.addEventListener('click', () => {
+      const pre = el.querySelector<HTMLPreElement>('#se-lic-text')!;
+      pre.hidden = !pre.hidden;
+      if (pre.hidden || pre.textContent) return;
+      pre.textContent = '불러오는 중…';
+      fetch('licenses.txt')
+        .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
+        .then((t) => (pre.textContent = t))
+        .catch(() => (pre.textContent = '고지 파일을 열지 못했습니다. 앱을 다시 설치해 주세요.'));
+    });
     el.querySelector('#se-default')!.addEventListener('click', () => {
       const theme = saves.data.settings.characterTheme;
       const age = saves.data.settings.childAge;

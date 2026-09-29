@@ -19,8 +19,7 @@ describe('조립틀', () => {
     expect(need.filter((j) => j === 'ㅏ')).toHaveLength(3);
     expect(jamoCount(wordFrames('바나나')!)).toBe(6);
   });
-  it('복합모음·겹받침은 아직 출제하지 않는다', () => {
-    expect(frameFor('과')).toBeNull();
+  it('겹받침은 아직 출제하지 않는다 (겹모음은 mixed 틀로 지원, 아래 테스트)', () => {
     expect(frameFor('닭')).toBeNull();
     expect(frameFor('a')).toBeNull();
   });
@@ -250,5 +249,29 @@ describe('필살기 에너지', () => {
   });
   it('콤보 공격은 최고 필살기(ultimate)까지 올라가지 않는다: ultimate는 직접 쓰기 전용', () => {
     for (let c = 0; c <= 30; c++) expect(tierFor(c)).not.toBe('ultimate');
+  });
+});
+
+import { isSupportedWord, wordFeatures as wf2, wordTier as wt2 } from '../src/core/assembly';
+
+describe('겹모음 (ㅘ·ㅙ·ㅚ·ㅝ·ㅞ·ㅟ·ㅢ)', () => {
+  it('겹모음 음절은 mixed 틀로 조립하고, 받침이 있어도 된다', () => {
+    expect(frameFor('과')).toMatchObject({ cho: 'ㄱ', jung: 'ㅘ', jong: '', shape: 'mixed', hasJong: false });
+    expect(frameFor('원')).toMatchObject({ cho: 'ㅇ', jung: 'ㅝ', jong: 'ㄴ', shape: 'mixed', hasJong: true });
+    for (const w of ['사과', '돼지', '귀', '의자', '가위', '원숭이', '회사', '쥐']) expect(isSupportedWord(w), w).toBe(true);
+  });
+  it('겹모음 단어는 마지막 단계(compound)이고 더 어렵다', () => {
+    expect(wt2('사과')).toBe('compound');
+    expect(wt2('꽃')).toBe('tense');
+    expect(wf2('돼지')!.hasCompoundVowel).toBe(true);
+  });
+  it('겹모음 함정: 겹모음 단어에만, 홑모음 단어에는 겹모음 함정이 나오지 않는다', () => {
+    const rng = () => 0.3;
+    const t = pickTraps([{ jamo: 'ㅘ', role: 'jung' }], ['ㅅ', 'ㅏ', 'ㄱ', 'ㅘ'], ['hard', 'medium'], rng, TRAP_TABLES);
+    expect(t.length).toBe(2);
+    for (let i = 0; i < 30; i++) {
+      const r = pickTraps([{ jamo: 'ㅗ', role: 'jung' }, { jamo: 'ㅅ', role: 'cho' }], ['ㅅ', 'ㅗ'], ['hard', 'medium', 'easy', 'hard'], Math.random, TRAP_TABLES);
+      for (const j of r) expect(['ㅘ', 'ㅙ', 'ㅚ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅢ']).not.toContain(j);
+    }
   });
 });

@@ -64,6 +64,35 @@ export interface Stats {
  */
 export const STAGE_SET = 3;
 
+/**
+ * 전투 구성이 바뀔 때 깬 기록을 지우지 않고 옮기는 표. STAGE_STEPS[n] = 구성 n의 전투 id → 구성 n+1의 전투 id.
+ * 구성을 바꿀 때는 STAGE_SET을 올리고 여기에 한 칸을 더한다 (tests/progress.test.ts가 빠진 칸을 잡는다).
+ * 대응이 애매하면 앞 단계로 붙인다: 조금 다시 하는 편이 안 배운 단계로 건너뛰는 것보다 낫다.
+ */
+export const STAGE_STEPS: Record<number, Record<string, string>> = {
+  // 1 = stageSet이 없는 옛 저장. 4단계·6단계 구성 중 어느 것인지 구분할 수 없지만 둘 다 s1=수박 첫 출동, s2=쉬운 단어.
+  1: { s1: 's1', s2: 's2' },
+  // 2 = 6단계 구성 (쉬운 단어 → 받침 없음 → 받침 → 쌍자음·ㅐ → 거대 공룡) → 3 = 공룡 들판 1~10단계
+  2: { s1: 's1', s2: 's2', s3: 's2', s4: 's3', s5: 's4', s6: 's5' },
+};
+
+/** stageSet이 없으면 구성 1. 지금보다 새 구성(옛 앱으로 되돌린 기기)은 대응을 알 수 없어 null. */
+export function migrateStageIds(ids: readonly string[], fromSet: number): string[] | null {
+  if (fromSet > STAGE_SET) return null;
+  let cur = [...ids];
+  for (let set = fromSet; set < STAGE_SET; set++) {
+    const step = STAGE_STEPS[set];
+    if (!step) return null;
+    cur = cur.flatMap((id) => (step[id] ? [step[id]] : []));
+  }
+  return [...new Set(cur)];
+}
+
+export function stageSetOf(raw: unknown): number {
+  const v = obj(raw).stageSet;
+  return typeof v === 'number' && Number.isInteger(v) && v >= 1 ? v : 1;
+}
+
 export interface SaveData {
   version: number;
   /** 깬 전투 기록이 어느 전투 구성 기준인지 (STAGE_SET) */
@@ -143,14 +172,20 @@ export function sanitizeSave(raw: unknown): SaveData {
       lastAssisted: bool(w.lastAssisted, false),
     };
   }
-  // 다른 전투 구성에서 깬 기록은 새 구성에 맞지 않으므로 전투 진행만 처음부터 (단어 기록·설정은 그대로)
-  const sameStages = r.stageSet === STAGE_SET;
+  // 다른 전투 구성에서 깬 기록은 STAGE_STEPS로 지금 구성에 옮긴다. 옮길 수 없으면(더 새 구성) 전투 진행만 처음부터.
+  // 어느 쪽이든 단어 기록·설정은 그대로이고, 옮기기 전 원본은 저장 서비스가 따로 보관한다.
+  const fromSet = stageSetOf(raw);
+  // 단계가 끝없이 이어지므로 깬 기록 수에 작은 상한을 두지 않는다 (생성기의 최대 단계 수까지)
+  const cleared = migrateStageIds(strList(r.cleared, 100000), fromSet) ?? [];
+  const last = typeof r.lastStage === 'string' ? migrateStageIds([r.lastStage], fromSet)?.[0] ?? null : null;
+  // 지역은 구성 3에서 생겼다. 옛 구성의 '새 지역 발견' 기록은 없다.
+  const regionsSeen = fromSet === STAGE_SET ? strList(r.regionsSeen, 10000) : [];
   return {
     version: SAVE_VERSION,
     stageSet: STAGE_SET,
-    cleared: sameStages && Array.isArray(r.cleared) ? r.cleared.filter((x): x is string => typeof x === 'string') : [],
-    lastStage: sameStages && typeof r.lastStage === 'string' ? r.lastStage : null,
-    regionsSeen: sameStages && Array.isArray(r.regionsSeen) ? r.regionsSeen.filter((x): x is string => typeof x === 'string') : [],
+    cleared,
+    lastStage: last,
+    regionsSeen,
     energy: typeof r.energy === 'number' && Number.isFinite(r.energy) ? Math.max(0, Math.min(ENERGY_CONFIG.max, Math.floor(r.energy))) : 0,
     settings: {
       muted: bool(s.muted, d.settings.muted),
@@ -158,7 +193,7 @@ export function sanitizeSave(raw: unknown): SaveData {
       sfxVolume: num(s.sfxVolume, d.settings.sfxVolume, 0, 1),
       reduceEffects: bool(s.reduceEffects, d.settings.reduceEffects),
       jamoMotion: bool(s.jamoMotion, d.settings.jamoMotion),
-      pack: s.pack === '7-8' ? '7-8' : '4-6',
+      pack: s.pack === '7-8' || s.pack === '9+' ? s.pack : '4-6',
       includeRecommended: bool(s.includeRecommended, d.settings.includeRecommended),
       helpMode: s.helpMode === 'more' ? 'more' : 'auto',
       autoHelp: bool(s.autoHelp, d.settings.autoHelp),

@@ -1,3 +1,4 @@
+import { PACK_NAME, type PackId } from '../content/vocab';
 // 부모 화면 분석: 플레이 로그를 규칙대로 세어 약점과 제안을 만든다.
 // 점수나 등급은 만들지 않는다. 모든 문장에 근거가 된 횟수를 함께 붙인다.
 // 학습 효과가 검증된 진단이 아니라 '기록에서 보이는 것'과 '해 볼 만한 것'이다.
@@ -411,7 +412,7 @@ export function focusPool(pool: string[], focusJamo: string[], focusWords: strin
 export interface PromptContext {
   /** 부모가 입력한 만 나이. 모르면 null */
   age: number | null;
-  pack: '4-6' | '7-8';
+  pack: PackId;
   helpMode: 'auto' | 'more';
   autoHelp: boolean;
   focus: string[];
@@ -422,7 +423,7 @@ export interface PromptContext {
  * 게임은 아무것도 밖으로 보내지 않는다. 이름(게임 제목의 아이 이름 포함)·생년월일·날짜·기기 정보는 넣지 않고 집계 숫자와 단어 예시만 넣는다.
  */
 export function aiPrompt(a: Analysis, ctx: PromptContext): string {
-  const who = ctx.age !== null ? `만 ${ctx.age}세 아이` : `${ctx.pack === '7-8' ? '7~8세' : '4~6세'} 어휘팩으로 플레이하는 아이(부모가 나이는 입력하지 않음)`;
+  const who = ctx.age !== null ? `만 ${ctx.age}세 아이` : `${PACK_NAME[ctx.pack]} 어휘팩으로 플레이하는 아이(부모가 나이는 입력하지 않음)`;
   const rn = { cho: '첫소리', jung: '모음', jong: '받침' } as const;
   const m = a.mistakes;
   const L: string[] = [];
@@ -468,7 +469,7 @@ export function aiPrompt(a: Analysis, ctx: PromptContext): string {
   p(`- 최근 틀린 예 (단어(음절) 맞는 자모→넣은 자모): ${a.recentMisses.length ? a.recentMisses.slice(0, 8).map((x) => `${x.word}(${x.syl}) ${x.want}→${x.got ?? '?'}`).join(', ') : '없음'}.`);
   p('');
   p('## 지금 게임 설정 (게임 안에서 바꿀 수 있는 것)');
-  p(`- 어휘팩: ${ctx.pack === '7-8' ? '7~8세' : '4~6세'} 팩 (4~6세 / 7~8세 중 선택)`);
+  p(`- 어휘팩: ${PACK_NAME[ctx.pack]} 팩 (4~6세 / 7~8세 / 9세 이상 중 선택)`);
   p(`- 도움 정도: ${ctx.helpMode === 'more' ? '많이 (늘 부분 안내)' : '자동 (플레이에 맞춰)'} (자동 / 많이 중 선택)`);
   p(`- 막히면 선택지 줄이기·다음 자모 안내: ${ctx.autoHelp ? '켜짐' : '꺼짐'}`);
   p(`- 특정 자모나 단어를 더 자주 내기: ${ctx.focus.length ? ctx.focus.join(', ') : '꺼짐'} (원하는 자모·단어를 지정할 수 있음)`);

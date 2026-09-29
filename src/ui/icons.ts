@@ -37,6 +37,9 @@ export const ICONS = {
   charger: svg(
     '<path d="M44 30c0-8-6-14-16-14-6 0-10 2-12 5l-4-6-2 7-6-2 4 8c0 5 3 8 8 9v5h5v-4h10v4h5v-6c5-1 8-3 8-6z" fill="#f07a3a" stroke="#16203a" stroke-width="2.5"/><path d="M6 28l-4-2" stroke="#16203a" stroke-width="3"/><circle cx="12" cy="27" r="1.8" fill="#16203a"/>',
   ),
+  armor: svg(
+    '<path d="M38 30l6-4 2 4-5 4z" fill="#b7a98a" stroke="#16203a" stroke-width="2"/><path d="M4 34c0-9 9-16 20-16s20 7 20 16z" fill="#b7a98a" stroke="#16203a" stroke-width="2.5"/><path d="M12 22l2-6 3 5M22 18l2-7 3 7M32 21l3-6 2 6" fill="#fff4d6" stroke="#16203a" stroke-width="2"/><path d="M6 34h36v4H6z" fill="#7c8f4a" stroke="#16203a" stroke-width="2.5"/><path d="M8 38v4h5v-4M30 38v4h5v-4" fill="#56663a" stroke="#16203a" stroke-width="2.5"/><circle cx="10" cy="31" r="1.8" fill="#16203a"/>',
+  ),
   chief: svg(
     '<path d="M44 30c0-8-6-14-16-14-6 0-10 2-12 5l-4-6-2 7-6-2 4 8c0 5 3 8 8 9v5h5v-4h10v4h5v-6c5-1 8-3 8-6z" fill="#f07a3a" stroke="#16203a" stroke-width="2.5"/><path d="M20 12V4l4 4 4-6 4 6 4-4v8z" fill="#ffd23f" stroke="#16203a" stroke-width="2"/><circle cx="12" cy="27" r="1.8" fill="#16203a"/>',
   ),

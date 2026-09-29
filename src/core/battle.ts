@@ -5,16 +5,21 @@
 import type { AttackTier, BattleEvent, BattleState, Foe, FoeKind, FoeSpawn, Hit } from './types';
 
 /** 수치는 플레이테스트용 임시값 */
+// 종류가 빠지면 컴파일 오류가 나도록 형을 붙인다 (빠지면 실행 중 undefined로 멈춘다)
+const FOE_BALANCE: Record<FoeKind, { hp: number; damage: number; chargeTurns: number }> = {
+  dino: { hp: 3, damage: 1, chargeTurns: 1 },
+  imp: { hp: 2, damage: 1, chargeTurns: 1 },
+  charger: { hp: 4, damage: 2, chargeTurns: 1 },
+  // 갑옷 공룡: 느리게(두 차례 준비) 꼬리를 휘두른다. 보통 방패를 두르고 나온다. 임시값
+  armor: { hp: 3, damage: 2, chargeTurns: 2 },
+  chief: { hp: 7, damage: 2, chargeTurns: 2 },
+  boss: { hp: 10, damage: 2, chargeTurns: 2 },
+};
+
 export const BALANCE = {
   robotMax: 6,
   rebootHp: 4,
-  foe: {
-    dino: { hp: 3, damage: 1, chargeTurns: 1 },
-    imp: { hp: 2, damage: 1, chargeTurns: 1 },
-    charger: { hp: 4, damage: 2, chargeTurns: 1 },
-    chief: { hp: 7, damage: 2, chargeTurns: 2 },
-    boss: { hp: 10, damage: 2, chargeTurns: 2 },
-  } as Record<FoeKind, { hp: number; damage: number; chargeTurns: number }>,
+  foe: FOE_BALANCE,
   /** 공격 단계별 피해: 조준한 적(target)과 나머지 적(others, 범위 공격) */
   attack: {
     basic: { target: 1, others: 0 },

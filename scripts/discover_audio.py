@@ -5,7 +5,7 @@ download_audio.py가 받기 전에 부른다. 이 작업 환경은 Wikimedia가 
 - 찾는 파일: LL-Q9176_(kor)-<녹음자>-<단어>.wav (Lingua Libre 한국어). 이름이 정확히 '-<단어>.wav'로 끝나는 것만.
 - 요청 수를 줄이려고 단어마다 검색하지 않고, allimages로 한국어 녹음 파일 이름을 500개씩 훑은 뒤 한꺼번에 맞춘다.
 - 녹음자: 호로조를 먼저, 없으면 이 게임 단어를 가장 많이 녹음한 녹음자(목소리가 덜 바뀌게), 그다음 이름순.
-- 라이선스·녹음자는 파일 정보(extmetadata)에서 읽어 목록에 적는다. 허용 라이선스(CC0, CC BY, CC BY-SA, 퍼블릭 도메인)가 아니면 쓰지 않는다.
+- 라이선스·녹음자는 파일 정보(extmetadata)에서 읽어 목록에 적는다. 허용 라이선스(CC0, CC BY, 퍼블릭 도메인)가 아니면 쓰지 않는다. CC BY-SA는 유료 앱에 ShareAlike가 걸릴 수 있어 뺀다 (docs/assets-and-licenses.md).
 - 못 찾은 단어는 목록에 '없음'으로 남긴다 → 게임은 그 단어만 기기 TTS.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ import urllib.request
 API = "https://commons.wikimedia.org/w/api.php"
 PREFIX = "LL-Q9176_(kor)-"
 PREFERRED_SPEAKER = "호로조"
-ALLOWED_LICENSES = re.compile(r"^(CC0|CC[ -]BY(-SA)?( \d\.\d)?|Public domain)", re.I)
+ALLOWED_LICENSES = re.compile(r"^(CC0.*|CC[ -]BY( \d\.\d)?|Public domain)$", re.I)
 
 
 def vocab_words(vocab_ts: pathlib.Path) -> list[str]:

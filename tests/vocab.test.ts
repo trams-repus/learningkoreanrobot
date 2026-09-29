@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { AUDIO_MANIFEST, WORD_AUDIO_SOURCES } from '../src/content/audio';
-import { MIN_STAGE_WORDS, STAGES, bandFor, drawWord, entryDifficulty, nextStageId, regionEnd, stageWords, trapMix } from '../src/content/stages';
+import { GEN, MIN_STAGE_WORDS, bandFor, drawWord, hearablePool, entryDifficulty, frontier, generateStage, nextStageId, regionAt, regionEnd, stageAt, stageById, stagesUpTo, stageWords, trapMix } from '../src/content/stages';
+
+/** 끝없는 단계 중 검사할 표본: 1~20단계 + 먼 단계 */
+const STAGES = [...stagesUpTo(20), ...[61, 99, 100, 1000, 1001, 9999, 10000].map((n) => stageAt(n))];
 import { createRng } from '../src/core/rng';
 import { BALANCE } from '../src/core/battle';
 import { EASY_FIVE, EASY_MORE, VOCAB, packWords, vocabById, type Domain } from '../src/content/vocab';
@@ -67,7 +70,7 @@ describe('어휘팩', () => {
     for (const s of WORD_AUDIO_SOURCES) {
       expect(vocabById(s.word), s.word).toBeDefined();
       expect(isSupportedWord(s.word), s.word).toBe(true);
-      if (s.link.startsWith('없음')) continue; // 녹음 없음 → 기기 TTS
+      if (s.link.startsWith('없음') || s.link.startsWith('제외')) continue; // 녹음 없음·라이선스로 제외 → 기기 TTS
       expect(s.commonsFile).toMatch(new RegExp(`^LL-Q9176_\\(kor\\)-.+-${s.word}\\.wav$`));
       expect(s.file).toMatch(/^[a-z0-9_]+\.wav$/);
       // 한글만 인코딩, 괄호는 그대로, 두 번 인코딩하지 않음
@@ -157,11 +160,11 @@ describe('난이도 단계별 전투', () => {
     expect(Math.max(...r1[3].waves.map((w) => w.length))).toBe(2); // 두 마리 동시
     expect(Math.max(...r1[7].waves.map((w) => w.length))).toBe(3); // 8단계: 세 마리
     // 여러 종류의 적이 나온다
-    expect(new Set(r1.flatMap((s) => s.waves.flat().map((f) => f.kind)))).toEqual(new Set(['dino', 'imp', 'charger', 'chief', 'boss']));
+    expect(new Set(r1.flatMap((s) => s.waves.flat().map((f) => f.kind)))).toEqual(new Set(['dino', 'imp', 'charger', 'armor', 'chief', 'boss'])); // 일반·무리·돌진·갑옷·보스 모두
   });
   it('11단계부터는 규칙표로 만든다: 함정 4개 이상·어려움 더 많이, 세 글자, 콤보 시간 빠듯, 방패', () => {
-    const r2 = STAGES.filter((s) => s.region === 'r2');
-    expect(r2.map((s) => s.num)).toEqual([11, 12, 13, 14, 15]);
+    const r2 = stagesUpTo(20).filter((s) => s.region === 'r2');
+    expect(r2.map((s) => s.num)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19, 20]);
     for (const s of r2) {
       expect(s.traps.length, s.id).toBeGreaterThanOrEqual(4);
       expect(s.traps.filter((g) => g === 'hard').length, s.id).toBeGreaterThanOrEqual(2);
@@ -171,16 +174,19 @@ describe('난이도 단계별 전투', () => {
     }
     expect(r2.some((s) => stageWords(s, '4-6', true).some((w) => wordFeatures(w.word)!.syllables === 3))).toBe(true);
     expect(r2.some((s) => s.waves.flat().some((f) => (f.shield ?? 0) > 0))).toBe(true);
-    expect(r2[4].boss).toBeDefined();
+    expect(r2[4].boss).toBe('mid');
+    expect(r2[9].boss).toBe('final');
     expect(trapMix(4, 0.4)).toEqual(['hard', 'hard', 'medium', 'medium']);
     expect(trapMix(5, 0.4)).toEqual(['hard', 'hard', 'medium', 'medium', 'easy']);
-    // 30단계 이후 규칙도 적어 둔다 (지금은 스테이지로 넣지 않음)
     expect(bandFor(40)?.planned.length).toBeGreaterThan(0);
     expect(bandFor(99)?.to).toBeNull();
   });
-  it('지역의 끝(10단계)에서 새 지역(화산섬)을 알린다', () => {
-    expect(regionEnd(STAGES.find((s) => s.num === 10)!)?.id).toBe('r2');
-    expect(regionEnd(STAGES.find((s) => s.num === 9)!)).toBeNull();
+  it('지역의 끝(10의 배수)에서 새 지역을 알린다: 10 → 화산섬, 20 → 얼음 골짜기', () => {
+    expect(regionEnd(stageAt(10))?.id).toBe('r2');
+    expect(regionEnd(stageAt(10))?.name).toBe('화산섬');
+    expect(regionEnd(stageAt(20))?.name).toBe('얼음 골짜기');
+    expect(regionEnd(stageAt(9))).toBeNull();
+    expect(regionEnd(stageAt(15))).toBeNull();
   });
   it('어느 연령팩·권장 설정에서도 각 전투에 낼 단어가 충분하고, 단계 밖 단어가 섞이지 않는다', () => {
     for (const pack of ['4-6', '7-8'] as const) {
@@ -243,17 +249,133 @@ describe('무작위 출제 (단어 주머니)', () => {
   });
 });
 
-describe('출격 순서', () => {
-  const ids = STAGES.map((s) => s.id);
-  it('처음이면 1단계(수박), 깬 만큼 다음 단계', () => {
-    expect(nextStageId([], null)).toBe('s1');
-    expect(nextStageId(['s1'], 's1')).toBe('s2');
-    expect(nextStageId(['s1', 's2', 's3'], 's3')).toBe('s4');
+describe('들을 수 있는 단어 우선 (음성 없는 기기)', () => {
+  it('들을 수 있는 단어가 충분하면 그것만, 모자라면 전체', () => {
+    const words = ['가', '나', '다', '라', '마', '바', '사', '아', '자', '차'];
+    const some = new Set(['가', '나', '다', '라', '마', '바', '사', '아']);
+    expect(hearablePool(words, (w) => some.has(w))).toEqual([...some]);
+    expect(hearablePool(words, (w) => w === '가')).toEqual(words);
+    expect(hearablePool(['가', '나'], () => true)).toEqual(['가', '나']);
   });
-  it('다 깼으면 보스에만 머물지 않고 마지막 전투 다음부터 순서대로 돈다', () => {
-    expect(nextStageId(ids, ids[ids.length - 1])).toBe('s1');
-    expect(nextStageId(ids, 's1')).toBe('s2');
-    expect(nextStageId(ids, 's3')).toBe('s4');
-    expect(nextStageId(ids, null)).toBe('s1');
+});
+
+describe('출격 순서', () => {
+  it('처음이면 1단계(수박), 앞에서부터 깬 만큼 다음 단계', () => {
+    expect(nextStageId([])).toBe('s1');
+    expect(nextStageId(['s1'])).toBe('s2');
+    expect(nextStageId(['s1', 's2', 's3'])).toBe('s4');
+    // 중간을 건너뛴 기록(개발 옵션 등)이 있어도 빈 곳부터
+    expect(nextStageId(['s1', 's3'])).toBe('s2');
+  });
+  it('단계가 끝없이 이어지므로 다 깬 뒤 1단계로 돌아가지 않는다', () => {
+    const ids = stagesUpTo(15).map((s) => s.id);
+    expect(nextStageId(ids)).toBe('s16');
+    const many = Array.from({ length: 1234 }, (_, i) => `s${i + 1}`);
+    expect(frontier(many)).toBe(1235);
+  });
+});
+
+describe('끝없는 단계 생성기 (11단계부터)', () => {
+  const SAMPLE = [1, 10, 11, 15, 16, 100, 1000, 10000];
+  it('검사 단계 1·10·11·15·16·100·1000·10000을 모두 만든다', () => {
+    const got = SAMPLE.map((n) => stageAt(n));
+    expect(got.map((s) => s.num)).toEqual(SAMPLE);
+    expect(got.map((s) => s.id)).toEqual(SAMPLE.map((n) => `s${n}`));
+    for (const s of got) expect(stageById(s.id)).toEqual(s);
+    // 1·10단계는 손으로 만든 무료 구간
+    expect(got[0].fixedWords).toEqual(['수박']);
+    expect(got[1].boss).toBe('final');
+    // 11: 화산섬 첫 단계, 15: 중간 보스, 16: 보스 아님
+    expect(got[2]).toMatchObject({ region: 'r2', name: '화산섬 상륙', intro: 'd_region2' });
+    expect(got[2].pool).toEqual({ syllables: [3], tiers: ['plain', 'jong', 'tense'] }); // 11단계는 세 글자로 시작
+    expect(got[3].boss).toBe('mid');
+    expect(got[3].waves.flat().some((f) => f.kind === 'chief')).toBe(true);
+    expect(got[4].boss).toBeUndefined();
+    // 100·1000·10000: 10의 배수라 대형 보스
+    for (const s of got.slice(5)) {
+      expect(s.boss, s.id).toBe('final');
+      expect(s.waves.flat().some((f) => f.kind === 'boss'), s.id).toBe(true);
+    }
+    expect(got[7].region).toBe('r1000');
+  });
+  it('5의 배수는 중간 보스, 10의 배수는 대형 보스, 나머지는 보스 없음', () => {
+    for (let n = 11; n <= 130; n++) {
+      const s = stageAt(n);
+      const want = n % 10 === 0 ? 'final' : n % 5 === 0 ? 'mid' : undefined;
+      expect(s.boss, s.id).toBe(want);
+    }
+  });
+  it('같은 번호·시드면 늘 같은 전투, 시드가 다르면 달라진다', () => {
+    for (const n of [11, 16, 100, 1000, 10000]) expect(JSON.stringify(generateStage(n, 7)), `${n}`).toBe(JSON.stringify(generateStage(n, 7)));
+    const a = Array.from({ length: 40 }, (_, i) => JSON.stringify(generateStage(i + 21, 1).waves));
+    const b = Array.from({ length: 40 }, (_, i) => JSON.stringify(generateStage(i + 21, 2).waves));
+    expect(a.filter((x, i) => x !== b[i]).length).toBeGreaterThan(5);
+  });
+  it('난이도 상한: capAt 뒤로는 함정·콤보 여유·연출 크기·적 수가 더 오르지 않고, 보스 체력도 상한이 있다', () => {
+    const cap = stageAt(GEN.capAt + 1);
+    for (const n of [GEN.capAt + 1, 100, 999, 1001, 5555, 9999]) {
+      const s = stageAt(n);
+      expect(s.traps, s.id).toEqual(cap.traps);
+      expect(s.comboScale, s.id).toBe(cap.comboScale);
+      expect(s.fxScale, s.id).toBe(cap.fxScale);
+      for (const w of s.waves) expect(w.length, s.id).toBeLessThanOrEqual(3);
+    }
+    for (const n of [20, 100, 1000, 10000]) expect(stageAt(n).waves.flat().find((f) => f.kind === 'boss')!.hp!, `${n}`).toBeLessThanOrEqual(12);
+    for (const n of [15, 105, 1005, 9995]) expect(stageAt(n).waves.flat().find((f) => f.kind === 'chief')!.hp!, `${n}`).toBeLessThanOrEqual(9);
+    // 함정 수는 11단계부터 늘다가 멈춘다
+    expect(stageAt(11).traps.length).toBeLessThanOrEqual(cap.traps.length);
+    expect(stageAt(10000).traps.length).toBe(cap.traps.length);
+  });
+  it('먼 단계도 어느 연령팩에서나 낼 단어가 충분하다', () => {
+    for (let n = 11; n <= 200; n++) {
+      const s = stageAt(n);
+      for (const pack of ['4-6', '7-8'] as const) expect(stageWords(s, pack, false).length, `${s.id} ${pack}`).toBeGreaterThanOrEqual(MIN_STAGE_WORDS);
+    }
+  });
+  it('지역은 10단계마다 바뀌고, 이름이 다 떨어지면 번호를 붙여 다시 돈다', () => {
+    expect(regionAt(1).name).toBe('공룡 들판');
+    expect(regionAt(2).name).toBe('화산섬');
+    expect(regionAt(3).name).toBe('얼음 골짜기');
+    expect(regionAt(10).name).toBe('화산섬 2');
+    expect(regionAt(1000).id).toBe('r1000');
+    expect(stageAt(21).region).toBe('r3');
+  });
+  it('이상한 번호는 막는다', () => {
+    expect(stageById('s0')).toBeUndefined();
+    expect(stageById('s100000')).toBeUndefined();
+    expect(stageById('x5')).toBeUndefined();
+    expect(stageById('s5')?.num).toBe(5);
+  });
+});
+
+import { soundChanges, soundDiffers } from '../src/hangul/pronunciation';
+
+describe('소리와 표기 (새 어휘의 soundMatchesSpelling 검사)', () => {
+  it('규칙: 연음·받침 바뀜·된소리·비음화·유음화·ㅖ', () => {
+    expect(soundChanges('악어')).toContain('연음');
+    expect(soundChanges('로봇')).toContain('받침 소리 바뀜');
+    expect(soundChanges('학교')).toContain('된소리');
+    expect(soundChanges('공룡')).toContain('비음화');
+    expect(soundChanges('신라')).toContain('유음화');
+    expect(soundChanges('시계')).toContain('ㅖ→ㅔ');
+    expect(soundChanges('강아지')).toEqual([]);
+    expect(soundChanges('수박')).toEqual([]);
+    expect(soundDiffers('김밥')).toBe(true); // 합성어 된소리는 예외 목록으로
+  });
+  it('어휘의 표시가 규칙·예외 목록과 같다', () => {
+    const wrong = VOCAB.filter((e) => soundDiffers(e.word) === e.soundMatchesSpelling).map((e) => `${e.word}:${soundChanges(e.word).join('/')}`);
+    expect(wrong).toEqual([]);
+  });
+});
+
+import candidatesL1 from '../docs/vocab-candidates-l1.json';
+
+describe('L1 후보 목록 (docs/vocab-candidates-l1.json)', () => {
+  it('모두 조립틀로 낼 수 있고, 겹치지 않는다 (이미 넣은 단어는 목록에서 빠진다)', () => {
+    const words = (candidatesL1 as { word: string }[]).map((c) => c.word);
+    expect(new Set(words).size).toBe(words.length);
+    expect(words.filter((w) => vocabById(w))).toEqual([]);
+    const unsupported = words.filter((w) => !isSupportedWord(w));
+    expect(unsupported).toEqual([]);
   });
 });

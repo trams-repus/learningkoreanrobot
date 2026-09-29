@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { jamoStrokes } from '../src/content/strokes';
-import { STAGES, stageWords } from '../src/content/stages';
+import { stageAt, stagesUpTo, stageWords } from '../src/content/stages';
+
+const STAGES = [...stagesUpTo(20), stageAt(100), stageAt(1000), stageAt(10000)];
 import { VOCAB } from '../src/content/vocab';
 import { ENERGY_CONFIG } from '../src/core/combo';
 import { judgeStroke, pickWriteWord, resample, syllableStrokes, wordStrokeCount, type Pt } from '../src/core/writing';
@@ -29,6 +31,18 @@ describe('따라 쓰기: 획 데이터와 배치', () => {
     expect(cy(bak, 'jong').y).toBeGreaterThan(cy(bak, 'jung').y);
     expect(bak!.map((s) => s.jamo).join('')).toBe('ㅂㅂㅂㅂㅏㅏㄱ'); // 쓰는 순서
     for (const s of bak!) for (const [x, y] of s.pts) expect(x >= 0 && x <= 100 && y >= 0 && y <= 100).toBe(true);
+  });
+  it('겹모음: 가로 모음은 초성 아래, 세로 모음은 오른쪽, 가로 먼저 쓴다', () => {
+    const gwi = syllableStrokes('귀')!;
+    expect(gwi.map((s) => s.role).join(',')).toBe('cho,jung,jung,jung');
+    const [, bar, stem, side] = gwi;
+    expect(bar.pts[0][1]).toBeGreaterThan(gwi[0].pts[0][1]);
+    expect(side.pts[0][0]).toBeGreaterThan(Math.max(...bar.pts.map((p) => p[0])));
+    expect(stem.jamo).toBe('ㅟ');
+    const gwan = syllableStrokes('관')!;
+    expect(gwan[gwan.length - 1].role).toBe('jong');
+    expect(Math.min(...gwan[gwan.length - 1].pts.map((p) => p[1]))).toBeGreaterThan(60);
+    expect(wordStrokeCount('돼지')).toBe(10);
   });
   it('어휘 대부분을 쓸 수 있고, 1~10단계에는 필살기로 쓸 만한 짧은 단어가 늘 있다', () => {
     const ok = VOCAB.filter((v) => wordStrokeCount(v.word) !== null);

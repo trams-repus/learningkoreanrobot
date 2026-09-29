@@ -1,5 +1,5 @@
-/** chief = 중간 보스(대장 뿔공룡), boss = 최종 보스(거대 공룡) */
-export type FoeKind = 'dino' | 'imp' | 'charger' | 'chief' | 'boss';
+/** armor = 갑옷 공룡(방패를 두르고 나온다), chief = 중간 보스(대장 뿔공룡), boss = 최종 보스(거대 공룡) */
+export type FoeKind = 'dino' | 'imp' | 'charger' | 'armor' | 'chief' | 'boss';
 
 export type AttackTier = 'basic' | 'rapid' | 'missiles' | 'finisher' | 'ultimate';
 

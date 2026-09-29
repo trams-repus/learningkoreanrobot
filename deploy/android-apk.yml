@@ -1,0 +1,77 @@
+# 적용 방법: 이 파일 내용으로 .github/workflows/android-apk.yml 을 바꿔 커밋 (Claude 권한으로는 워크플로 폴더에 push가 막힐 수 있어 여기에 둔다).
+# 바뀐 점: 웹 빌드를 'npm run build:release'(출시 빌드)로 한다. ?dev=1·?speed=·window.__hd가 빠지고, 빠졌는지 검사까지 한다.
+#          저장소의 android/ 프로젝트를 쓴다 (cap add 대신 cap sync). compile/target SDK 36, AGP 8.13.0, Gradle 8.14.3.
+# 안드로이드 앱(APK) 빌드: main에 코드가 올라올 때마다, 또는 Actions 탭에서 직접 실행.
+# 웹 빌드(dist)를 Capacitor로 감싸 debug APK를 만들고, 릴리스 "android-latest"에 올린다.
+# 폰에서 https://github.com/trams-repus/learningkoreanrobot/releases/tag/android-latest 를 열어 APK를 받아 설치.
+# 서명은 저장소의 android-keystore/debug.keystore로 고정해 새 버전을 지우지 않고 덮어 설치할 수 있다(기록 유지).
+name: 안드로이드 APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    env:
+      HAS_UPLOAD_KEY: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 != '' }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - run: npm ci
+      - run: npm run build:release
+      - name: 안드로이드 프로젝트에 웹 빌드 넣기
+        # android/는 저장소에 있다 (결제 플러그인·SDK 36·매니페스트 설정 유지). 매번 새로 만들지 않고 동기화만 한다
+        run: |
+          npx cap sync android
+          # 버전 코드는 실행 번호로 올려 덮어 설치가 되게 한다
+          sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.0.${{ github.run_number }}\"/" android/app/build.gradle
+          mkdir -p ~/.android && cp android-keystore/debug.keystore ~/.android/debug.keystore
+      - name: APK 빌드
+        working-directory: android
+        run: ./gradlew assembleDebug --no-daemon
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk hangul-daejakjeon.apk
+      # Play 스토어용 AAB: 저장소 Secrets에 업로드 키가 있을 때만 (없으면 건너뜀)
+      - name: Play 업로드용 AAB 빌드
+        if: env.HAS_UPLOAD_KEY == 'true'
+        env:
+          KS: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.ANDROID_UPLOAD_KEYSTORE_PASSWORD }}
+        run: |
+          echo "$KS" | base64 -d > upload.keystore
+          npx cap build android --androidreleasetype AAB --keystorepath "$PWD/upload.keystore" \
+            --keystorepass "$KS_PASS" --keystorealias upload --keystorealiaspass "$KS_PASS"
+          cp "$(find android/app/build/outputs/bundle/release -name '*.aab' | head -1)" hangul-daejakjeon.aab
+          rm upload.keystore
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_UPLOAD_KEY == 'true'
+        with:
+          name: hangul-daejakjeon-aab
+          path: hangul-daejakjeon.aab
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hangul-daejakjeon-apk
+          path: hangul-daejakjeon.apk
+      - name: 릴리스 android-latest에 올리기
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view android-latest >/dev/null 2>&1 || gh release create android-latest --title "안드로이드 앱 (최신)" --notes "폰에서 APK를 받아 설치하세요. 처음엔 '출처를 알 수 없는 앱' 허용이 필요합니다." --latest
+          gh release upload android-latest hangul-daejakjeon.apk --clobber
+          gh release edit android-latest --notes "빌드 ${{ github.run_number }} (${GITHUB_SHA::7}). 폰에서 APK를 받아 설치하세요. 처음엔 '출처를 알 수 없는 앱' 허용이 필요합니다."

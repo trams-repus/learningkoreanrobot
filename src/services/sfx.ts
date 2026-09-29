@@ -49,8 +49,9 @@ export class SfxService {
   }
 
   /** 음성이 나오는 동안 효과음을 줄여 음성이 묻히지 않게 한다. */
-  setDuck(on: boolean): void {
-    this.duck = on ? 0.35 : 1;
+  /** 효과음 낮추기: 단어가 나올 때 크게(0.35), 대사 중에는 조금(0.7). 음성 우선순위 단어 > 대사 > 효과음 */
+  setDuck(on: boolean | 'soft'): void {
+    this.duck = on === 'soft' ? 0.7 : on ? 0.35 : 1;
     this.applyGain();
   }
 
