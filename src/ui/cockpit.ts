@@ -119,7 +119,7 @@ export class Cockpit {
 
   private makeFrame(spec: FrameSpec, ghost: boolean): FrameView {
     const el = document.createElement('div');
-    el.className = `frame ${spec.shape === 'horizontal' ? 'h' : 'v'} ${spec.hasJong ? 'jong' : ''}`;
+    el.className = `frame ${spec.shape === 'horizontal' ? 'h' : spec.shape === 'mixed' ? 'm' : 'v'} ${spec.hasJong ? 'jong' : ''}`;
     const cells: FrameView['cells'] = {};
     for (const role of cellsOf(spec)) {
       const c = document.createElement('div');

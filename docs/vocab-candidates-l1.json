@@ -1,0 +1,1752 @@
+[
+ {
+  "word": "소",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "얼룩무늬 젖소 한 마리, 옆모습",
+  "batch": "animals"
+ },
+ {
+  "word": "말",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "갈색 말 옆모습, 갈기",
+  "batch": "animals"
+ },
+ {
+  "word": "양",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "하얀 털 뭉치 양",
+  "batch": "animals"
+ },
+ {
+  "word": "돼지",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "분홍 돼지, 코 강조",
+  "batch": "animals"
+ },
+ {
+  "word": "쥐",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "회색 쥐, 긴 꼬리",
+  "batch": "animals"
+ },
+ {
+  "word": "뱀",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "초록 뱀 S자",
+  "batch": "animals"
+ },
+ {
+  "word": "새",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "작은 파랑새가 날개를 폄",
+  "batch": "animals"
+ },
+ {
+  "word": "벌",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "노랑·검정 줄무늬 꿀벌",
+  "batch": "animals"
+ },
+ {
+  "word": "게",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "빨간 게, 집게 두 개",
+  "batch": "animals"
+ },
+ {
+  "word": "문어",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "분홍 문어 다리 여덟",
+  "batch": "animals"
+ },
+ {
+  "word": "상어",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "회색 상어, 등지느러미",
+  "batch": "animals"
+ },
+ {
+  "word": "펭귄",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "펭귄 서 있는 앞모습",
+  "batch": "animals"
+ },
+ {
+  "word": "부엉이",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "갈색 부엉이, 큰 눈, 나뭇가지",
+  "batch": "animals"
+ },
+ {
+  "word": "늑대",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "회색 늑대가 달을 보며 울부짖음",
+  "batch": "animals"
+ },
+ {
+  "word": "판다",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "판다 얼굴과 몸, 검은 눈 테두리",
+  "batch": "animals"
+ },
+ {
+  "word": "원숭이",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "갈색 원숭이, 바나나",
+  "batch": "animals"
+ },
+ {
+  "word": "코알라",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "회색 코알라가 나무를 안음",
+  "batch": "animals"
+ },
+ {
+  "word": "낙타",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "혹 두 개 낙타",
+  "batch": "animals"
+ },
+ {
+  "word": "거미",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "거미와 거미줄",
+  "batch": "animals"
+ },
+ {
+  "word": "모기",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "모기 옆모습, 긴 주둥이",
+  "batch": "animals"
+ },
+ {
+  "word": "파리",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "파리 한 마리, 투명 날개",
+  "batch": "animals"
+ },
+ {
+  "word": "다람쥐",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "다람쥐가 도토리를 듦",
+  "batch": "animals"
+ },
+ {
+  "word": "앵무새",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "알록달록 앵무새",
+  "batch": "animals"
+ },
+ {
+  "word": "까치",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "검정·흰 까치",
+  "batch": "animals"
+ },
+ {
+  "word": "비둘기",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "회색 비둘기",
+  "batch": "animals"
+ },
+ {
+  "word": "독수리",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "날개 편 독수리",
+  "batch": "animals"
+ },
+ {
+  "word": "얼룩말",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "검은 줄무늬 얼룩말",
+  "batch": "animals"
+ },
+ {
+  "word": "코뿔소",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "회색 코뿔소, 뿔",
+  "batch": "animals"
+ },
+ {
+  "word": "고릴라",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "검은 고릴라가 가슴을 두드림",
+  "batch": "animals"
+ },
+ {
+  "word": "물고기",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "주황 물고기 한 마리",
+  "batch": "animals"
+ },
+ {
+  "word": "조개",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "조개껍데기 (부채 모양)",
+  "batch": "animals"
+ },
+ {
+  "word": "새우",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "주황 새우, 굽은 몸",
+  "batch": "animals"
+ },
+ {
+  "word": "해파리",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "투명 분홍 해파리, 촉수",
+  "batch": "animals"
+ },
+ {
+  "word": "거위",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "하얀 거위, 주황 부리",
+  "batch": "animals"
+ },
+ {
+  "word": "염소",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "흰 염소, 턱수염·뿔",
+  "batch": "animals"
+ },
+ {
+  "word": "두더지",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "두더지가 흙구멍에서 고개",
+  "batch": "animals"
+ },
+ {
+  "word": "개",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "큰 개 한 마리 (강아지보다 큰 어른 개)",
+  "batch": "animals"
+ },
+ {
+  "word": "메뚜기",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "초록 메뚜기, 긴 뒷다리",
+  "batch": "animals"
+ },
+ {
+  "word": "잠자리",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "잠자리 (곤충), 날개 네 장",
+  "batch": "animals"
+ },
+ {
+  "word": "무당벌레",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "빨간 바탕 검은 점 무당벌레",
+  "batch": "animals"
+ },
+ {
+  "word": "고슴도치",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "가시 고슴도치",
+  "batch": "animals"
+ },
+ {
+  "word": "캥거루",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "캥거루와 주머니 속 아기",
+  "batch": "animals"
+ },
+ {
+  "word": "햄스터",
+  "domain": "동물",
+  "tier": "core",
+  "hint": "통통한 햄스터, 볼 가득",
+  "batch": "animals"
+ },
+ {
+  "word": "수달",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "수달이 물에 누워 조개",
+  "batch": "animals"
+ },
+ {
+  "word": "백조",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "흰 백조가 물 위",
+  "batch": "animals"
+ },
+ {
+  "word": "표범",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "노란 몸 검은 점 표범",
+  "batch": "animals"
+ },
+ {
+  "word": "불가사리",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "주황 불가사리 다섯 팔",
+  "batch": "animals"
+ },
+ {
+  "word": "가재",
+  "domain": "동물",
+  "tier": "recommended",
+  "hint": "빨간 가재, 집게",
+  "batch": "animals"
+ },
+ {
+  "word": "사과",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "빨간 사과, 잎 하나",
+  "batch": "food"
+ },
+ {
+  "word": "귤",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "주황 귤, 꼭지 잎",
+  "batch": "food"
+ },
+ {
+  "word": "감",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "주황 감 (홍시), 꼭지",
+  "batch": "food"
+ },
+ {
+  "word": "떡",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "하얀 떡과 분홍 떡 몇 개",
+  "batch": "food"
+ },
+ {
+  "word": "국",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "국그릇에 담긴 국, 김",
+  "batch": "food"
+ },
+ {
+  "word": "라면",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "냄비 속 꼬불꼬불 면",
+  "batch": "food"
+ },
+ {
+  "word": "국수",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "그릇 속 긴 면과 젓가락",
+  "batch": "food"
+ },
+ {
+  "word": "쿠키",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "초코칩 쿠키",
+  "batch": "food"
+ },
+ {
+  "word": "케이크",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "딸기 생크림 케이크, 초",
+  "batch": "food"
+ },
+ {
+  "word": "과자",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "과자 봉지와 과자 조각",
+  "batch": "food"
+ },
+ {
+  "word": "주스",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "주황 주스 컵, 빨대",
+  "batch": "food"
+ },
+ {
+  "word": "달걀",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "흰 달걀 하나와 깨진 달걀 프라이",
+  "batch": "food"
+ },
+ {
+  "word": "참외",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "노란 참외, 흰 줄",
+  "batch": "food"
+ },
+ {
+  "word": "복숭아",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "분홍 복숭아, 잎",
+  "batch": "food"
+ },
+ {
+  "word": "자두",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "자주색 자두",
+  "batch": "food"
+ },
+ {
+  "word": "레몬",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "노란 레몬",
+  "batch": "food"
+ },
+ {
+  "word": "체리",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "빨간 체리 두 알",
+  "batch": "food"
+ },
+ {
+  "word": "키위",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "키위 반쪽 (초록 속, 검은 씨)",
+  "batch": "food"
+ },
+ {
+  "word": "망고",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "노랑·주황 망고",
+  "batch": "food"
+ },
+ {
+  "word": "옥수수",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "노란 옥수수 알, 초록 잎",
+  "batch": "food"
+ },
+ {
+  "word": "버섯",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "빨간 갓 흰 점 버섯",
+  "batch": "food"
+ },
+ {
+  "word": "콩",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "초록 꼬투리 속 콩 알",
+  "batch": "food"
+ },
+ {
+  "word": "배추",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "초록 배추 한 포기",
+  "batch": "food"
+ },
+ {
+  "word": "무",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "흰 무, 초록 잎 (채소)",
+  "batch": "food"
+ },
+ {
+  "word": "가지",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "보라 가지 (채소)",
+  "batch": "food"
+ },
+ {
+  "word": "떡볶이",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "접시 위 빨간 떡볶이",
+  "batch": "food"
+ },
+ {
+  "word": "소시지",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "분홍 소시지 두 개",
+  "batch": "food"
+ },
+ {
+  "word": "꿀",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "노란 꿀 항아리, 꿀 방울",
+  "batch": "food"
+ },
+ {
+  "word": "소금",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "흰 소금통, 알갱이",
+  "batch": "food"
+ },
+ {
+  "word": "설탕",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "설탕 그릇과 각설탕",
+  "batch": "food"
+ },
+ {
+  "word": "김",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "검은 김 한 장 (네모)",
+  "batch": "food"
+ },
+ {
+  "word": "미역",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "초록 미역 줄기",
+  "batch": "food"
+ },
+ {
+  "word": "호떡",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "갈색 둥근 호떡",
+  "batch": "food"
+ },
+ {
+  "word": "붕어빵",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "물고기 모양 붕어빵",
+  "batch": "food"
+ },
+ {
+  "word": "도넛",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "분홍 크림 도넛, 가운데 구멍",
+  "batch": "food"
+ },
+ {
+  "word": "팝콘",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "빨강 줄무늬 통에 팝콘",
+  "batch": "food"
+ },
+ {
+  "word": "젤리",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "곰 모양 젤리 몇 개",
+  "batch": "food"
+ },
+ {
+  "word": "요구르트",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "작은 요구르트 병, 빨대",
+  "batch": "food"
+ },
+ {
+  "word": "수프",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "그릇에 담긴 수프, 숟가락",
+  "batch": "food"
+ },
+ {
+  "word": "샐러드",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "그릇 속 채소 샐러드",
+  "batch": "food"
+ },
+ {
+  "word": "튀김",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "노란 튀김 몇 개",
+  "batch": "food"
+ },
+ {
+  "word": "치킨",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "닭다리 튀김",
+  "batch": "food"
+ },
+ {
+  "word": "아이스크림",
+  "domain": "음식",
+  "tier": "core",
+  "hint": "콘 아이스크림 (분홍·초록 두 덩이)",
+  "batch": "food"
+ },
+ {
+  "word": "카레",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "밥 위 노란 카레",
+  "batch": "food"
+ },
+ {
+  "word": "떡국",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "그릇 속 하얀 떡국",
+  "batch": "food"
+ },
+ {
+  "word": "볶음밥",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "접시 위 볶음밥 (완두콩·당근 조각)",
+  "batch": "food"
+ },
+ {
+  "word": "멜론",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "초록 멜론 (그물 무늬)",
+  "batch": "food"
+ },
+ {
+  "word": "파",
+  "domain": "음식",
+  "tier": "recommended",
+  "hint": "초록 대파",
+  "batch": "food"
+ },
+ {
+  "word": "컵",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "손잡이 달린 컵",
+  "batch": "things"
+ },
+ {
+  "word": "숟가락",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "숟가락 하나",
+  "batch": "things"
+ },
+ {
+  "word": "젓가락",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "젓가락 한 쌍",
+  "batch": "things"
+ },
+ {
+  "word": "포크",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "포크 하나",
+  "batch": "things"
+ },
+ {
+  "word": "접시",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "빈 흰 접시",
+  "batch": "things"
+ },
+ {
+  "word": "그릇",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "빈 밥그릇",
+  "batch": "things"
+ },
+ {
+  "word": "냄비",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "손잡이 두 개 냄비",
+  "batch": "things"
+ },
+ {
+  "word": "가위",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "가위 (손잡이 빨강)",
+  "batch": "things"
+ },
+ {
+  "word": "테이프",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "투명 테이프 롤",
+  "batch": "things"
+ },
+ {
+  "word": "크레파스",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "크레파스 여러 색",
+  "batch": "things"
+ },
+ {
+  "word": "색연필",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "색연필 세 자루",
+  "batch": "things"
+ },
+ {
+  "word": "칫솔",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "칫솔과 치약 조금",
+  "batch": "things"
+ },
+ {
+  "word": "치약",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "치약 튜브",
+  "batch": "things"
+ },
+ {
+  "word": "수건",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "접힌 수건",
+  "batch": "things"
+ },
+ {
+  "word": "빗",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "빗 하나",
+  "batch": "things"
+ },
+ {
+  "word": "이불",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "이불 (꽃무늬) 덮인 침대 없이 이불만",
+  "batch": "things"
+ },
+ {
+  "word": "침대",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "침대와 베개",
+  "batch": "things"
+ },
+ {
+  "word": "의자",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "나무 의자",
+  "batch": "things"
+ },
+ {
+  "word": "책상",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "책상",
+  "batch": "things"
+ },
+ {
+  "word": "소파",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "소파",
+  "batch": "things"
+ },
+ {
+  "word": "전화",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "휴대폰 (화면에 그림 없음)",
+  "batch": "things"
+ },
+ {
+  "word": "컴퓨터",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "모니터와 키보드",
+  "batch": "things"
+ },
+ {
+  "word": "냉장고",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "냉장고",
+  "batch": "things"
+ },
+ {
+  "word": "열쇠",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "열쇠 하나",
+  "batch": "things"
+ },
+ {
+  "word": "문",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "손잡이 있는 문",
+  "batch": "things"
+ },
+ {
+  "word": "창문",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "창문 (하늘과 구름이 보임)",
+  "batch": "things"
+ },
+ {
+  "word": "상자",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "종이 상자",
+  "batch": "things"
+ },
+ {
+  "word": "풍선",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "빨간 풍선, 줄",
+  "batch": "things"
+ },
+ {
+  "word": "인형",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "곰 인형",
+  "batch": "things"
+ },
+ {
+  "word": "퍼즐",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "퍼즐 조각 네 개",
+  "batch": "things"
+ },
+ {
+  "word": "북",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "북과 북채",
+  "batch": "things"
+ },
+ {
+  "word": "피아노",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "피아노 건반",
+  "batch": "things"
+ },
+ {
+  "word": "기타",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "기타 (악기)",
+  "batch": "things"
+ },
+ {
+  "word": "나팔",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "노란 나팔",
+  "batch": "things"
+ },
+ {
+  "word": "옷",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "티셔츠 한 벌",
+  "batch": "things"
+ },
+ {
+  "word": "치마",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "치마",
+  "batch": "things"
+ },
+ {
+  "word": "단추",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "단추 두 개",
+  "batch": "things"
+ },
+ {
+  "word": "목도리",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "줄무늬 목도리",
+  "batch": "things"
+ },
+ {
+  "word": "잠옷",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "별무늬 잠옷",
+  "batch": "things"
+ },
+ {
+  "word": "운동화",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "운동화 한 켤레",
+  "batch": "things"
+ },
+ {
+  "word": "장화",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "노란 장화",
+  "batch": "things"
+ },
+ {
+  "word": "구두",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "검은 구두",
+  "batch": "things"
+ },
+ {
+  "word": "반지",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "반지 (보석)",
+  "batch": "things"
+ },
+ {
+  "word": "목걸이",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "진주 목걸이",
+  "batch": "things"
+ },
+ {
+  "word": "왕관",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "금 왕관",
+  "batch": "things"
+ },
+ {
+  "word": "리본",
+  "domain": "생활용품",
+  "tier": "recommended",
+  "hint": "분홍 리본",
+  "batch": "things"
+ },
+ {
+  "word": "그네",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "그네",
+  "batch": "things"
+ },
+ {
+  "word": "미끄럼틀",
+  "domain": "생활용품",
+  "tier": "core",
+  "hint": "미끄럼틀",
+  "batch": "things"
+ },
+ {
+  "word": "자동차",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "빨간 자동차 옆모습",
+  "batch": "places"
+ },
+ {
+  "word": "버스",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "노란 버스",
+  "batch": "places"
+ },
+ {
+  "word": "기차",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "기차와 연기",
+  "batch": "places"
+ },
+ {
+  "word": "비행기",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "하늘의 비행기",
+  "batch": "places"
+ },
+ {
+  "word": "트럭",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "짐 싣는 트럭",
+  "batch": "places"
+ },
+ {
+  "word": "택시",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "노란 택시, 지붕 표시등 (글자 없이)",
+  "batch": "places"
+ },
+ {
+  "word": "오토바이",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "오토바이",
+  "batch": "places"
+ },
+ {
+  "word": "로켓",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "하늘로 나는 로켓, 불꽃",
+  "batch": "places"
+ },
+ {
+  "word": "헬리콥터",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "헬리콥터",
+  "batch": "places"
+ },
+ {
+  "word": "킥보드",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "킥보드",
+  "batch": "places"
+ },
+ {
+  "word": "보트",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "작은 보트",
+  "batch": "places"
+ },
+ {
+  "word": "소방차",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "빨간 소방차, 사다리",
+  "batch": "places"
+ },
+ {
+  "word": "경찰차",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "흰·파랑 경찰차, 경광등",
+  "batch": "places"
+ },
+ {
+  "word": "구급차",
+  "domain": "탈것",
+  "tier": "core",
+  "hint": "흰 구급차, 빨간 십자",
+  "batch": "places"
+ },
+ {
+  "word": "지하철",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "지하철 전동차",
+  "batch": "places"
+ },
+ {
+  "word": "우주선",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "둥근 우주선",
+  "batch": "places"
+ },
+ {
+  "word": "잠수함",
+  "domain": "탈것",
+  "tier": "recommended",
+  "hint": "노란 잠수함",
+  "batch": "places"
+ },
+ {
+  "word": "병원",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "병원 건물, 빨간 십자",
+  "batch": "places"
+ },
+ {
+  "word": "공원",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "나무와 벤치가 있는 공원",
+  "batch": "places"
+ },
+ {
+  "word": "놀이터",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "미끄럼틀·그네가 있는 놀이터",
+  "batch": "places"
+ },
+ {
+  "word": "도서관",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "책장이 보이는 건물",
+  "batch": "places"
+ },
+ {
+  "word": "경찰서",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "경찰 배지가 걸린 건물",
+  "batch": "places"
+ },
+ {
+  "word": "소방서",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "소방차 차고가 있는 건물",
+  "batch": "places"
+ },
+ {
+  "word": "동물원",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "울타리 속 기린과 코끼리",
+  "batch": "places"
+ },
+ {
+  "word": "수영장",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "수영장 물과 사다리",
+  "batch": "places"
+ },
+ {
+  "word": "빵집",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "빵이 진열된 가게",
+  "batch": "places"
+ },
+ {
+  "word": "식당",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "접시와 수저가 보이는 식당",
+  "batch": "places"
+ },
+ {
+  "word": "바닷가",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "모래사장과 파도, 조개",
+  "batch": "places"
+ },
+ {
+  "word": "성",
+  "domain": "장소",
+  "tier": "core",
+  "hint": "탑이 있는 성",
+  "batch": "places"
+ },
+ {
+  "word": "등대",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "빨강·흰 등대",
+  "batch": "places"
+ },
+ {
+  "word": "텐트",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "캠핑 텐트",
+  "batch": "places"
+ },
+ {
+  "word": "탑",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "높은 탑",
+  "batch": "places"
+ },
+ {
+  "word": "모래성",
+  "domain": "장소",
+  "tier": "recommended",
+  "hint": "모래성과 깃발",
+  "batch": "places"
+ },
+ {
+  "word": "의사",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "흰 가운 의사, 청진기",
+  "batch": "places"
+ },
+ {
+  "word": "경찰",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "경찰관, 모자",
+  "batch": "places"
+ },
+ {
+  "word": "소방관",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "소방관, 헬멧·호스",
+  "batch": "places"
+ },
+ {
+  "word": "요리사",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "요리사 모자",
+  "batch": "places"
+ },
+ {
+  "word": "선생님",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "칠판 앞 선생님",
+  "batch": "places"
+ },
+ {
+  "word": "아이",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "웃는 아이 한 명",
+  "batch": "places"
+ },
+ {
+  "word": "공주",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "공주, 작은 왕관",
+  "batch": "places"
+ },
+ {
+  "word": "왕",
+  "domain": "사람",
+  "tier": "core",
+  "hint": "왕, 왕관과 망토",
+  "batch": "places"
+ },
+ {
+  "word": "해적",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "해적, 안대와 모자",
+  "batch": "places"
+ },
+ {
+  "word": "우주인",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "우주복 입은 우주인",
+  "batch": "places"
+ },
+ {
+  "word": "농부",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "밀짚모자 농부, 삽",
+  "batch": "places"
+ },
+ {
+  "word": "간호사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "간호사",
+  "batch": "places"
+ },
+ {
+  "word": "광대",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "광대, 빨간 코",
+  "batch": "places"
+ },
+ {
+  "word": "마술사",
+  "domain": "사람",
+  "tier": "recommended",
+  "hint": "마술사, 모자와 지팡이",
+  "batch": "places"
+ },
+ {
+  "word": "꽃",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "분홍 꽃 한 송이",
+  "batch": "nature_body"
+ },
+ {
+  "word": "잎",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "초록 잎 하나",
+  "batch": "nature_body"
+ },
+ {
+  "word": "산",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "산 두 봉우리",
+  "batch": "nature_body"
+ },
+ {
+  "word": "강",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "굽이치는 강",
+  "batch": "nature_body"
+ },
+ {
+  "word": "돌",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "회색 돌 몇 개",
+  "batch": "nature_body"
+ },
+ {
+  "word": "바위",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "큰 바위",
+  "batch": "nature_body"
+ },
+ {
+  "word": "섬",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "바다 위 섬과 야자수",
+  "batch": "nature_body"
+ },
+ {
+  "word": "폭포",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "폭포",
+  "batch": "nature_body"
+ },
+ {
+  "word": "화산",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "연기 나는 화산",
+  "batch": "nature_body"
+ },
+ {
+  "word": "숲",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "나무 여러 그루",
+  "batch": "nature_body"
+ },
+ {
+  "word": "씨앗",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "씨앗 몇 알과 새싹",
+  "batch": "nature_body"
+ },
+ {
+  "word": "선인장",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "화분 속 선인장",
+  "batch": "nature_body"
+ },
+ {
+  "word": "해바라기",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "해바라기",
+  "batch": "nature_body"
+ },
+ {
+  "word": "장미",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "빨간 장미",
+  "batch": "nature_body"
+ },
+ {
+  "word": "불",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "주황 불꽃",
+  "batch": "nature_body"
+ },
+ {
+  "word": "눈사람",
+  "domain": "자연",
+  "tier": "core",
+  "hint": "눈사람",
+  "batch": "nature_body"
+ },
+ {
+  "word": "물방울",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "파란 물방울",
+  "batch": "nature_body"
+ },
+ {
+  "word": "모래",
+  "domain": "자연",
+  "tier": "recommended",
+  "hint": "모래 더미와 삽",
+  "batch": "nature_body"
+ },
+ {
+  "word": "귀",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "얼굴에서 귀 강조 (노란 점선 고리)",
+  "batch": "nature_body"
+ },
+ {
+  "word": "이빨",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "웃는 입의 하얀 이 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "혀",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "혀를 내민 얼굴",
+  "batch": "nature_body"
+ },
+ {
+  "word": "목",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "몸통에서 목 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "무릎",
+  "domain": "신체",
+  "tier": "recommended",
+  "hint": "다리에서 무릎 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "발가락",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "발, 발가락 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "손가락",
+  "domain": "신체",
+  "tier": "core",
+  "hint": "손, 손가락 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "손톱",
+  "domain": "신체",
+  "tier": "recommended",
+  "hint": "손가락 끝 손톱 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "머리카락",
+  "domain": "신체",
+  "tier": "recommended",
+  "hint": "머리카락 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "턱",
+  "domain": "신체",
+  "tier": "recommended",
+  "hint": "얼굴에서 턱 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "볼",
+  "domain": "신체",
+  "tier": "recommended",
+  "hint": "얼굴에서 볼 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "입술",
+  "domain": "신체",
+  "tier": "recommended",
+  "hint": "입술 강조",
+  "batch": "nature_body"
+ },
+ {
+  "word": "먹다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "아이가 숟가락으로 밥을 먹음",
+  "batch": "actions"
+ },
+ {
+  "word": "웃다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "크게 웃는 얼굴",
+  "batch": "actions"
+ },
+ {
+  "word": "울다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "눈물 흘리며 우는 얼굴",
+  "batch": "actions"
+ },
+ {
+  "word": "걷다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "막대 사람이 걷는 모습 (가다보다 느림, 발자국)",
+  "batch": "actions"
+ },
+ {
+  "word": "서다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "막대 사람이 똑바로 서 있음 (옆에 빈 의자, 앉지 않음)",
+  "batch": "actions"
+ },
+ {
+  "word": "씻다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "손을 비누 거품으로 씻음",
+  "batch": "actions"
+ },
+ {
+  "word": "쓰다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "연필로 종이에 선을 씀 (글자 없이 물결선)",
+  "batch": "actions"
+ },
+ {
+  "word": "춤추다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "춤추는 막대 사람, 음표",
+  "batch": "actions"
+ },
+ {
+  "word": "노래하다",
+  "domain": "행동",
+  "tier": "core",
+  "hint": "입을 벌려 노래, 음표",
+  "batch": "actions"
+ },
+ {
+  "word": "타다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "아이가 말을 탐",
+  "batch": "actions"
+ },
+ {
+  "word": "잡다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "손이 공을 잡음",
+  "batch": "actions"
+ },
+ {
+  "word": "열다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "문을 여는 손",
+  "batch": "actions"
+ },
+ {
+  "word": "닫다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "문을 닫는 손, 화살표",
+  "batch": "actions"
+ },
+ {
+  "word": "밀다",
+  "domain": "행동",
+  "tier": "recommended",
+  "hint": "수레를 미는 막대 사람",
+  "batch": "actions"
+ },
+ {
+  "word": "작다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "큰 공 옆 작은 공, 작은 쪽 강조",
+  "batch": "actions"
+ },
+ {
+  "word": "길다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "긴 기차 (짧은 것과 비교)",
+  "batch": "actions"
+ },
+ {
+  "word": "낮다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "낮은 담과 높은 담, 낮은 쪽 강조",
+  "batch": "actions"
+ },
+ {
+  "word": "높다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "높은 탑과 위쪽 화살표",
+  "batch": "actions"
+ },
+ {
+  "word": "차갑다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "얼음과 입김, 파랑",
+  "batch": "actions"
+ },
+ {
+  "word": "무겁다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "무거운 상자를 드는 사람, 땀",
+  "batch": "actions"
+ },
+ {
+  "word": "가볍다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "깃털이 떠 있음",
+  "batch": "actions"
+ },
+ {
+  "word": "슬프다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "눈물 한 방울 슬픈 얼굴",
+  "batch": "actions"
+ },
+ {
+  "word": "화나다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "찌푸린 빨간 얼굴, 김",
+  "batch": "actions"
+ },
+ {
+  "word": "무섭다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "떨며 놀란 얼굴",
+  "batch": "actions"
+ },
+ {
+  "word": "춥다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "목도리하고 떠는 아이, 눈",
+  "batch": "actions"
+ },
+ {
+  "word": "덥다",
+  "domain": "상태",
+  "tier": "core",
+  "hint": "해 아래 땀 흘리는 아이",
+  "batch": "actions"
+ },
+ {
+  "word": "배고프다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "배를 잡고 꼬르륵",
+  "batch": "actions"
+ },
+ {
+  "word": "깨끗하다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "반짝이는 접시",
+  "batch": "actions"
+ },
+ {
+  "word": "더럽다",
+  "domain": "상태",
+  "tier": "recommended",
+  "hint": "진흙 묻은 신발",
+  "batch": "actions"
+ }
+]

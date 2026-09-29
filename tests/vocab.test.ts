@@ -347,3 +347,34 @@ describe('끝없는 단계 생성기 (11단계부터)', () => {
     expect(stageById('s5')?.num).toBe(5);
   });
 });
+
+import { soundChanges, soundDiffers } from '../src/hangul/pronunciation';
+
+describe('소리와 표기 (새 어휘의 soundMatchesSpelling 검사)', () => {
+  it('규칙: 연음·받침 바뀜·된소리·비음화·유음화·ㅖ', () => {
+    expect(soundChanges('악어')).toContain('연음');
+    expect(soundChanges('로봇')).toContain('받침 소리 바뀜');
+    expect(soundChanges('학교')).toContain('된소리');
+    expect(soundChanges('공룡')).toContain('비음화');
+    expect(soundChanges('신라')).toContain('유음화');
+    expect(soundChanges('시계')).toContain('ㅖ→ㅔ');
+    expect(soundChanges('강아지')).toEqual([]);
+    expect(soundChanges('수박')).toEqual([]);
+    expect(soundDiffers('김밥')).toBe(true); // 합성어 된소리는 예외 목록으로
+  });
+  it('어휘의 표시가 규칙·예외 목록과 같다', () => {
+    const wrong = VOCAB.filter((e) => soundDiffers(e.word) === e.soundMatchesSpelling).map((e) => `${e.word}:${soundChanges(e.word).join('/')}`);
+    expect(wrong).toEqual([]);
+  });
+});
+
+import candidatesL1 from '../docs/vocab-candidates-l1.json';
+
+describe('L1 후보 목록 (docs/vocab-candidates-l1.json)', () => {
+  it('모두 조립틀로 낼 수 있고, 겹치지 않는다 (이미 넣은 단어는 목록에서 빠진다)', () => {
+    const words = (candidatesL1 as { word: string }[]).map((c) => c.word);
+    expect(new Set(words).size).toBe(words.length);
+    const unsupported = words.filter((w) => !isSupportedWord(w));
+    expect(unsupported).toEqual([]);
+  });
+});

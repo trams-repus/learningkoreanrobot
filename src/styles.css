@@ -545,6 +545,13 @@ svg {
 .frame.h.jong .cho { left: 22%; top: 3%; width: 56%; height: 33%; }
 .frame.h.jong .jung { left: 6%; top: 37%; width: 88%; height: 24%; }
 .frame.h.jong .jong { left: 22%; top: 63%; width: 56%; height: 33%; }
+/* 겹모음(ㅘ·ㅝ·ㅢ …): 모음 칸이 초성 아래와 오른쪽을 ㄱ자로 감싼다. 칸 상자는 넓게 두고 clip-path로 초성 자리를 잘라 낸다
+   (잘린 곳은 누르기·놓기에도 걸리지 않는다). 모음 칩 글자는 상자 가운데에 크게 놓여 실제 겹모음 모양처럼 보인다. */
+.frame.m .cho { left: 6%; top: 5%; width: 50%; height: 50%; z-index: 1; }
+.frame.m .jung { left: 6%; top: 5%; width: 88%; height: 89%; clip-path: polygon(57% 0, 100% 0, 100% 100%, 0 100%, 0 59%, 57% 59%); }
+.frame.m.jong .cho { left: 6%; top: 3%; width: 46%; height: 34%; }
+.frame.m.jong .jung { left: 6%; top: 3%; width: 88%; height: 58%; clip-path: polygon(55% 0, 100% 0, 100% 100%, 0 100%, 0 62%, 55% 62%); }
+.frame.m.jong .jong { left: 22%; top: 64%; width: 56%; height: 32%; }
 
 .frame .cell .ghost,
 .frame .cell .jamo-chip.in-cell {
@@ -555,6 +562,15 @@ svg {
 .frame.jong .cell .ghost,
 .frame.jong .cell .jamo-chip.in-cell {
   font-size: calc(var(--frame) * 0.27);
+}
+/* 겹모음 칸: 글자를 칸 상자만큼 크게 그려 ㅗ·ㅜ·ㅡ 부분은 아래 띠, ㅏ·ㅓ·ㅣ 부분은 오른쪽 띠에 오게 한다 */
+.frame.m .jung .ghost,
+.frame.m .jung .jamo-chip.in-cell {
+  font-size: calc(var(--frame) * 0.8);
+}
+.frame.m.jong .jung .ghost,
+.frame.m.jong .jung .jamo-chip.in-cell {
+  font-size: calc(var(--frame) * 0.52);
 }
 .frame .made {
   position: absolute;

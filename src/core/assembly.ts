@@ -4,7 +4,8 @@
 import { composeSyllable, decomposeSyllable, isVowel, vowelShape, CHOSEONG, JONGSEONG } from '../hangul/hangul';
 
 export type CellRole = 'cho' | 'jung' | 'jong';
-export type FrameShape = 'vertical' | 'horizontal';
+/** mixed = 겹모음(ㅘ·ㅝ·ㅢ …): 모음이 초성 아래와 오른쪽을 ㄱ자로 감싼다 */
+export type FrameShape = 'vertical' | 'horizontal' | 'mixed';
 
 export interface FrameSpec {
   syllable: string;
@@ -24,7 +25,6 @@ export function frameFor(syllable: string): FrameSpec | null {
   const j = decomposeSyllable(syllable);
   if (!j) return null;
   const vs = vowelShape(j.jung);
-  if (vs === 'mixed') return null; // ㅘ·ㅢ 같은 복합모음 배치는 아직 지원하지 않는다
   if (COMPOUND_JONG.has(j.jong)) return null;
   return { syllable, cho: j.cho, jung: j.jung, jong: j.jong, shape: vs, hasJong: j.jong !== '' };
 }
@@ -176,12 +176,15 @@ export interface WordFeatures {
   hasDoubleConsonant: boolean;
   /** ㅐ·ㅔ·ㅒ·ㅖ (예: 개미) */
   hasComplexVowel: boolean;
+  /** 겹모음 ㅘ·ㅙ·ㅚ·ㅝ·ㅞ·ㅟ·ㅢ (예: 사과, 돼지) */
+  hasCompoundVowel: boolean;
   /** 같은 자모가 여러 번 필요 (예: 바나나의 ㅏ) */
   hasRepeatedJamo: boolean;
 }
 
 const DOUBLE = new Set(['ㄲ', 'ㄸ', 'ㅃ', 'ㅆ', 'ㅉ']);
 const COMPLEX_VOWEL = new Set(['ㅐ', 'ㅔ', 'ㅒ', 'ㅖ']);
+const COMPOUND_VOWEL = new Set(['ㅘ', 'ㅙ', 'ㅚ', 'ㅝ', 'ㅞ', 'ㅟ', 'ㅢ']);
 
 export function wordFeatures(word: string): WordFeatures | null {
   const frames = wordFrames(word);
@@ -192,6 +195,7 @@ export function wordFeatures(word: string): WordFeatures | null {
     hasJong: frames.some((f) => f.hasJong),
     hasDoubleConsonant: frames.some((f) => DOUBLE.has(f.cho) || DOUBLE.has(f.jong)),
     hasComplexVowel: frames.some((f) => COMPLEX_VOWEL.has(f.jung)),
+    hasCompoundVowel: frames.some((f) => COMPOUND_VOWEL.has(f.jung)),
     hasRepeatedJamo: new Set(need).size < need.length,
   };
 }
@@ -203,18 +207,19 @@ export function wordFeatures(word: string): WordFeatures | null {
 export function wordDifficulty(word: string): number {
   const f = wordFeatures(word);
   if (!f) return 99;
-  return Math.max(0, f.syllables - 2) + (f.hasJong ? 1 : 0) + (f.hasDoubleConsonant ? 1 : 0) + (f.hasComplexVowel ? 1 : 0) + (f.hasRepeatedJamo ? 0.5 : 0);
+  return Math.max(0, f.syllables - 2) + (f.hasJong ? 1 : 0) + (f.hasDoubleConsonant ? 1 : 0) + (f.hasComplexVowel ? 1 : 0) + (f.hasCompoundVowel ? 1.5 : 0) + (f.hasRepeatedJamo ? 0.5 : 0);
 }
 
 /**
- * 출제 단계: 받침 없음 → 받침 → 쌍자음·ㅐ류 모음 (받침이 함께 있어도 마지막 단계).
- * 한 단계에 새 요소를 하나씩만 더하려는 구분이다.
+ * 출제 단계: 받침 없음 → 받침 → 쌍자음·ㅐ류 모음 → 겹모음(ㅘ·ㅝ·ㅢ …, 31단계부터).
+ * 한 단계에 새 요소를 하나씩만 더하려는 구분이다 (뒤 단계 요소가 하나라도 있으면 뒤 단계).
  */
-export type WordTier = 'plain' | 'jong' | 'tense';
+export type WordTier = 'plain' | 'jong' | 'tense' | 'compound';
 
 export function wordTier(word: string): WordTier | null {
   const f = wordFeatures(word);
   if (!f) return null;
+  if (f.hasCompoundVowel) return 'compound';
   if (f.hasDoubleConsonant || f.hasComplexVowel) return 'tense';
   return f.hasJong ? 'jong' : 'plain';
 }

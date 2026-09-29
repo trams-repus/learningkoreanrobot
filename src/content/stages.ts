@@ -245,7 +245,7 @@ export interface DifficultyBand {
   /** B·C·E. 단어 길이와 조립 단계 (받침·쌍자음/ㅐ류) */
   syllables: number[];
   tiers: WordTier[];
-  /** D. 모음: basic = 기본·ㅐ류, mixed = ㅘ·ㅝ·ㅚ·ㅟ (조립틀이 아직 지원하지 않아 planned) */
+  /** D. 모음: basic = 기본·ㅐ류, mixed = 겹모음 ㅘ·ㅝ·ㅚ·ㅟ도 (조립틀 mixed, 31단계부터) */
   vowels: 'basic' | 'mixed';
   /** F. 칸 안내 */
   guide: 'full' | 'less';
@@ -283,14 +283,14 @@ export const DIFFICULTY_BANDS: DifficultyBand[] = [
     to: 60,
     traps: { count: [5, 6], hardShare: 0.5, advanced: true },
     syllables: [2, 3, 4],
-    tiers: ['jong', 'tense'],
+    tiers: ['jong', 'tense', 'compound'],
     vowels: 'mixed',
     guide: 'less',
     comboScale: 0.8,
     maxFoes: 3,
     behaviours: ['pack', 'heavy', 'shield', 'dodge'],
     fxScale: 1.6,
-    planned: ['겹모음 ㅘ·ㅝ·ㅚ·ㅟ 조립틀', '보스 패턴', '필살기 변형'],
+    planned: ['보스 패턴', '필살기 변형'],
     blurb: '네 글자까지, 받침·쌍자음 위주, 방패 두른 보스',
   },
   {
@@ -298,7 +298,7 @@ export const DIFFICULTY_BANDS: DifficultyBand[] = [
     to: null,
     traps: { count: [6, 6], hardShare: 0.6, advanced: true },
     syllables: [3, 4],
-    tiers: ['plain', 'jong', 'tense'],
+    tiers: ['plain', 'jong', 'tense', 'compound'],
     vowels: 'mixed',
     guide: 'less',
     comboScale: 0.75,
@@ -403,6 +403,8 @@ export function generateStage(num: number, seed = GEN.seed): StageDef {
     { f: { syllables: [longest], tiers: band.tiers }, label: `${longest}글자` },
     { f: { syllables: band.syllables, tiers: ['jong'] }, label: '받침' },
     { f: { syllables: band.syllables, tiers: ['tense'] }, label: '쌍자음 · ㅐ' },
+    // 31단계부터: 겹모음 (ㅘ·ㅝ·ㅢ …). 단어가 모자라면 아래에서 다른 초점으로 넓힌다
+    ...(band.tiers.includes('compound') ? [{ f: { syllables: [1, 2, 3], tiers: ['compound'] as WordTier[] }, label: '겹모음' }] : []),
   ];
   // 초점은 번호로 돌린다 (무작위로 고르면 같은 초점이 몇 번 이어져 지루했다)
   // 11단계(화산섬 첫 전투)가 긴 단어로 시작한다: 11 긴 단어 → 12 받침 → 13 쌍자음·ㅐ → …
